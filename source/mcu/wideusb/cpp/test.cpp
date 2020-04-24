@@ -1,3 +1,7 @@
+#include "os/cpp-freertos.hpp"
+
+using namespace os;
+
 class Test
 {
 public:
@@ -5,6 +9,8 @@ public:
     {
         int i = 0;
         i += 1;
+        TaskBase tb;
+        Queue<int> q(10);
     }
 };
 

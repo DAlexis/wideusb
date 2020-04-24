@@ -1,0 +1,318 @@
+/*
+ * os-wrappers.cpp
+ *
+ *  Created on: 7 дек. 2016 г.
+ *      Author: dalexies
+ */
+
+#include "os/cpp-freertos.hpp"
+#include "macro.hpp"
+
+#include "cmsis_os.h"
+
+#include <stdio.h>
+
+namespace os {
+
+const Ticks max_delay = portMAX_DELAY;
+
+void delay(Time ms)
+{
+    osDelay(ms);
+}
+
+TaskBase::TaskBase(const TaskFunc& task, const char* name) :
+    m_task(task),
+    m_name(const_cast<char*>(name))
+{ }
+
+TaskBase::~TaskBase() = default; // This is done to use unique_ptr with forward declaration
+
+bool TaskBase::is_running() const
+{
+    return m_state & running_now;
+}
+
+void TaskBase::delete_after_run(bool doDelete)
+{
+    if (doDelete)
+        m_state |= need_delete_self;
+    else
+        m_state &= ~(need_delete_self);
+}
+
+void TaskBase::set_task(const TaskFunc& _task)
+{
+    m_task = _task;
+}
+
+void TaskBase::set_stack_size(uint32_t stackSize)
+{
+    m_stackSize = stackSize;
+}
+
+void TaskBase::set_name(const char* name)
+{
+    m_name = const_cast<char*>(name);
+}
+
+bool TaskBase::stop_safe()
+{
+    if (!(m_state & running_now))
+        return true;
+
+    if (m_state & executing_now)
+    {
+        ADD_BITS(m_state, need_stop);
+        return false;
+    } else {
+        vTaskDelete( (osThreadId) m_taskId);
+        m_taskId = nullptr;
+        REMOVE_BITS(m_state, running_now);
+        REMOVE_BITS(m_state, need_stop);
+        return true;
+    }
+}
+
+void TaskBase::stop_unsafe()
+{
+    if (m_taskId)
+    {
+        vTaskDelete((osThreadId) m_taskId);
+        m_taskId = nullptr;
+    }
+}
+
+
+void TaskBase::stop_thread()
+{
+    REMOVE_BITS(m_state, running_now);
+    REMOVE_BITS(m_state, need_stop);
+    m_taskId = nullptr;
+    vTaskDelete(NULL);
+}
+
+
+void TaskOnce::run_task_once(void const* pTask)
+{
+	TaskOnce *task = reinterpret_cast<TaskOnce*> (const_cast<void*>(pTask));
+	osDelay(task->m_firstRunDelay);
+
+    ADD_BITS(task->m_state, executing_now);
+    task->m_task();
+
+    if (task->m_state & need_delete_self)
+	{
+		delete task;
+		vTaskDelete(NULL);
+	} else {
+        task->stop_thread();
+	}
+}
+
+void TaskCycled::run_task_in_cycle(void const* pTask)
+{
+	TaskCycled *task = reinterpret_cast<TaskCycled*> (const_cast<void*>(pTask));
+	osDelay(task->m_firstRunDelay);
+	if (task->m_cyclesCount == 0)
+	{
+		for (;;)
+		{
+            ADD_BITS(task->m_state, executing_now);
+            task->m_task();
+            REMOVE_BITS(task->m_state, executing_now);
+            if (task->m_state & need_stop)
+			{
+                task->stop_thread();
+				return;
+			}
+			if (task->m_periodMin == 0)
+			{
+				taskYIELD();
+			} else {
+				osDelay(task->m_periodMin);
+			}
+		}
+	} else {
+		for (uint32_t i=0; i<task->m_cyclesCount;i++)
+		{
+            ADD_BITS(task->m_state, executing_now);
+            task->m_task();
+            REMOVE_BITS(task->m_state, executing_now);
+            if (task->m_state & need_stop)
+			{
+                task->stop_thread();
+				return;
+			}
+			if (task->m_periodMin == 0)
+			{
+				taskYIELD();
+			} else {
+				osDelay(task->m_periodMin);
+			}
+		}
+        task->stop_thread();
+	}
+}
+
+TaskOnce::TaskOnce(const TaskFunc& task) :
+    TaskBase(task)
+{ }
+
+bool TaskOnce::run(Time delay, Priority priority)
+{
+    ADD_BITS(m_state, running_now);
+	m_firstRunDelay = delay;
+	//osThreadDef(newTask, runTaskOnce, priority, 0, m_stackSize);
+
+	os_thread_def threadDef;
+    threadDef.name = m_name;
+    threadDef.pthread = run_task_once;
+    threadDef.tpriority = (osPriority) priority;
+	threadDef.instances = 0;
+    threadDef.stacksize = m_stackSize;
+
+    m_taskId = osThreadCreate(&threadDef, reinterpret_cast<void*>(this));
+    if (m_taskId == NULL)
+	{
+        REMOVE_BITS(m_state, running_now);
+		printf("ERROR: Running new task failed!\n");
+		return false;
+	}
+	return true;
+}
+
+bool TaskCycled::run(Time firstRunDelay, Time periodMin, Time periodMax, uint32_t cyclesCount)
+{
+    ADD_BITS(m_state, running_now);
+	m_firstRunDelay = firstRunDelay;
+	m_periodMin = periodMin;
+	m_periodMax = periodMax;
+	m_cyclesCount = cyclesCount;
+	//osThreadDef(newTask, runTaskInCycle, osPriorityNormal, 0, m_stackSize);
+
+	os_thread_def threadDef;
+    threadDef.name = m_name;
+    threadDef.pthread = run_task_in_cycle;
+	threadDef.tpriority = osPriorityNormal;
+	threadDef.instances = 0;
+    threadDef.stacksize = m_stackSize;
+
+    m_taskId = osThreadCreate(&threadDef, reinterpret_cast<void*>(this));
+    if (m_taskId == NULL)
+	{
+        REMOVE_BITS(m_state, running_now);
+		return false;
+	}
+	return true;
+}
+
+QueueBase::QueueBase(unsigned int queue_size, size_t object_size) :
+    m_handle((Handle) xQueueCreate(queue_size, object_size))
+{
+}
+
+QueueBase::~QueueBase()
+{
+    vQueueDelete(m_handle);
+}
+
+void QueueBase::push_back(const void* obj, Ticks timeToWait)
+{
+    xQueueSendToBack((xQueueHandle) m_handle, obj, timeToWait);
+}
+
+void QueueBase::push_front(const void* obj, Ticks timeToWait)
+{
+    xQueueSendToFront((xQueueHandle) m_handle, obj, timeToWait);
+}
+
+void QueueBase::pop_front(void* target, Ticks timeToWait)
+{
+    xQueueReceive((xQueueHandle) m_handle, target, timeToWait);
+}
+
+void QueueBase::push_back_from_ISR(const void* obj)
+{
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xQueueSendToBackFromISR((xQueueHandle) m_handle, obj, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR (xHigherPriorityTaskWoken);
+}
+
+void QueueBase::push_front_from_ISR(const void* obj)
+{
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xQueueSendToFrontFromISR((xQueueHandle) m_handle, obj, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR (xHigherPriorityTaskWoken);
+}
+
+void QueueBase::pop_front_from_ISR(void* target)
+{
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    xQueueReceiveFromISR((xQueueHandle) m_handle, target, &xHigherPriorityTaskWoken);
+    portYIELD_FROM_ISR (xHigherPriorityTaskWoken);
+}
+
+uint16_t QueueBase::size()
+{
+    return uxQueueMessagesWaiting((xQueueHandle) m_handle);
+}
+
+uint16_t QueueBase::size_from_ISR()
+{
+    return uxQueueMessagesWaitingFromISR((xQueueHandle) m_handle);
+}
+
+Mutex::Mutex() :
+    m_handle(xSemaphoreCreateMutex())
+{
+}
+
+Mutex::~Mutex()
+{
+    if (m_handle) vSemaphoreDelete((xSemaphoreHandle) m_handle);
+}
+
+bool Mutex::lock(Ticks timeout)
+{
+    return (xSemaphoreTake((xSemaphoreHandle) m_handle, timeout ) == pdTRUE);
+}
+
+void Mutex::unlock()
+{
+    xSemaphoreGive((xSemaphoreHandle) m_handle );
+}
+
+bool Mutex::is_locked()
+{
+    bool wasNotLocked = lock(0);
+    if (wasNotLocked) {
+        unlock();
+        return false;
+    }
+    return true;
+}
+
+}
+
+///////////////////////////////////////
+/// Global new/delete redefinition
+
+void * operator new(std::size_t n)
+{
+    return pvPortMalloc(n);
+}
+void operator delete(void * p)
+{
+    vPortFree(p);
+}
+
+void *operator new[](std::size_t n)
+{
+    return pvPortMalloc(n);
+}
+
+void operator delete[](void *p) throw()
+{
+    vPortFree(p);
+}

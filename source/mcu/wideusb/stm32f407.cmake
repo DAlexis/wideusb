@@ -24,8 +24,8 @@ SET(CMAKE_CPPFILT "${TOOLCHAIN_PREFIX}-c++filt" CACHE INTERNAL "ARM none-eabi c+
 
 SET(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
-set(CMAKE_C_CXX_FLAGS "-mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffunction-sections -fdata-sections -ffreestanding -fno-move-loop-invariants -Wall -Wextra -g3 -DDEBUG -DUSE_FULL_ASSERT -DHSE_VALUE=8000000")
-set(CMAKE_C_CXX_FLAGS_DEBUG   "-fno-move-loop-invariants -g -DDEBUG -Os")
+set(CMAKE_C_CXX_FLAGS "-mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffunction-sections -fdata-sections -ffreestanding -fno-move-loop-invariants -Wall -Wextra -DHSE_VALUE=8000000")
+set(CMAKE_C_CXX_FLAGS_DEBUG   "-g -gdwarf-2 -DDEBUG -O0")
 set(CMAKE_C_CXX_FLAGS_RELEASE "-Os")
 
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_CXX_FLAGS} -std=gnu11")
