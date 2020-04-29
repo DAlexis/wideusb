@@ -12,6 +12,8 @@ Tasks
 
 Some future points
 =====
+- Json parser: RapidJSON
+- base64 parser: FreeBSD WPA: http://web.mit.edu/freebsd/head/contrib/wpa/src/utils/base64.c
 - [ ] Integrate parser
 - [ ] Services engine
 - [ ] Configuration saver/loader/cleaner

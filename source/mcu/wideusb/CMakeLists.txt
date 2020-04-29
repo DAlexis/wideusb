@@ -82,6 +82,7 @@ set(H_HEADERS
 
     ${PROJECT_SOURCE_DIR}/cpp/include/cpp-bootstrap.h
     ${PROJECT_SOURCE_DIR}/cpp/include/os/cpp-freertos.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/tools/base64.hpp
 )
 
 set(C_SOURCES
@@ -137,6 +138,7 @@ set(CPP_SOURCES
     ${PROJECT_SOURCE_DIR}/cpp/test.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/cpp-bootstrap.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/os/cpp-freertos-impl.cpp
+    ${PROJECT_SOURCE_DIR}/cpp/src/tools/base64.cpp
 )
 
 set(ASM_SOURCES

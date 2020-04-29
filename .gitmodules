@@ -1,0 +1,3 @@
+[submodule "source/mcu/unit-tests/3rdparty/googletest"]
+	path = source/mcu/unit-tests/3rdparty/googletest
+	url = https://github.com/google/googletest.git
