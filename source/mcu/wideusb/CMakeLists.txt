@@ -13,6 +13,55 @@ set(H_HEADERS
     ${PROJECT_SOURCE_DIR}/Core/Inc/stm32f4xx_hal_conf.h
     ${PROJECT_SOURCE_DIR}/Core/Inc/stm32f4xx_it.h
 
+    ${PROJECT_SOURCE_DIR}/cpp/include/cpp-bootstrap.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/host-communication.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/macro.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/module.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/modules/core.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/os/cpp-freertos.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/allocators.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson-config.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/cursorstreamwrapper.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/document.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/encodedstream.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/encodings.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/error/en.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/error/error.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/filereadstream.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/filewritestream.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/fwd.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/internal/biginteger.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/internal/clzll.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/internal/diyfp.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/internal/dtoa.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/internal/ieee754.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/internal/itoa.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/internal/meta.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/internal/pow10.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/internal/regex.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/internal/stack.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/internal/strfunc.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/internal/strtod.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/internal/swap.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/istreamwrapper.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/memorybuffer.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/memorystream.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/msinttypes/inttypes.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/msinttypes/stdint.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/ostreamwrapper.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/pointer.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/prettywriter.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/rapidjson.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/reader.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/schema.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/stream.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/stringbuffer.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/writer.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/tools/base64.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/tools/ring-buffer.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/tools/ring-buffer-json.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/src/base64.h
+
     ${PROJECT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h
     ${PROJECT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
     ${PROJECT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include/system_stm32f4xx.h
@@ -79,11 +128,8 @@ set(H_HEADERS
     ${PROJECT_SOURCE_DIR}/USB_DEVICE/App/usbd_desc.h
     ${PROJECT_SOURCE_DIR}/USB_DEVICE/App/usb_device.h
     ${PROJECT_SOURCE_DIR}/USB_DEVICE/Target/usbd_conf.h
-
-    ${PROJECT_SOURCE_DIR}/cpp/include/cpp-bootstrap.h
-    ${PROJECT_SOURCE_DIR}/cpp/include/os/cpp-freertos.hpp
-    ${PROJECT_SOURCE_DIR}/cpp/include/tools/base64.hpp
 )
+
 
 set(C_SOURCES
     ${PROJECT_SOURCE_DIR}/Core/Src/freertos.c
@@ -136,9 +182,11 @@ set(C_SOURCES
 
 set(CPP_SOURCES
     ${PROJECT_SOURCE_DIR}/cpp/test.cpp
+    ${PROJECT_SOURCE_DIR}/cpp/src/host-communication.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/cpp-bootstrap.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/os/cpp-freertos-impl.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/tools/base64.cpp
+    ${PROJECT_SOURCE_DIR}/cpp/src/tools/ring-buffer-json.cpp
 )
 
 set(ASM_SOURCES
@@ -166,7 +214,7 @@ include_directories(
     ${PROJECT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/include
     ${PROJECT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/portable/GCC/ARM_CM4F
     ${PROJECT_SOURCE_DIR}/USB_DEVICE/App
-    ${PROJECT_SOURCE_DIR}/USB_DEVICE/Target
+    ${PROJECT_SOURCE_DIR}/USB_DEVICE/Target    
 )
 
 set(ELF_NAME ${PROJECT_NAME}.elf)

@@ -16,9 +16,24 @@ namespace os {
 
 const Ticks max_delay = portMAX_DELAY;
 
-void delay(Time ms)
+void assert(const char* message, const char* file, int line)
+{
+    printf("Assertion %s at %s:%d\r\n", message, file, line);
+}
+
+Time_ms get_os_time()
+{
+    return osKernelSysTick() * configTICK_RATE_HZ / 1000;
+}
+
+void delay(Time_ms ms)
 {
     osDelay(ms);
+}
+
+void yeld()
+{
+    taskYIELD();
 }
 
 TaskBase::TaskBase(const TaskFunc& task, const char* name) :
@@ -126,11 +141,11 @@ void TaskCycled::run_task_in_cycle(void const* pTask)
                 task->stop_thread();
 				return;
 			}
-			if (task->m_periodMin == 0)
+            if (task->m_period == 0)
 			{
 				taskYIELD();
 			} else {
-				osDelay(task->m_periodMin);
+                osDelay(task->m_period);
 			}
 		}
 	} else {
@@ -144,11 +159,11 @@ void TaskCycled::run_task_in_cycle(void const* pTask)
                 task->stop_thread();
 				return;
 			}
-			if (task->m_periodMin == 0)
+            if (task->m_period == 0)
 			{
 				taskYIELD();
 			} else {
-				osDelay(task->m_periodMin);
+                osDelay(task->m_period);
 			}
 		}
         task->stop_thread();
@@ -159,7 +174,7 @@ TaskOnce::TaskOnce(const TaskFunc& task) :
     TaskBase(task)
 { }
 
-bool TaskOnce::run(Time delay, Priority priority)
+bool TaskOnce::run(Time_ms delay, Priority priority)
 {
     ADD_BITS(m_state, running_now);
 	m_firstRunDelay = delay;
@@ -182,12 +197,15 @@ bool TaskOnce::run(Time delay, Priority priority)
 	return true;
 }
 
-bool TaskCycled::run(Time firstRunDelay, Time periodMin, Time periodMax, uint32_t cyclesCount)
+TaskCycled::TaskCycled(const TaskFunc& task, const char* name) :
+    TaskBase(task, name)
+{ }
+
+bool TaskCycled::run(Time_ms period, Time_ms firstRunDelay, uint32_t cyclesCount)
 {
     ADD_BITS(m_state, running_now);
 	m_firstRunDelay = firstRunDelay;
-	m_periodMin = periodMin;
-	m_periodMax = periodMax;
+    m_period = period;
 	m_cyclesCount = cyclesCount;
 	//osThreadDef(newTask, runTaskInCycle, osPriorityNormal, 0, m_stackSize);
 
@@ -262,6 +280,16 @@ uint16_t QueueBase::size_from_ISR()
 {
     return uxQueueMessagesWaitingFromISR((xQueueHandle) m_handle);
 }
+/*
+RingBuffer::RingBuffer(size_t buffer_size) :
+    m_buffer(buffer_size, 0)
+{
+}
+
+bool RingBuffer::put(uint8_t* data, uint32_t size)
+{
+
+}*/
 
 Mutex::Mutex() :
     m_handle(xSemaphoreCreateMutex())
@@ -307,12 +335,22 @@ void operator delete(void * p)
     vPortFree(p);
 }
 
+void operator delete(void * p, size_t)
+{
+    vPortFree(p);
+}
+
 void *operator new[](std::size_t n)
 {
     return pvPortMalloc(n);
 }
 
 void operator delete[](void *p) throw()
+{
+    vPortFree(p);
+}
+
+void operator delete[](void *p, size_t) throw()
 {
     vPortFree(p);
 }

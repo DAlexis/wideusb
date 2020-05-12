@@ -51,7 +51,9 @@
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN INCLUDE */
+#include "cmsis_os.h"
 
+#include <string.h>
 /* USER CODE END INCLUDE */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -93,7 +95,7 @@
 /* USER CODE BEGIN PRIVATE_DEFINES */
 /* Define size for the receive and transmit buffer over CDC */
 /* It's up to user to redefine and/or remove those define */
-#define APP_RX_DATA_SIZE  2048
+#define APP_RX_DATA_SIZE  512
 #define APP_TX_DATA_SIZE  2048
 /* USER CODE END PRIVATE_DEFINES */
 
@@ -107,7 +109,7 @@
   */
 
 /* USER CODE BEGIN PRIVATE_MACRO */
-
+#define USB_RX_TIMEOUT_TICKS  1000
 /* USER CODE END PRIVATE_MACRO */
 
 /**
@@ -142,7 +144,7 @@ uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 extern USBD_HandleTypeDef hUsbDeviceFS;
 
 /* USER CODE BEGIN EXPORTED_VARIABLES */
-
+USBD_CDC_RingBuffer USBD_input_buffer;
 /* USER CODE END EXPORTED_VARIABLES */
 
 /**
@@ -160,7 +162,15 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length);
 static int8_t CDC_Receive_FS(uint8_t* pbuf, uint32_t *Len);
 
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_DECLARATION */
-
+static uint32_t input_ring_buffer_free_space(USBD_CDC_RingBuffer* input_buffer)
+{
+    if (input_buffer->p_read < input_buffer->p_write)
+    {
+        return USBD_CDC_INPUT_RING_BUFFER_SIZE + input_buffer->p_read - input_buffer->p_write;
+    } else {
+        return input_buffer->p_read- input_buffer->p_write;
+    }
+}
 /* USER CODE END PRIVATE_FUNCTIONS_DECLARATION */
 
 /**
@@ -291,9 +301,42 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
-  USBD_CDC_SetRxBuffer(&hUsbDeviceFS, &Buf[0]);
-  USBD_CDC_ReceivePacket(&hUsbDeviceFS);
-  return (USBD_OK);
+    if (USBD_input_buffer.input_on_timeout)
+    {
+        if (osKernelSysTick() - USBD_input_buffer.last_time > USBD_CDC_INPUT_TIMEOUT)
+        {
+            // Timeout is over
+            USBD_input_buffer.input_on_timeout = 0;
+        }
+    }
+
+    if (!USBD_input_buffer.input_on_timeout)
+    {
+        if (*Len < input_ring_buffer_free_space(&USBD_input_buffer))
+        {
+            uint32_t free_tail = USBD_CDC_INPUT_RING_BUFFER_SIZE - USBD_input_buffer.p_write;
+            if (*Len < free_tail)
+            {
+                // Add to the end
+                memcpy(&USBD_input_buffer.ring_buffer[USBD_input_buffer.p_write], Buf, *Len);
+                USBD_input_buffer.p_write += *Len;
+            } else {
+                // Part add to the end and part add to the beginning
+                memcpy(&USBD_input_buffer.ring_buffer[USBD_input_buffer.p_write], Buf, free_tail);
+                uint32_t second_part_size = free_tail - *Len;
+                memcpy(&USBD_input_buffer.ring_buffer[0], Buf[free_tail], second_part_size);
+                USBD_input_buffer.p_write = second_part_size;
+            }
+        } else {
+            USBD_input_buffer.input_on_timeout = 1;
+        }
+    }
+    USBD_input_buffer.last_time = osKernelSysTick();
+
+    USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
+    USBD_CDC_ReceivePacket(&hUsbDeviceFS);
+
+    return (USBD_OK);
   /* USER CODE END 6 */
 }
 
@@ -312,12 +355,19 @@ uint8_t CDC_Transmit_FS(uint8_t* Buf, uint16_t Len)
 {
   uint8_t result = USBD_OK;
   /* USER CODE BEGIN 7 */
+  static xSemaphoreHandle mutex = NULL;
+  if (mutex == NULL)
+      mutex = xSemaphoreCreateMutex();
+  xSemaphoreTake(mutex, portMAX_DELAY );
+
   USBD_CDC_HandleTypeDef *hcdc = (USBD_CDC_HandleTypeDef*)hUsbDeviceFS.pClassData;
-  if (hcdc->TxState != 0){
+  if (hcdc->TxState != 0) {
+    xSemaphoreGive(mutex);
     return USBD_BUSY;
   }
   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, Buf, Len);
   result = USBD_CDC_TransmitPacket(&hUsbDeviceFS);
+  xSemaphoreGive(mutex);
   /* USER CODE END 7 */
   return result;
 }

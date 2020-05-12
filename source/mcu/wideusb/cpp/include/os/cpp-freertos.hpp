@@ -14,24 +14,36 @@
 #include <memory>
 
 #include <stdint.h>
+#include <vector>
 
 namespace os
 {
 
+#ifdef DEBUG
+    #define ASSERT(condition, message) os::assert(message, __FILE__, __LINE__)
+#else
+    #define ASSERT(condition, message)
+#endif
+
 using TaskFunc = std::function<void(void)>;
-using Time = uint32_t;
+using Time_ms = uint32_t;
 using Priority = int;
 using Ticks = uint32_t;
 using Handle = void*;
 
 extern const Ticks max_delay;
 
-void delay(Time ms);
+Time_ms get_os_time();
+void delay(Time_ms ms);
+void yeld();
+
+void assert(const char* message, const char* file, int line);
+
 
 class TaskBase
 {
 public:
-    TaskBase(const TaskFunc& task = nullptr, const char* name = "Unknown");
+    TaskBase(const TaskFunc& task, const char* name = "Unknown");
     ~TaskBase();
 
     inline bool is_running() const;
@@ -70,26 +82,23 @@ class TaskOnce : public TaskBase
 {
 public:
     TaskOnce(const TaskFunc& task = nullptr);
-    bool run(Time delay = 0, Priority priority = 0);
+    bool run(Time_ms delay = 0, Priority priority = 0);
 
 private:
-    Time m_firstRunDelay = 0;
+    Time_ms m_firstRunDelay = 0;
     static void run_task_once(void const* pTask);
 };
 
 class TaskCycled : public TaskBase
 {
 public:
-    TaskCycled(const TaskFunc& task = nullptr) :
-			TaskBase(task)
-	{ }
+    TaskCycled(const TaskFunc& task, const char* name = "Unknown_cycled");
 
-    bool run(Time firstRunDelay = 0, Time periodMin = 1, Time periodMax = 1, uint32_t cyclesCount = 0);
+    bool run(Time_ms period = 0, Time_ms firstRunDelay = 0, uint32_t cyclesCount = 0);
 
 private:
-    Time m_firstRunDelay = 0;
-    Time m_periodMin = 0;
-    Time m_periodMax = 0;
+    Time_ms m_firstRunDelay = 0;
+    Time_ms m_period = 0;
 	uint32_t m_cyclesCount = 0;
     static void run_task_in_cycle(void const* pTask);
 };

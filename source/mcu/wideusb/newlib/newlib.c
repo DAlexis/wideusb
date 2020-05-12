@@ -5,6 +5,7 @@
 #include <sys/time.h>
 
 #include <stm32f4xx_hal.h>
+#include "usbd_cdc_if.h"
 
 extern uint32_t __get_MSP(void);
 //extern UART_HandleTypeDef UART_Handle;
@@ -189,10 +190,12 @@ int _write(int file, char *ptr, int len)
 {
     switch (file)
     {
-    case STDOUT_FILENO: /*stdout*/
+    case STDOUT_FILENO: /* stdout */
+        CDC_Transmit_FS(ptr, len);
         //HAL_UART_Transmit(&UART_Handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
         break;
     case STDERR_FILENO: /* stderr */
+        CDC_Transmit_FS(ptr, len);
         //HAL_UART_Transmit(&UART_Handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
         break;
     default:
