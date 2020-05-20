@@ -16,7 +16,7 @@ namespace os {
 
 const Ticks max_delay = portMAX_DELAY;
 
-void assert(const char* message, const char* file, int line)
+void assert_print(const char* message, const char* file, int line)
 {
     printf("Assertion %s at %s:%d\r\n", message, file, line);
 }

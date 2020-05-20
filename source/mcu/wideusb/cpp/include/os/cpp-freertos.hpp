@@ -37,7 +37,7 @@ Time_ms get_os_time();
 void delay(Time_ms ms);
 void yeld();
 
-void assert(const char* message, const char* file, int line);
+void assert_print(const char* message, const char* file, int line);
 
 
 class TaskBase
@@ -46,10 +46,10 @@ public:
     TaskBase(const TaskFunc& task, const char* name = "Unknown");
     ~TaskBase();
 
-    inline bool is_running() const;
-    inline void delete_after_run(bool doDelete = true);
-    inline void set_task(const TaskFunc& _task);
-    inline void set_stack_size(uint32_t stackSize);
+    bool is_running() const;
+    void delete_after_run(bool doDelete = true);
+    void set_task(const TaskFunc& _task);
+    void set_stack_size(uint32_t stackSize);
     void set_name(const char* name);
 
 	/**

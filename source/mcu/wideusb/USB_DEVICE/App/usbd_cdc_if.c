@@ -164,11 +164,11 @@ static int8_t CDC_Receive_FS(uint8_t* pbuf, uint32_t *Len);
 /* USER CODE BEGIN PRIVATE_FUNCTIONS_DECLARATION */
 static uint32_t input_ring_buffer_free_space(USBD_CDC_RingBuffer* input_buffer)
 {
-    if (input_buffer->p_read < input_buffer->p_write)
+    if (input_buffer->p_read <= input_buffer->p_write)
     {
         return USBD_CDC_INPUT_RING_BUFFER_SIZE + input_buffer->p_read - input_buffer->p_write;
     } else {
-        return input_buffer->p_read- input_buffer->p_write;
+        return input_buffer->p_read - input_buffer->p_write;
     }
 }
 /* USER CODE END PRIVATE_FUNCTIONS_DECLARATION */
@@ -303,7 +303,8 @@ static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
   /* USER CODE BEGIN 6 */
     if (USBD_input_buffer.input_on_timeout)
     {
-        if (osKernelSysTick() - USBD_input_buffer.last_time > USBD_CDC_INPUT_TIMEOUT)
+        uint32_t current_time = osKernelSysTick();
+        if (current_time - USBD_input_buffer.last_time > USBD_CDC_INPUT_TIMEOUT)
         {
             // Timeout is over
             USBD_input_buffer.input_on_timeout = 0;

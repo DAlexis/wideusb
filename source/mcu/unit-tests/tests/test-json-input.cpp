@@ -20,6 +20,8 @@ static void clear_ring_buffer(USBD_CDC_RingBuffer* ring_buffer)
 
 TEST(RapidJOSN, WorksWithSpecifiedDefines)
 {
+    // This test check that RapidJSON configuration specified at `rapidjson-config.h`
+    // works correctly
     {
         const std::string debug_massage = "Hello, world";
         Document d;
@@ -38,6 +40,12 @@ TEST(RapidJOSN, WorksWithSpecifiedDefines)
 
         d.AddMember("body", body, d.GetAllocator());
 
+        const std::string id_str("test_id");
+
+        Value id(kStringType);
+        id.SetString(StringRef(id_str.c_str()));
+        d.AddMember("msg_id", id, alloc);
+
         StringBuffer buffer;
         Writer<StringBuffer> writer(buffer);
         d.Accept(writer);
@@ -48,6 +56,7 @@ TEST(RapidJOSN, WorksWithSpecifiedDefines)
         const char* json = "{ \"module\":\"core\", \"action\":\"get_status\"}";
         Document d;
         d.Parse(json);
+        ASSERT_EQ(d["module"], "core");
     }
 }
 

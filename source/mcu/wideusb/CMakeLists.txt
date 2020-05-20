@@ -15,6 +15,7 @@ set(H_HEADERS
 
     ${PROJECT_SOURCE_DIR}/cpp/include/cpp-bootstrap.h
     ${PROJECT_SOURCE_DIR}/cpp/include/host-communication.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/host-communication-interface.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/macro.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/module.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/modules/core.hpp
@@ -60,7 +61,6 @@ set(H_HEADERS
     ${PROJECT_SOURCE_DIR}/cpp/include/tools/base64.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/tools/ring-buffer.h
     ${PROJECT_SOURCE_DIR}/cpp/include/tools/ring-buffer-json.hpp
-    ${PROJECT_SOURCE_DIR}/cpp/src/base64.h
 
     ${PROJECT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h
     ${PROJECT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
@@ -184,6 +184,8 @@ set(CPP_SOURCES
     ${PROJECT_SOURCE_DIR}/cpp/test.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/host-communication.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/cpp-bootstrap.cpp
+    ${PROJECT_SOURCE_DIR}/cpp/src/module.cpp
+    ${PROJECT_SOURCE_DIR}/cpp/src/modules/core.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/os/cpp-freertos-impl.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/tools/base64.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/tools/ring-buffer-json.cpp
