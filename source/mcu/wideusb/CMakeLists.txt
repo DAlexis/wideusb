@@ -18,8 +18,15 @@ set(H_HEADERS
     ${PROJECT_SOURCE_DIR}/cpp/include/host-communication-interface.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/macro.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/module.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/data-saver.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/modules/core.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/modules/gps/minmea.h
+    ${PROJECT_SOURCE_DIR}/cpp/include/modules/gps/nmea-receiver.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/modules/gps/nmea-parser.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/modules/gps/precision-timer.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/modules/gps.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/os/cpp-freertos.hpp
+
     ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/allocators.h
     ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson-config.h
     ${PROJECT_SOURCE_DIR}/cpp/include/rapidjson/cursorstreamwrapper.h
@@ -132,6 +139,7 @@ set(H_HEADERS
 
 
 set(C_SOURCES
+
     ${PROJECT_SOURCE_DIR}/Core/Src/freertos.c
     ${PROJECT_SOURCE_DIR}/Core/Src/gpio.c
     ${PROJECT_SOURCE_DIR}/Core/Src/main.c
@@ -139,7 +147,8 @@ set(C_SOURCES
     ${PROJECT_SOURCE_DIR}/Core/Src/stm32f4xx_hal_timebase_tim.c
     ${PROJECT_SOURCE_DIR}/Core/Src/stm32f4xx_it.c
     ${PROJECT_SOURCE_DIR}/Core/Src/system_stm32f4xx.c
-
+    ${PROJECT_SOURCE_DIR}/Core/Src/tim.c
+    ${PROJECT_SOURCE_DIR}/Core/Src/usart.c
     ${PROJECT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c
     ${PROJECT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c
     ${PROJECT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c
@@ -156,8 +165,8 @@ set(C_SOURCES
     ${PROJECT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c
     ${PROJECT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c
     ${PROJECT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim_ex.c
+    ${PROJECT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c
     ${PROJECT_SOURCE_DIR}/Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_ll_usb.c
-
     ${PROJECT_SOURCE_DIR}/Middlewares/ST/STM32_USB_Device_Library/Class/CDC/Src/usbd_cdc.c
     ${PROJECT_SOURCE_DIR}/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_core.c
     ${PROJECT_SOURCE_DIR}/Middlewares/ST/STM32_USB_Device_Library/Core/Src/usbd_ctlreq.c
@@ -171,9 +180,7 @@ set(C_SOURCES
     ${PROJECT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/queue.c
     ${PROJECT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/tasks.c
     ${PROJECT_SOURCE_DIR}/Middlewares/Third_Party/FreeRTOS/Source/timers.c
-
     ${PROJECT_SOURCE_DIR}/newlib/newlib.c
-
     ${PROJECT_SOURCE_DIR}/USB_DEVICE/App/usbd_cdc_if.c
     ${PROJECT_SOURCE_DIR}/USB_DEVICE/App/usbd_desc.c
     ${PROJECT_SOURCE_DIR}/USB_DEVICE/App/usb_device.c
@@ -185,7 +192,13 @@ set(CPP_SOURCES
     ${PROJECT_SOURCE_DIR}/cpp/src/host-communication.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/cpp-bootstrap.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/module.cpp
+    ${PROJECT_SOURCE_DIR}/cpp/src/data-saver.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/modules/core.cpp
+    ${PROJECT_SOURCE_DIR}/cpp/src/modules/gps/minmea.cpp
+    ${PROJECT_SOURCE_DIR}/cpp/src/modules/gps/nmea-receiver.cpp
+    ${PROJECT_SOURCE_DIR}/cpp/src/modules/gps/nmea-parser.cpp
+    ${PROJECT_SOURCE_DIR}/cpp/src/modules/gps/precision-timer.cpp
+    ${PROJECT_SOURCE_DIR}/cpp/src/modules/gps.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/os/cpp-freertos-impl.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/tools/base64.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/tools/ring-buffer-json.cpp
@@ -231,6 +244,6 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --specs=nano.specs -Xlinke
 add_executable(${ELF_NAME} ${EXE_SOURCES})
 
 STM32_ADD_HEX_BIN_TARGETS(${ELF_NAME})
-STM32_ADD_DUMP_TARGET(${ELF_NAME})
+#STM32_ADD_DUMP_TARGET(${ELF_NAME})
 STM32_PRINT_SIZE_OF_TARGETS(${ELF_NAME})
 

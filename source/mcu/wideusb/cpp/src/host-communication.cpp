@@ -127,6 +127,4 @@ void debug_message(const std::string& message)
     StringBuffer buffer;
     Writer<StringBuffer> writer(buffer);
     d.Accept(writer);
-
-    //cout << buffer.GetString() << endl;
 }

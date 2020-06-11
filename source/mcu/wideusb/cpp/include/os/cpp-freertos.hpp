@@ -25,7 +25,7 @@ namespace os
     #define ASSERT(condition, message)
 #endif
 
-using TaskFunc = std::function<void(void)>;
+using TaskFunction = std::function<void(void)>;
 using Time_ms = uint32_t;
 using Priority = int;
 using Ticks = uint32_t;
@@ -35,20 +35,61 @@ extern const Ticks max_delay;
 
 Time_ms get_os_time();
 void delay(Time_ms ms);
-void yeld();
 
 void assert_print(const char* message, const char* file, int line);
 
+class Thread
+{
+public:
+    enum class Priority {
+        idle         = -3,          ///< priority: idle (lowest)
+        low          = -2,          ///< priority: low
+        below_normal = -1,          ///< priority: below normal
+        normal       =  0,          ///< priority: normal (default)
+        above_normal = +1,          ///< priority: above normal
+        high         = +2,          ///< priority: high
+        realtime     = +3,          ///< priority: realtime (highest)
+    };
+
+    Thread(TaskFunction function, const char* name = "Unknown", uint32_t stack_size = 128, Priority priority = Priority::normal);
+
+    Handle handle();
+    void run();
+
+    void notify_give_form_ISR();
+    void notify_give();
+
+    static void yeld();
+
+    /**
+     * @brief Wait for notification in thread from which this function was called.
+     * @param clean    Clean notification after taking, so next take will need next notification.
+     * @param timeout  Timeout in ticks.
+     * @return Count of notifications before ot was cleaned. Zero if timeouted.
+     */
+    static uint32_t notify_take(bool clean = true, Ticks timeout = max_delay);
+
+private:
+    void thread_body();
+    static void thread_body_bootstrap(const void * thread_object);
+
+    const char* m_name;
+    uint32_t m_stack_size;
+    Priority m_priority;
+    bool m_is_running = false;
+    Handle m_task_handle = nullptr;
+    TaskFunction m_task_function = nullptr;
+};
 
 class TaskBase
 {
 public:
-    TaskBase(const TaskFunc& task, const char* name = "Unknown");
+    TaskBase(const TaskFunction& task, const char* name = "Unknown");
     ~TaskBase();
 
     bool is_running() const;
     void delete_after_run(bool doDelete = true);
-    void set_task(const TaskFunc& _task);
+    void set_task(const TaskFunction& _task);
     void set_stack_size(uint32_t stackSize);
     void set_name(const char* name);
 
@@ -71,7 +112,7 @@ protected:
 
     void stop_thread();
 
-    TaskFunc m_task;
+    TaskFunction m_task;
     uint32_t m_stackSize = 128;
     Handle m_taskId = nullptr;
     uint8_t m_state = 0;
@@ -81,7 +122,7 @@ protected:
 class TaskOnce : public TaskBase
 {
 public:
-    TaskOnce(const TaskFunc& task = nullptr);
+    TaskOnce(const TaskFunction& task = nullptr);
     bool run(Time_ms delay = 0, Priority priority = 0);
 
 private:
@@ -92,7 +133,7 @@ private:
 class TaskCycled : public TaskBase
 {
 public:
-    TaskCycled(const TaskFunc& task, const char* name = "Unknown_cycled");
+    TaskCycled(const TaskFunction& task = nullptr, const char* name = "Unknown_cycled");
 
     bool run(Time_ms period = 0, Time_ms firstRunDelay = 0, uint32_t cyclesCount = 0);
 

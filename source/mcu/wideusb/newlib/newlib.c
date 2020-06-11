@@ -6,8 +6,11 @@
 
 #include <stm32f4xx_hal.h>
 #include "usbd_cdc_if.h"
+#include "cmsis_os.h"
 
-extern uint32_t __get_MSP(void);
+#define UNUSED_ARGUMENT(x) ((void) x)
+
+//extern uint32_t __get_MSP(void);
 //extern UART_HandleTypeDef UART_Handle;
 extern uint64_t virtualTimer;
 
@@ -21,16 +24,19 @@ int _write(int file, char *ptr, int len);
 
 void _exit(int status)
 {
+    UNUSED_ARGUMENT(status);
     while (1);
 }
 
 int _close(int file)
 {
+    UNUSED_ARGUMENT(file);
     return -1;
 }
 
 int _execve(char *name, char **argv, char **env)
 {
+    UNUSED_ARGUMENT(name); UNUSED_ARGUMENT(argv); UNUSED_ARGUMENT(env);
     errno = ENOMEM;
     return -1;
 }
@@ -43,6 +49,7 @@ int _fork()
 
 int _fstat(int file, struct stat *st)
 {
+    UNUSED_ARGUMENT(file); UNUSED_ARGUMENT(st);
     st->st_mode = S_IFCHR;
     return 0;
 }
@@ -54,8 +61,10 @@ int _getpid()
 
 int _gettimeofday(struct timeval *tv, struct timezone *tz)
 {
-    tv->tv_sec = virtualTimer / 1000;
-    tv->tv_usec = (virtualTimer % 1000) * 1000;
+    UNUSED_ARGUMENT(tz);
+    uint32_t os_time = osKernelSysTick() * configTICK_RATE_HZ / 1000;
+    tv->tv_sec = os_time / 1000;
+    tv->tv_usec = (os_time % 1000) * 1000;
     return 0;
 }
 
@@ -76,43 +85,23 @@ int _isatty(int file)
 
 int _kill(int pid, int sig)
 {
+    UNUSED_ARGUMENT(pid); UNUSED_ARGUMENT(sig);
     errno = EINVAL;
     return (-1);
 }
 
 int _link(char *old, char *new)
 {
+    UNUSED_ARGUMENT(old); UNUSED_ARGUMENT(new);
     errno = EMLINK;
     return -1;
 }
 
 int _lseek(int file, int ptr, int dir)
 {
+    UNUSED_ARGUMENT(file); UNUSED_ARGUMENT(ptr); UNUSED_ARGUMENT(dir);
     return 0;
 }
-
-/*
-caddr_t _sbrk(int incr)
-{
-    extern char _ebss;
-    static char *heap_end= &_ebss;
-    char *prev_heap_end;
-
-    prev_heap_end = heap_end;
-
-    char * stack = (char*) __get_MSP();
-    if (heap_end + incr > stack)
-    {
-        _write(STDERR_FILENO, "Heap and stack collision\n", 25);
-        errno = ENOMEM;
-        return (caddr_t) - 1;
-        //abort ();
-    }
-
-    heap_end += incr;
-    return (caddr_t) prev_heap_end;
-
-}*/
 
 caddr_t _sbrk(int incr)
 {
@@ -152,11 +141,12 @@ caddr_t _sbrk(int incr)
 
 int _read(int file, char *ptr, int len)
 {
+    UNUSED_ARGUMENT(ptr); UNUSED_ARGUMENT(len);
     switch (file)
     {
-    case STDIN_FILENO:
+    /*case STDIN_FILENO:
         //HAL_UART_Receive(&UART_Handle, (uint8_t *)ptr, 1, HAL_MAX_DELAY);
-        return 1;
+        return 1;*/
     default:
         errno = EBADF;
         return -1;
@@ -165,23 +155,27 @@ int _read(int file, char *ptr, int len)
 
 int _stat(const char *filepath, struct stat *st)
 {
+    UNUSED_ARGUMENT(filepath);
     st->st_mode = S_IFCHR;
     return 0;
 }
 
 clock_t _times(struct tms *buf)
 {
+    UNUSED_ARGUMENT(buf);
     return -1;
 }
 
 int _unlink(char *name)
 {
+    UNUSED_ARGUMENT(name);
     errno = ENOENT;
     return -1;
 }
 
 int _wait(int *status)
 {
+    UNUSED_ARGUMENT(status);
     errno = ECHILD;
     return -1;
 }
@@ -191,12 +185,10 @@ int _write(int file, char *ptr, int len)
     switch (file)
     {
     case STDOUT_FILENO: /* stdout */
-        CDC_Transmit_FS(ptr, len);
-        //HAL_UART_Transmit(&UART_Handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+        CDC_Transmit_FS((uint8_t*) ptr, len);
         break;
     case STDERR_FILENO: /* stderr */
-        CDC_Transmit_FS(ptr, len);
-        //HAL_UART_Transmit(&UART_Handle, (uint8_t*)ptr, len, HAL_MAX_DELAY);
+        CDC_Transmit_FS((uint8_t*) ptr, len);
         break;
     default:
         errno = EBADF;

@@ -4,6 +4,8 @@
 #include "rapidjson-config.h"
 #include "rapidjson/document.h"
 
+#include <string>
+
 class IHostCommunicator;
 
 class IModule
@@ -23,6 +25,7 @@ public:
 
     void report_debug(const std::string& text);
     void report_error(const std::string& text);
+
 protected:
     void add_module_field(rapidjson::Document& doc);
 

@@ -41,6 +41,8 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 #include "cmsis_os.h"
+#include "tim.h"
+#include "usart.h"
 #include "usb_device.h"
 #include "gpio.h"
 
@@ -110,6 +112,8 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_USART3_UART_Init();
+  MX_TIM2_Init();
   /* USER CODE BEGIN 2 */
 
   /* USER CODE END 2 */
@@ -124,13 +128,6 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  char *c = malloc(10);
-  c[0] = 'q';
-  c[1] = 'q';
-  c[2] = 'q';
-  c[3] = 'q';
-  c[4] = 'q';
-  c[5] = '\0';
   while (1)
   {
     /* USER CODE END WHILE */
@@ -234,7 +231,7 @@ void assert_failed(uint8_t *file, uint32_t line)
      tex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
 
     // Ok, good enough
-    printf("Wrong parameters value: file %s on line %d\r\n", file, line);
+    printf("Wrong parameters value: file %s on line %ld\r\n", file, line);
   /* USER CODE END 6 */
 }
 #endif /* USE_FULL_ASSERT */

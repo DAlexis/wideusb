@@ -78,6 +78,10 @@ void Error_Handler(void);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/
+#define TIM2_CAPTURE_SIGNAL_Pin GPIO_PIN_0
+#define TIM2_CAPTURE_SIGNAL_GPIO_Port GPIOA
+#define TIM2_CAPTURE_GPS_PPS_Pin GPIO_PIN_1
+#define TIM2_CAPTURE_GPS_PPS_GPIO_Port GPIOA
 #define MY_LED1_Pin GPIO_PIN_12
 #define MY_LED1_GPIO_Port GPIOD
 /* USER CODE BEGIN Private defines */

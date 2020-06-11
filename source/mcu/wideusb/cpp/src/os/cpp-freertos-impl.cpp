@@ -31,12 +31,72 @@ void delay(Time_ms ms)
     osDelay(ms);
 }
 
-void yeld()
+Thread::Thread(TaskFunction function, const char* name, uint32_t stack_size, Priority priority) :
+    m_name(name), m_stack_size(stack_size), m_priority(priority), m_task_function(function)
+{
+}
+
+Handle Thread::handle()
+{
+    return m_task_handle;
+}
+
+void Thread::run()
+{
+    os_thread_def threadDef;
+    threadDef.name = const_cast<char*>(m_name);
+    threadDef.pthread = thread_body_bootstrap;
+    threadDef.tpriority = (osPriority) m_priority;
+    threadDef.instances = 0;
+    threadDef.stacksize = m_stack_size;
+
+    m_is_running = true;
+    m_task_handle = osThreadCreate(&threadDef, reinterpret_cast<void*>(this));
+}
+
+uint32_t Thread::notify_take(bool clean, Ticks timeout)
+{
+    return ulTaskNotifyTake(clean ? pdTRUE : pdFALSE, TickType_t(timeout));
+}
+
+void Thread::notify_give_form_ISR()
+{
+    /// https://www.freertos.org/RTOS_Task_Notification_As_Binary_Semaphore.html
+    if (!m_is_running)
+        return;
+
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    vTaskNotifyGiveFromISR(m_task_handle, &xHigherPriorityTaskWoken);
+
+    /* If xHigherPriorityTaskWoken is now set to pdTRUE then a context switch
+    should be performed to ensure the interrupt returns directly to the highest
+    priority task.  The macro used for this purpose is dependent on the port in
+    use and may be called portEND_SWITCHING_ISR(). */
+    portYIELD_FROM_ISR( xHigherPriorityTaskWoken );
+}
+
+void Thread::notify_give()
+{
+    xTaskNotifyGive(m_task_handle);
+}
+
+void Thread::yeld()
 {
     taskYIELD();
 }
 
-TaskBase::TaskBase(const TaskFunc& task, const char* name) :
+void Thread::thread_body()
+{
+    m_task_function();
+    m_is_running = false;
+}
+
+void Thread::thread_body_bootstrap(const void * thread_object)
+{
+    reinterpret_cast<Thread *>(const_cast<void*>(thread_object))->thread_body();
+}
+
+TaskBase::TaskBase(const TaskFunction& task, const char* name) :
     m_task(task),
     m_name(const_cast<char*>(name))
 { }
@@ -56,7 +116,7 @@ void TaskBase::delete_after_run(bool doDelete)
         m_state &= ~(need_delete_self);
 }
 
-void TaskBase::set_task(const TaskFunc& _task)
+void TaskBase::set_task(const TaskFunction& _task)
 {
     m_task = _task;
 }
@@ -170,7 +230,7 @@ void TaskCycled::run_task_in_cycle(void const* pTask)
 	}
 }
 
-TaskOnce::TaskOnce(const TaskFunc& task) :
+TaskOnce::TaskOnce(const TaskFunction& task) :
     TaskBase(task)
 { }
 
@@ -197,7 +257,7 @@ bool TaskOnce::run(Time_ms delay, Priority priority)
 	return true;
 }
 
-TaskCycled::TaskCycled(const TaskFunc& task, const char* name) :
+TaskCycled::TaskCycled(const TaskFunction& task, const char* name) :
     TaskBase(task, name)
 { }
 
