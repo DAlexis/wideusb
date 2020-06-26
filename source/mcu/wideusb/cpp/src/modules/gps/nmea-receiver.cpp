@@ -17,6 +17,11 @@ NMEAReceiver::NMEAReceiver(UART_HandleTypeDef* huart) :
     receive();
 }
 
+const GPSData& NMEAReceiver::gps()
+{
+    return m_gps_data;
+}
+
 void NMEAReceiver::receiver_thread()
 {
     for (;;)
@@ -31,6 +36,7 @@ void NMEAReceiver::receiver_thread()
             line.insert(line.end(), m_buffer + borders.begin, m_buffer + buffer_size);
             line.insert(line.end(), m_buffer, m_buffer + borders.end);
         }
+        m_gps_data.parse_line(line.c_str(), os::get_os_time());
         printf("> %s\r\n", line.c_str());
         //printf(line.c_str());
     }

@@ -232,7 +232,7 @@ static inline int_least32_t minmea_rescale(struct minmea_float *f, int_least32_t
  * Convert a fixed-point value to a floating-point value.
  * Returns NaN for "unknown" values.
  */
-static inline float minmea_tofloat(struct minmea_float *f)
+static inline float minmea_tofloat(const struct minmea_float *f)
 {
     if (f->scale == 0)
         return NAN;
@@ -243,7 +243,7 @@ static inline float minmea_tofloat(struct minmea_float *f)
  * Convert a raw coordinate to a floating point DD.DDD... value.
  * Returns NaN for "unknown" values.
  */
-static inline float minmea_tocoord(struct minmea_float *f)
+static inline float minmea_tocoord(const struct minmea_float *f)
 {
     if (f->scale == 0)
         return NAN;

@@ -1,6 +1,7 @@
 #ifndef NMEA_RECEIVER_HPP_INCLUDED
 #define NMEA_RECEIVER_HPP_INCLUDED
 
+#include "modules/gps/nmea-parser.hpp"
 #include "os/cpp-freertos.hpp"
 #include "usart.h"
 #include <stdint.h>
@@ -9,6 +10,8 @@ class NMEAReceiver
 {
 public:
     NMEAReceiver(UART_HandleTypeDef* huart);
+
+    const GPSData& gps();
 
     void interrupt_uart_RX_callback(uint8_t* data, uint16_t size);
 
@@ -25,6 +28,8 @@ private:
     void receive();
     void receiver_thread();
     void monitor_thread();
+
+    GPSData m_gps_data;
 
     char m_buffer[buffer_size];
     uint16_t m_current_block = 0;
