@@ -4,10 +4,12 @@
 #include "module.hpp"
 #include "rapidjson/document.h"
 
+#include <memory>
+
 class IHostCommunicator
 {
 public:
-    virtual void send_data(const rapidjson::Document& doc) = 0;
+    virtual void send_data(std::unique_ptr<rapidjson::Document> doc) = 0;
     virtual void add_module(IModule* module) = 0;
 
     virtual ~IHostCommunicator() = default;

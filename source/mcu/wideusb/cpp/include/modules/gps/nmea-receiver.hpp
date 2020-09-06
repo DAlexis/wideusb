@@ -14,6 +14,7 @@ public:
     const GPSData& gps();
 
     void interrupt_uart_RX_callback(uint8_t* data, uint16_t size);
+    void interrupt_pps();
 
 private:
     struct SentenceBorders

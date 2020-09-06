@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 #include <map>
+#include <queue>
 
 class IModule;
 
@@ -19,21 +20,26 @@ public:
     HostCommunicator();
 
     void add_module(IModule* module) override;
-    void send_data(const rapidjson::Document& doc) override;
+    void send_data(std::unique_ptr<rapidjson::Document> doc) override;
 
     void run_thread();
     void send_ack(const std::string& message_id);
 
 private:
 
-    void parse_thread();
+    void input_parsing_thread_func();
+    void output_messages_sending_thread_func();
     void parse_single_json(const std::string& json);
     bool clear_by_timeout();
 
     std::map<std::string, IModule*> m_modules;
 
     os::Time_ms m_last_incoming = 0;
-    os::TaskCycled m_thread{ [this](){ parse_thread(); }, "Usb_input_parsing"};
+    os::Thread m_input_parsing_thread { [this](){ input_parsing_thread_func(); }, "Usb_input_parsing", 1024 };
+    os::Thread m_output_sending_thread { [this](){ output_messages_sending_thread_func(); }, "Usb_output_sending", 1024 };
+
+    std::queue<std::unique_ptr<rapidjson::Document>> m_output_messages;
+    os::Mutex m_output_queue_mutex;
 };
 
 void debug_message(const std::string& message);

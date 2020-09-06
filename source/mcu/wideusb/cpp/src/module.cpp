@@ -20,38 +20,37 @@ void Module::add_module_field(rapidjson::Document& doc)
     doc.AddMember("module", module, alloc);
 }
 
-void Module::report_debug(const std::string& text)
+void Module::assert_text(const char* text, AssertLevel level, bool copy_text)
 {
-    Document d;
-    d.SetObject();
-    auto & alloc = d.GetAllocator();
+    std::unique_ptr<Document> d(new Document());
 
-    add_module_field(d);
+    d->SetObject();
+    auto & alloc = d->GetAllocator();
 
-    Value action("debug");
-    d.AddMember("action", action, alloc);
+    add_module_field(*d);
+
+    Value action(kStringType);
+    switch(level)
+    {
+    case AssertLevel::Debug:
+        action.SetString(StringRef("debug"));
+        break;
+    default:
+    case AssertLevel::Error:
+        action.SetString(StringRef("error"));
+        break;
+
+    }
+    d->AddMember("action", action, alloc);
 
     Value error_text(kStringType);
-    error_text.SetString(StringRef(text.c_str()));
-    d.AddMember("text", error_text, alloc);
 
-    m_communicator->send_data(d);
-}
+    if (copy_text)
+        error_text.SetString(text, strlen(text), alloc);
+    else
+        error_text.SetString(StringRef(text));
 
-void Module::report_error(const std::string& text)
-{
-    Document d;
-    d.SetObject();
-    auto & alloc = d.GetAllocator();
+    d->AddMember("text", error_text, alloc);
 
-    add_module_field(d);
-
-    Value action("error");
-    d.AddMember("action", action, alloc);
-
-    Value error_text(kStringType);
-    error_text.SetString(StringRef(text.c_str()));
-    d.AddMember("text", error_text, alloc);
-
-    m_communicator->send_data(d);
+    m_communicator->send_data(std::move(d));
 }

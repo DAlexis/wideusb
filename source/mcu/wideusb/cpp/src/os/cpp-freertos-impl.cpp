@@ -366,6 +366,11 @@ bool Mutex::lock(Ticks timeout)
     return (xSemaphoreTake((xSemaphoreHandle) m_handle, timeout ) == pdTRUE);
 }
 
+void Mutex::lock()
+{
+    lock(max_delay);
+}
+
 void Mutex::unlock()
 {
     xSemaphoreGive((xSemaphoreHandle) m_handle );

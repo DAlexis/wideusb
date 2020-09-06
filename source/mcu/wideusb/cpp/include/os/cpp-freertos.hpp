@@ -208,9 +208,10 @@ public:
     Mutex();
     ~Mutex();
 
-    inline bool lock(Ticks timeout = max_delay);
-    inline void unlock();
-    inline bool is_locked();
+    bool lock(Ticks timeout);
+    void lock();
+    void unlock();
+    bool is_locked();
 private:
 
     Handle m_handle;

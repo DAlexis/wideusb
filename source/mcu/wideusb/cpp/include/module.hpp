@@ -21,10 +21,14 @@ public:
 class Module : public IModule
 {
 public:
+    enum class AssertLevel {
+        Debug = 0,
+        Error = 1
+    };
+
     void connect_to_comminucator(IHostCommunicator* communicator) override;
 
-    void report_debug(const std::string& text);
-    void report_error(const std::string& text);
+    void assert_text(const char* text, AssertLevel level = AssertLevel::Debug, bool copy_text = false);
 
 protected:
     void add_module_field(rapidjson::Document& doc);

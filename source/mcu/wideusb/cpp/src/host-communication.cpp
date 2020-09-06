@@ -10,6 +10,7 @@
 
 
 #include <string.h>
+#include <mutex>
 
 using namespace rapidjson;
 
@@ -18,12 +19,12 @@ static const char debug[] = "debug";
 
 HostCommunicator::HostCommunicator()
 {
-    m_thread.set_stack_size(1024);
 }
 
 void HostCommunicator::run_thread()
 {
-    m_thread.run();
+    m_input_parsing_thread.run();
+    m_output_sending_thread.run();
 }
 
 
@@ -33,37 +34,34 @@ void HostCommunicator::add_module(IModule* module)
     module->connect_to_comminucator(this);
 }
 
-void HostCommunicator::send_data(const rapidjson::Document& doc)
+void HostCommunicator::send_data(std::unique_ptr<rapidjson::Document> doc)
 {
-    StringBuffer buffer;
-    Writer<StringBuffer> writer(buffer);
-    doc.Accept(writer);
-    buffer.Put('\r');
-    buffer.Put('\n');
-    // @Todo add check if USBD_BUSY and resend?
-    CDC_Transmit_FS((uint8_t*)buffer.GetString(), buffer.GetSize());
+    std::unique_lock<os::Mutex> lock(m_output_queue_mutex);
+    m_output_messages.emplace(std::move(doc));
+    lock.unlock();
+    m_output_sending_thread.notify_give();
 }
 
 void HostCommunicator::send_ack(const std::string& message_id)
 {
-    Document d;
-    d.SetObject();
-    auto & alloc = d.GetAllocator();
+    std::unique_ptr<Document> d(new Document);
+    d->SetObject();
+    auto & alloc = d->GetAllocator();
 
     Value module("communicator");
-    d.AddMember("module", module, alloc);
+    d->AddMember("module", module, alloc);
 
     Value action("ack");
-    d.AddMember("action", action, alloc);
+    d->AddMember("action", action, alloc);
 
     Value id(kStringType);
     id.SetString(StringRef(message_id.c_str()));
-    d.AddMember("msg_id", id, alloc);
+    d->AddMember("msg_id", id, alloc);
 
-    send_data(d);
+    send_data(std::move(d));
 }
 
-void HostCommunicator::parse_thread()
+void HostCommunicator::input_parsing_thread_func()
 {
     std::optional<std::string> json;
     for (;;) {
@@ -76,6 +74,30 @@ void HostCommunicator::parse_thread()
             return;
 
         parse_single_json(*json);
+    }
+}
+
+void HostCommunicator::output_messages_sending_thread_func()
+{
+    for (;;)
+    {
+        os::Thread::notify_take();
+
+        if (m_output_messages.empty())
+            continue;
+
+        std::unique_ptr<Document> doc(std::move(m_output_messages.front()));
+        std::unique_lock<os::Mutex> lock(m_output_queue_mutex);
+        m_output_messages.pop();
+        lock.unlock();
+
+        StringBuffer buffer;
+        Writer<StringBuffer> writer(buffer);
+        doc->Accept(writer);
+        buffer.Put('\r');
+        buffer.Put('\n');
+        // @Todo add check if USBD_BUSY and resend?
+        CDC_Transmit_FS((uint8_t*)buffer.GetString(), buffer.GetSize());
     }
 }
 

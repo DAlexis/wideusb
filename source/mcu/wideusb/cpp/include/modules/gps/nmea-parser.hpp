@@ -8,10 +8,11 @@
 struct Point
 {
     Point();
+    struct tm get_tm();
 
     float latitude = 0.0f;
     float longitude = 0.0f;
-    tm time;
+    struct timespec time;
     float fracional_sec = 0.0f;
     float altitude = 0.0f;
     size_t last_update_ticks = 0;
@@ -22,7 +23,7 @@ class GPSData
 public:
     GPSData(uint32_t ticks_per_sec = 1000);
     bool parse_line(const char* line, size_t ticks);
-    Point point();
+    Point point() const;
     void fit_to_pps(size_t ticks);
 
 private:

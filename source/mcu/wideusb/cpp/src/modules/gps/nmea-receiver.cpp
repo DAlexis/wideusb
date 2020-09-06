@@ -37,7 +37,7 @@ void NMEAReceiver::receiver_thread()
             line.insert(line.end(), m_buffer, m_buffer + borders.end);
         }
         m_gps_data.parse_line(line.c_str(), os::get_os_time());
-        printf("> %s\r\n", line.c_str());
+        //printf("> %s\r\n", line.c_str());
         //printf(line.c_str());
     }
 }
@@ -79,6 +79,11 @@ void NMEAReceiver::interrupt_uart_RX_callback(uint8_t* data, uint16_t size)
                 m_sentence_queue.push_back_from_ISR(borders);
         }
     }
+}
+
+void NMEAReceiver::interrupt_pps()
+{
+    m_gps_data.fit_to_pps(os::get_os_time());
 }
 
 void NMEAReceiver::receive()

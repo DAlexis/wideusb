@@ -8,7 +8,9 @@ class PrecisionTimer
 {
 public:
     using SignalCallback = std::function<void(bool has_timing, uint32_t last_second_duration, uint32_t ticks_since_pps)>;
-    PrecisionTimer(TIM_HandleTypeDef* tim_handle, SignalCallback signal_callback);
+    using PPSCallback = std::function<void(uint32_t last_second_duration)>;
+
+    PrecisionTimer(TIM_HandleTypeDef* tim_handle, SignalCallback signal_callback, PPSCallback pps_callback);
     ~PrecisionTimer();
 
     uint32_t value();
@@ -30,6 +32,7 @@ private:
     uint32_t m_pps_count = 0;
 
     SignalCallback m_signal_callback = nullptr;
+    PPSCallback m_pps_callback = nullptr;
 };
 
 #endif // PRECISION_TIMER_HPP_INCLUDED

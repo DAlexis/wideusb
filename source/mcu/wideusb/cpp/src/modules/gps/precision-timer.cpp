@@ -2,8 +2,8 @@
 
 static PrecisionTimer* interrupt_receiver = nullptr;
 
-PrecisionTimer::PrecisionTimer(TIM_HandleTypeDef* tim_handle, SignalCallback signal_callback) :
-    m_tim_handle(tim_handle), m_signal_callback(signal_callback)
+PrecisionTimer::PrecisionTimer(TIM_HandleTypeDef* tim_handle, SignalCallback signal_callback, PPSCallback pps_callback) :
+    m_tim_handle(tim_handle), m_signal_callback(signal_callback), m_pps_callback(pps_callback)
 {
     interrupt_receiver = this;
     HAL_TIM_IC_Start_IT(m_tim_handle, TIM_CHANNEL_1);
@@ -64,9 +64,12 @@ void PrecisionTimer::interrupt_external_signal(uint32_t ticks)
 
 void PrecisionTimer::interrupt_PPS(uint32_t ticks)
 {
+    uint32_t second_duration = m_ticks_pps - m_ticks_prev_pps;
     m_ticks_prev_pps = m_ticks_pps;
     m_ticks_pps = ticks;
     m_pps_count++;
+    if (m_pps_callback)
+        m_pps_callback(second_duration);
 }
 
 const TIM_HandleTypeDef* PrecisionTimer::tim_handle()

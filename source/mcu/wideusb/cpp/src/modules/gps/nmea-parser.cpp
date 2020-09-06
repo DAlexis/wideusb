@@ -6,6 +6,12 @@ Point::Point()
     memset(&time, 0, sizeof(struct tm));
 }
 
+tm Point::get_tm()
+{
+    tm result = *localtime(&time.tv_sec);
+    return result;
+}
+
 GPSData::GPSData(uint32_t ticks_per_sec) :
     m_ticks_per_sec(ticks_per_sec)
 {
@@ -83,10 +89,10 @@ bool GPSData::parse_line(const char* line, size_t ticks)
     return result;
 }
 
-Point GPSData::point()
+Point GPSData::point() const
 {
     Point result;
-    memcpy(&result.time, localtime(&m_time.tv_sec), sizeof(struct tm));
+    result.time = m_time;
     result.latitude = m_latitude;
     result.longitude = m_longitude;
     result.altitude = minmea_tofloat(&gga.altitude);
