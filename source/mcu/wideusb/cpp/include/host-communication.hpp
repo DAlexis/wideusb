@@ -11,6 +11,7 @@
 #include <queue>
 
 class IModule;
+class CoreModule;
 
 class HostCommunicator : public IHostCommunicator
 {
@@ -19,13 +20,14 @@ public:
 
     HostCommunicator();
 
+    void set_core_module(CoreModule* core_module);
     void add_module(IModule* module) override;
     void send_data(std::unique_ptr<rapidjson::Document> doc) override;
 
     void run_thread();
-    void send_ack(const std::string& message_id);
-
 private:
+
+    void send_ack(const std::string& message_id);
 
     void input_parsing_thread_func();
     void output_messages_sending_thread_func();
@@ -33,6 +35,7 @@ private:
     bool clear_by_timeout();
 
     std::map<std::string, IModule*> m_modules;
+    CoreModule *m_core_module = nullptr;
 
     os::Time_ms m_last_incoming = 0;
     os::Thread m_input_parsing_thread { [this](){ input_parsing_thread_func(); }, "Usb_input_parsing", 1024 };
@@ -41,7 +44,5 @@ private:
     std::queue<std::unique_ptr<rapidjson::Document>> m_output_messages;
     os::Mutex m_output_queue_mutex;
 };
-
-void debug_message(const std::string& message);
 
 #endif // HOST_COMMUNICATION_HPP_INCLUDED

@@ -9,11 +9,12 @@
 class CoreModule : public Module
 {
 public:
-    const char* name() override;
+    CoreModule();
     void receive_message(const rapidjson::Document& doc) override;
 
 private:
 
+    void send_status();
     std::queue<std::string> m_errors;
 
     //os::TaskCycled m_thread{ [this](){ thread_func(); }, "Core_module_thread" };

@@ -27,6 +27,10 @@ void HostCommunicator::run_thread()
     m_output_sending_thread.run();
 }
 
+void HostCommunicator::set_core_module(CoreModule* core_module)
+{
+    m_core_module = core_module;
+}
 
 void HostCommunicator::add_module(IModule* module)
 {
@@ -55,7 +59,7 @@ void HostCommunicator::send_ack(const std::string& message_id)
     d->AddMember("action", action, alloc);
 
     Value id(kStringType);
-    id.SetString(StringRef(message_id.c_str()));
+    id.SetString(message_id.c_str(), message_id.size(), alloc);
     d->AddMember("msg_id", id, alloc);
 
     send_data(std::move(d));
@@ -71,7 +75,7 @@ void HostCommunicator::input_parsing_thread_func()
         json = extract_json(&USBD_input_buffer);
 
         if (!json.has_value())
-            return;
+            continue;
 
         parse_single_json(*json);
     }
@@ -81,23 +85,23 @@ void HostCommunicator::output_messages_sending_thread_func()
 {
     for (;;)
     {
-        os::Thread::notify_take();
+        os::Thread::notify_take(); // This cause slow reaction to input...
 
-        if (m_output_messages.empty())
-            continue;
+        while (!m_output_messages.empty())
+        {
+            std::unique_ptr<Document> doc(std::move(m_output_messages.front()));
+            std::unique_lock<os::Mutex> lock(m_output_queue_mutex);
+            m_output_messages.pop();
+            lock.unlock();
 
-        std::unique_ptr<Document> doc(std::move(m_output_messages.front()));
-        std::unique_lock<os::Mutex> lock(m_output_queue_mutex);
-        m_output_messages.pop();
-        lock.unlock();
-
-        StringBuffer buffer;
-        Writer<StringBuffer> writer(buffer);
-        doc->Accept(writer);
-        buffer.Put('\r');
-        buffer.Put('\n');
-        // @Todo add check if USBD_BUSY and resend?
-        CDC_Transmit_FS((uint8_t*)buffer.GetString(), buffer.GetSize());
+            StringBuffer buffer;
+            Writer<StringBuffer> writer(buffer);
+            doc->Accept(writer);
+            buffer.Put('\r');
+            buffer.Put('\n');
+            // @Todo add check if USBD_BUSY and resend?
+            CDC_Transmit_FS((uint8_t*)buffer.GetString(), buffer.GetSize());
+        }
     }
 }
 
@@ -118,6 +122,18 @@ void HostCommunicator::parse_single_json(const std::string& json)
     {
         send_ack(doc["msg_id"].GetString());
     }
+    auto it = m_modules.find(doc["module"].GetString());
+    if (it == m_modules.end())
+    {
+        if (m_core_module == nullptr)
+            return;
+        std::string error_text = "Module '";
+        error_text += doc["module"].GetString();
+        error_text += "' not found";
+        m_core_module->assert_text(error_text.c_str(), AssertLevel::Error, true);
+        return;
+    }
+    it->second->receive_message(doc);
 }
 
 bool HostCommunicator::clear_by_timeout()
@@ -132,21 +148,4 @@ bool HostCommunicator::clear_by_timeout()
         return true;
     }
     return false;
-}
-
-void debug_message(const std::string& message)
-{
-    Document d;
-    d.SetObject();
-    auto & alloc = d.GetAllocator();
-
-    Value module("core");
-    d.AddMember("module", module, alloc);
-
-    Value action("debug");
-    d.AddMember("action", action, d.GetAllocator());
-
-    StringBuffer buffer;
-    Writer<StringBuffer> writer(buffer);
-    d.Accept(writer);
 }

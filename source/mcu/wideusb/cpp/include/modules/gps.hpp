@@ -16,7 +16,6 @@ public:
     GPSModule();
     ~GPSModule();
 
-    const char* name() override;
     void receive_message(const rapidjson::Document& doc) override;
 
     void enable();
@@ -24,10 +23,11 @@ public:
 private:
 
     void on_precision_timer_signal(bool has_timing, uint32_t last_second_duration, uint32_t ticks_since_pps);
+    void check_pps_thread();
 
     std::unique_ptr<PrecisionTimer> m_precision_timer;
     std::unique_ptr<NMEAReceiver> m_nmea_receiver;
-    os::TaskCycled m_task_check_pps{ nullptr, "PPS_check"};
+    os::Thread m_check_pps_thread {[this](){ check_pps_thread(); }, "PPS_check", 128};
     os::Queue<Point> m_points_queue;
 
 };

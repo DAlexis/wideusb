@@ -6,6 +6,11 @@
 
 using namespace rapidjson;
 
+Module::Module(const char* name) :
+    m_name(name)
+{
+}
+
 void Module::connect_to_comminucator(IHostCommunicator* communicator)
 {
     m_communicator = communicator;
@@ -53,4 +58,9 @@ void Module::assert_text(const char* text, AssertLevel level, bool copy_text)
     d->AddMember("text", error_text, alloc);
 
     m_communicator->send_data(std::move(d));
+}
+
+const char* Module::name()
+{
+    return m_name;
 }

@@ -22,6 +22,8 @@ void cpp_bootstrap()
     core.reset(new CoreModule);
 
     communicator.add_module(core.get());
+    communicator.set_core_module(core.get());
+
     communicator.add_module(gps.get());
     communicator.run_thread();
     //NMEAReceiver *r = new NMEAReceiver(&huart3);
@@ -30,7 +32,7 @@ void cpp_bootstrap()
     {
         os::delay(1000);
         //printf("Alive 2\r\n");
-        core->assert_text("core module debug message");
+        core->assert_text("cpp_bootstrap() main cycle alive");
     }
 
 }
