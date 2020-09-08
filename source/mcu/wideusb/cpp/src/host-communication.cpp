@@ -85,7 +85,7 @@ void HostCommunicator::output_messages_sending_thread_func()
 {
     for (;;)
     {
-        os::Thread::notify_take(); // This cause slow reaction to input...
+        os::Thread::notify_take();
 
         while (!m_output_messages.empty())
         {
