@@ -43,6 +43,8 @@ private:
 
     std::queue<std::unique_ptr<rapidjson::Document>> m_output_messages;
     os::Mutex m_output_queue_mutex;
+
+    ObjectFilter m_modules_filter{"module"};
 };
 
 #endif // HOST_COMMUNICATION_HPP_INCLUDED

@@ -10,7 +10,7 @@ class CoreModule : public Module
 {
 public:
     CoreModule();
-    void receive_message(const rapidjson::Document& doc) override;
+    void receive_message(const rapidjson::Document& doc);
 
 private:
 

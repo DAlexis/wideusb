@@ -35,7 +35,8 @@ void HostCommunicator::set_core_module(CoreModule* core_module)
 void HostCommunicator::add_module(IModule* module)
 {
     m_modules[module->name()] = module;
-    module->connect_to_comminucator(this);
+    module->add_filter(m_modules_filter);
+    module->connect_to_communicator(this);
 }
 
 void HostCommunicator::send_data(std::unique_ptr<rapidjson::Document> doc)
@@ -111,29 +112,21 @@ void HostCommunicator::parse_single_json(const std::string& json)
     doc.Parse(json.c_str());
     if (doc.HasParseError())
     {
+        m_core_module->assert_text("Incoming JSON parsing error", AssertLevel::Error);
         return;
     }
 
-    if (!doc.HasMember("module"))
-    {
-        return;
-    }
     if (doc.HasMember("msg_id"))
     {
         send_ack(doc["msg_id"].GetString());
     }
-    auto it = m_modules.find(doc["module"].GetString());
-    if (it == m_modules.end())
+
+    auto result = m_modules_filter.receive_object(doc);
+
+    if (result.has_value())
     {
-        if (m_core_module == nullptr)
-            return;
-        std::string error_text = "Module '";
-        error_text += doc["module"].GetString();
-        error_text += "' not found";
-        m_core_module->assert_text(error_text.c_str(), AssertLevel::Error, true);
-        return;
+        m_core_module->assert_text(result->c_str(), AssertLevel::Error, true);
     }
-    it->second->receive_message(doc);
 }
 
 bool HostCommunicator::clear_by_timeout()

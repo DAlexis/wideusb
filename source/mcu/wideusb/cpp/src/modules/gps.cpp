@@ -12,10 +12,6 @@ GPSModule::GPSModule() :
 
 GPSModule::~GPSModule() = default;
 
-void GPSModule::receive_message(const rapidjson::Document& doc)
-{
-}
-
 void GPSModule::enable()
 {
     m_nmea_receiver.reset(new NMEAReceiver(&huart3));
@@ -26,7 +22,7 @@ void GPSModule::enable()
             {
                 on_precision_timer_signal(has_timing, last_second_duration, ticks_since_pps);
             },
-            [this](uint32_t last_second_duration)
+            [this](uint32_t /*last_second_duration*/)
             {
                 m_nmea_receiver->interrupt_pps();
             }

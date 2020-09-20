@@ -9,9 +9,15 @@ using namespace rapidjson;
 Module::Module(const char* name) :
     m_name(name)
 {
+    m_properties_collection.add_filter(m_action_filter);
 }
 
-void Module::connect_to_comminucator(IHostCommunicator* communicator)
+void Module::add_filter(ObjectFilter& target_filter)
+{
+    m_action_filter.add_action(name(), target_filter);
+}
+
+void Module::connect_to_communicator(IHostCommunicator* communicator)
 {
     m_communicator = communicator;
 }

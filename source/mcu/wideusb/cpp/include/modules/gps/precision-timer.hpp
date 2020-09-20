@@ -3,6 +3,7 @@
 
 #include "tim.h"
 #include <functional>
+#include <optional>
 
 class PrecisionTimer
 {
@@ -14,6 +15,9 @@ public:
     ~PrecisionTimer();
 
     uint32_t value();
+    bool has_pps();
+    std::optional<float> fract_time();
+
     void check_for_pps_loss();
 
     void interrupt_external_signal(uint32_t ticks);
@@ -24,6 +28,8 @@ private:
     constexpr static uint32_t timeout = 80000000; /// @TODO: This value should be corrected
 
     uint32_t duration(uint32_t from, uint32_t to);
+
+    bool are_intervals_good_to_get_time(uint32_t second_duration, uint32_t ticks_since_pps);
 
     TIM_HandleTypeDef* m_tim_handle;
 

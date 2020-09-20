@@ -16,7 +16,6 @@ std::optional<std::string> extract_json(USBD_CDC_RingBuffer* ring_buffer)
     // Detecting possibly valid JSON string
     // Detecting '{'
     uint32_t i = ring_buffer->p_read;
-    bool stop = false;
     bool success = false;
     for (;;)
     {

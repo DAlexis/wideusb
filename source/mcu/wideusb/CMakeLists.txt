@@ -68,7 +68,7 @@ set(H_HEADERS
     ${PROJECT_SOURCE_DIR}/cpp/include/tools/base64.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/tools/ring-buffer.h
     ${PROJECT_SOURCE_DIR}/cpp/include/tools/ring-buffer-json.hpp
-    ${PROJECT_SOURCE_DIR}/cpp/include/tools/property-map.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/tools/json-objects.hpp
 
     ${PROJECT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h
     ${PROJECT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
@@ -203,7 +203,7 @@ set(CPP_SOURCES
     ${PROJECT_SOURCE_DIR}/cpp/src/os/cpp-freertos-impl.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/tools/base64.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/tools/ring-buffer-json.cpp
-    ${PROJECT_SOURCE_DIR}/cpp/src/tools/property-map.cpp
+    ${PROJECT_SOURCE_DIR}/cpp/src/tools/json-objects.cpp
 )
 
 set(ASM_SOURCES

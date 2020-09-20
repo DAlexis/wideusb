@@ -16,14 +16,14 @@ public:
     GPSModule();
     ~GPSModule();
 
-    void receive_message(const rapidjson::Document& doc) override;
-
     void enable();
 
 private:
 
     void on_precision_timer_signal(bool has_timing, uint32_t last_second_duration, uint32_t ticks_since_pps);
     void check_pps_thread();
+
+    void send_point();
 
     std::unique_ptr<PrecisionTimer> m_precision_timer;
     std::unique_ptr<NMEAReceiver> m_nmea_receiver;

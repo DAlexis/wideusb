@@ -9,6 +9,7 @@
 CoreModule::CoreModule() :
     Module("core")
 {
+    m_action_filter.add("status", [this](const rapidjson::Value&) -> ErrorCode { send_status(); return std::nullopt; } );
 }
 
 void CoreModule::receive_message(const rapidjson::Document& doc)

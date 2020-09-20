@@ -22,6 +22,25 @@ uint32_t PrecisionTimer::value()
     return m_tim_handle->Instance->CNT;
 }
 
+bool PrecisionTimer::has_pps()
+{
+    return m_pps_count >= 2;
+}
+
+std::optional<float> PrecisionTimer::fract_time()
+{
+    if (!has_pps())
+        return std::nullopt;
+
+    uint32_t second_duration = m_ticks_pps - m_ticks_prev_pps;
+    uint32_t ticks_since_pps = value() - m_ticks_pps;
+
+    if (!are_intervals_good_to_get_time(second_duration, ticks_since_pps))
+        return std::nullopt;
+
+    return float(ticks_since_pps) / second_duration;
+}
+
 void PrecisionTimer::check_for_pps_loss()
 {
     // If we have no signal for now
@@ -38,7 +57,7 @@ void PrecisionTimer::check_for_pps_loss()
 void PrecisionTimer::interrupt_external_signal(uint32_t ticks)
 {
     HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_14);
-    if (m_pps_count < 2)
+    if (!has_pps())
     {
         if (m_signal_callback)
             m_signal_callback(false, 0, 0);
@@ -48,7 +67,7 @@ void PrecisionTimer::interrupt_external_signal(uint32_t ticks)
     // We have unsigned arithmetics so we will get always valid positive numbers below
     uint32_t second_duration = m_ticks_pps - m_ticks_prev_pps;
     uint32_t ticks_since_pps = ticks - m_ticks_pps;
-    if (ticks_since_pps <= second_duration) // @TODO Add correction: timing is valid if ticks_since_pps a bit > than second_duration
+    if (are_intervals_good_to_get_time(second_duration, ticks_since_pps)) // @TODO Add correction: timing is valid if ticks_since_pps a bit > than second_duration
     {
         // We have valid time
         if (m_signal_callback)
@@ -86,6 +105,11 @@ uint32_t PrecisionTimer::duration(uint32_t from, uint32_t to)
         return to - from;
     else
         return to + max_counter_value - from;
+}
+
+bool PrecisionTimer::are_intervals_good_to_get_time(uint32_t second_duration, uint32_t ticks_since_pps)
+{
+    return ticks_since_pps <= 1.5 * second_duration;
 }
 
 extern "C" {
