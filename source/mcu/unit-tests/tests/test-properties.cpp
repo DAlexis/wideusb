@@ -148,7 +148,7 @@ TEST(ModuleActionProperties, TypicalUsage)
     prop_col.add("val1", &val1);
     prop_col.add_filter(action_filter);
 
-    action_filter.add_action("core", module_filter);
+    action_filter.add_self_as_action("core", module_filter);
 
     {
         const char json[] = "{"

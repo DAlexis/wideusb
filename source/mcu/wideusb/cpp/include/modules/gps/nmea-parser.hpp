@@ -1,22 +1,11 @@
 #ifndef NMEA_PARSER_HPP_INCLUDED
 #define NMEA_PARSER_HPP_INCLUDED
 
+
+#include "modules/gps/point.hpp"
 #include "modules/gps/minmea.h"
 #include <string>
 #include <time.h>
-
-struct Point
-{
-    Point();
-    struct tm get_tm();
-
-    float latitude = 0.0f;
-    float longitude = 0.0f;
-    struct timespec time;
-    float fracional_sec = 0.0f;
-    float altitude = 0.0f;
-    size_t last_update_ticks = 0;
-};
 
 class GPSData
 {

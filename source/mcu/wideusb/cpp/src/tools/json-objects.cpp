@@ -12,7 +12,7 @@ void ObjectFilter::add(const char* action_name, Action action_func)
     m_actions[action_name] = action_func;
 }
 
-void ObjectFilter::add_action(const char* name, ObjectFilter& parent_selector)
+void ObjectFilter::add_self_as_action(const char* name, ObjectFilter& parent_selector)
 {
     parent_selector.add(
         name,

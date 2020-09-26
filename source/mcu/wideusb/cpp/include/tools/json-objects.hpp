@@ -29,7 +29,7 @@ public:
     ErrorCode receive_object(const rapidjson::Value& object);
     void add(const char* action_name, Action action_func);
 
-    void add_action(const char* name, ObjectFilter& parent_selector);
+    void add_self_as_action(const char* name, ObjectFilter& parent_selector);
 
 private:
     std::map<std::string, Action> m_actions;

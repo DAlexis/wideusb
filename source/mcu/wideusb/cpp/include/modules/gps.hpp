@@ -17,6 +17,7 @@ public:
     ~GPSModule();
 
     void enable();
+    Point point();
 
 private:
 
@@ -24,6 +25,8 @@ private:
     void check_pps_thread();
 
     void send_point();
+
+    static std::unique_ptr<rapidjson::Document> point_to_msg(const Point& p);
 
     std::unique_ptr<PrecisionTimer> m_precision_timer;
     std::unique_ptr<NMEAReceiver> m_nmea_receiver;

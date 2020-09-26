@@ -1,20 +1,19 @@
 #include "modules/gps/nmea-parser.hpp"
+#include "utilities.hpp"
+
 #include <string.h>
-
-Point::Point()
-{
-    memset(&time, 0, sizeof(struct tm));
-}
-
-tm Point::get_tm()
-{
-    tm result = *localtime(&time.tv_sec);
-    return result;
-}
 
 GPSData::GPSData(uint32_t ticks_per_sec) :
     m_ticks_per_sec(ticks_per_sec)
 {
+    zerify(rmc);
+    zerify(gga);
+    zerify(gsa);
+    zerify(gst);
+    zerify(gsv);
+    zerify(vtg);
+    zerify(zda);
+    zerify(gll);
 }
 
 bool GPSData::parse_line(const char* line, size_t ticks)
@@ -80,6 +79,7 @@ bool GPSData::parse_line(const char* line, size_t ticks)
         result = false;
         break;
 
+    default:
     case MINMEA_INVALID:
         result = false;
         break;

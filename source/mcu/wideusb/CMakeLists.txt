@@ -19,10 +19,12 @@ set(H_HEADERS
     ${PROJECT_SOURCE_DIR}/cpp/include/macro.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/module.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/data-saver.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/utilities.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/modules/core.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/modules/gps/minmea.h
     ${PROJECT_SOURCE_DIR}/cpp/include/modules/gps/nmea-receiver.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/modules/gps/nmea-parser.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/modules/gps/point.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/modules/gps/precision-timer.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/modules/gps.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/os/cpp-freertos.hpp
@@ -190,6 +192,7 @@ set(C_SOURCES
 
 set(CPP_SOURCES
     ${PROJECT_SOURCE_DIR}/cpp/test.cpp
+    ${PROJECT_SOURCE_DIR}/cpp/src/utilities.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/host-communication.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/cpp-bootstrap.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/module.cpp
@@ -198,6 +201,7 @@ set(CPP_SOURCES
     ${PROJECT_SOURCE_DIR}/cpp/src/modules/gps/minmea.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/modules/gps/nmea-receiver.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/modules/gps/nmea-parser.cpp
+    ${PROJECT_SOURCE_DIR}/cpp/src/modules/gps/point.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/modules/gps/precision-timer.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/modules/gps.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/os/cpp-freertos-impl.cpp

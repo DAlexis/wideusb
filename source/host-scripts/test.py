@@ -15,13 +15,20 @@ status = {
     "action": "status",
 }
 
+get_point = {
+    "module": "gps",
+    "msg_id": "GIVE ME A POINT!!",
+    "action": "get_point",
+}
+
 bad_module = {
     "module": "baaad",
     "msg_id": "baaad_message",
     "action": "nope",
 }
 
-test_message = json.dumps(status)
+# test_message = json.dumps(status)
+test_message = json.dumps(get_point)
 
 ser.write(test_message.encode("utf-8"))
 while True:

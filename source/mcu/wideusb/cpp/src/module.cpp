@@ -14,7 +14,7 @@ Module::Module(const char* name) :
 
 void Module::add_filter(ObjectFilter& target_filter)
 {
-    m_action_filter.add_action(name(), target_filter);
+    m_action_filter.add_self_as_action(name(), target_filter);
 }
 
 void Module::connect_to_communicator(IHostCommunicator* communicator)
