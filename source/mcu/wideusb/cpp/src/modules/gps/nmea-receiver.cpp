@@ -51,6 +51,7 @@ void NMEAReceiver::monitor_thread()
         if (state == HAL_UART_STATE_READY)
         {
             receive();
+            counter++;
             printf("===> state fix\r\n");
         }
         os::delay(200);

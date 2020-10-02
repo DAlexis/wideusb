@@ -38,6 +38,7 @@ void GPSModule::enable()
         )
     );
     m_check_pps_thread.run();
+    m_send_timings_thread.run();
 }
 
 Point GPSModule::point()
@@ -67,6 +68,18 @@ void GPSModule::check_pps_thread()
         os::delay(100);
         if (m_precision_timer)
             m_precision_timer->check_for_pps_loss();
+    }
+}
+
+void GPSModule::send_signal_timings_thread()
+{
+    Point p;
+    for (;;)
+    {
+        m_points_queue.pop_front(p);
+        auto doc = point_to_msg(p);
+        add_module_field(*doc);
+        m_communicator->send_data(std::move(doc));
     }
 }
 
@@ -123,7 +136,13 @@ std::unique_ptr<rapidjson::Document> GPSModule::point_to_msg(const Point& p)
     Value min(t.tm_min);
     point.AddMember("min", min, alloc);
 
-    Value sec(t.tm_sec + p.fracional_sec);
+    float sec_val = t.tm_sec;
+    if (p.has_pps)
+    {
+        sec_val += p.fracional_sec;
+    }
+
+    Value sec(sec_val);
     point.AddMember("sec", sec, alloc);
 
     d->AddMember("point", point, alloc);

@@ -156,8 +156,12 @@ public:
     void push_back_from_ISR(const void* obj);
     void push_front_from_ISR(const void* obj);
     void pop_front_from_ISR(void* target);
+
     uint16_t size();
     uint16_t size_from_ISR();
+    bool empty();
+    bool empty_from_ISR();
+
 
 private:
     Handle m_handle;

@@ -340,6 +340,16 @@ uint16_t QueueBase::size_from_ISR()
 {
     return uxQueueMessagesWaitingFromISR((xQueueHandle) m_handle);
 }
+
+bool QueueBase::empty()
+{
+    return size() == 0;
+}
+
+bool QueueBase::empty_from_ISR()
+{
+    return size_from_ISR() == 0;
+}
 /*
 RingBuffer::RingBuffer(size_t buffer_size) :
     m_buffer(buffer_size, 0)
