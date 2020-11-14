@@ -2,7 +2,8 @@
 
 #include <iostream>
 
-WideUSBDevice::WideUSBDevice()
+WideUSBDevice::WideUSBDevice(const std::string& port, int baudrate)
 {
-    std::cout << "WideUSBDevice()" << std::endl;
+    m_serial_port.open(port);
+    m_serial_port.set_option(asio::serial_port_base::baud_rate(baudrate));
 }
