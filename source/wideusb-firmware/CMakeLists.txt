@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.8)
 
 project(wideusb C CXX ASM)
 
+set(CMAKE_CXX_STANDARD 17)
+
 IF(NOT ARM_NONE_EABI_GCC_TOOLCHAIN)
     message(FATAL_ERROR "Toolchain arm-none-eabi not selected! Please run cmake with -DCMAKE_TOOLCHAIN_FILE=stm32f407.cmake")
 ENDIF()
@@ -35,7 +37,6 @@ set(H_HEADERS
     ${PROJECT_SOURCE_DIR}/cpp/include/tools/base64.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/tools/buffer.hpp
     ${PROJECT_SOURCE_DIR}/c-tools/include/usbd-input-handle.h
-    ${PROJECT_SOURCE_DIR}/cpp/include/tools/ring-buffer-json.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/tools/json-objects.hpp
 
     ${PROJECT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h
@@ -181,7 +182,6 @@ set(CPP_SOURCES
     ${PROJECT_SOURCE_DIR}/cpp/src/os/cpp-freertos-impl.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/tools/base64.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/tools/buffer.cpp
-    ${PROJECT_SOURCE_DIR}/cpp/src/tools/ring-buffer-json.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/tools/json-objects.cpp
 )
 

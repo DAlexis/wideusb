@@ -10,14 +10,12 @@ set(EXE_SOURCES
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/src/modules/gps/point.cpp
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/src/tools/base64.cpp
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/src/tools/json-objects.cpp
-    ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/src/tools/ring-buffer-json.cpp
 )
 
 set(EXE_HPP
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/include/modules/gps/nmea-parser.hpp
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/include/modules/gps/minmea.h
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/include/tools/base64.hpp
-    ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/include/tools/ring-buffer-json.hpp
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/include/tools/json-objects.hpp
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/include/host-communication.hpp
 )

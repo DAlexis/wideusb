@@ -42,25 +42,35 @@ set(SOURCES
     ./include/rapidjson/internal/stack.h
     ./include/rapidjson/internal/strtod.h
     ./include/rapidjson/internal/dtoa.h
-    ./include/host-listener.hpp
+
+    ./include/buffer.hpp
+    ./include/messages/core-messages.hpp
+    ./include/message-receive.hpp
+    ./include/message-send.hpp
+    ./include/message-header.hpp
     ./include/rapidjson-config.h
     ./include/ring-buffer.h
-    
-    ./src/host-listener.cpp
+    ./include/serialization-json/ring-buffer-json.hpp
+    ./include/serialization-json/header-json.hpp
+    ./include/serialization-json/core-msg-serialization.hpp
+
+    ./src/buffer.cpp
+    ./src/message-receive.cpp
+    ./src/message-send.cpp
     ./src/ring-buffer.c
-    
-    #PARENT_SCOPE
+    ./src/serialization-json/ring-buffer-json.cpp
+    ./src/serialization-json/header-json.cpp
+    ./src/serialization-json/core-msg-serialization.cpp
 )
 
 set(INCLUDE_DIRS
     ${PROJECT_SOURCE_DIR}/include
-    #PARENT_SCOPE
 )
 
 
 #IF(NOT ARM_NONE_EABI_GCC_TOOLCHAIN)
 
-set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -pg -g -DDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -O0 -g -DDEBUG")
 set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -g -DNDEBUG")
 add_library(${PROJECT_NAME} STATIC ${SOURCES})
 target_include_directories(${PROJECT_NAME} PUBLIC ${INCLUDE_DIRS})

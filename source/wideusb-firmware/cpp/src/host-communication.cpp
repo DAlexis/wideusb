@@ -1,7 +1,7 @@
 #include "host-communication.hpp"
 #include "module.hpp"
 #include "usbd_cdc_if.h"
-#include "tools/ring-buffer-json.hpp"
+#include "serialization-json/ring-buffer-json.hpp"
 
 #include "rapidjson-config.h"
 #include "rapidjson/document.h"
