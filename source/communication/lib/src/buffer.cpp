@@ -1,4 +1,6 @@
 #include "buffer.hpp"
+#include "ring-buffer.h"
+
 #include <cstring>
 
 std::shared_ptr<Buffer> Buffer::create(size_t size, const uint8_t* init_data )
@@ -45,10 +47,7 @@ void Buffer::clear()
 
 Buffer& Buffer::operator<<(const Buffer& buf)
 {
-    size_t old_size = m_contents.size();
-    m_contents.resize(old_size + buf.size());
-    memcpy(m_contents.data() +  old_size, buf.data(), buf.size());
-    return *this;
+    return append(buf.data(), buf.size());
 }
 
 Buffer& Buffer::operator<<(Buffer&& buf)
@@ -61,4 +60,23 @@ Buffer& Buffer::operator<<(Buffer&& buf)
 std::vector<uint8_t>& Buffer::contents()
 {
     return m_contents;
+}
+
+Buffer& Buffer::append(const uint8_t* data, size_t size)
+{
+    size_t old_size = m_contents.size();
+    m_contents.resize(old_size + size);
+    memcpy(m_contents.data() +  old_size, data, size);
+    return *this;
+}
+
+Buffer& Buffer::append(RingBuffer& data, size_t size)
+{
+    size_t buffer_size = ring_buffer_data_size(&data);
+    if (buffer_size < size)
+        size  = buffer_size;
+    size_t old_size = m_contents.size();
+    m_contents.resize(old_size + size);
+    ring_buffer_get_data(&data, m_contents.data() +  old_size, size);
+    return *this;
 }

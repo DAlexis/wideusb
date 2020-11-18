@@ -6,6 +6,7 @@
 #include <memory>
 
 class Buffer;
+struct RingBuffer;
 
 using PBuffer = std::shared_ptr<Buffer>;
 
@@ -13,6 +14,9 @@ class Buffer : public std::enable_shared_from_this<Buffer>
 {
 public:
     static PBuffer create(size_t size = 0, const uint8_t* init_data = nullptr);
+
+    Buffer& append(const uint8_t* data, size_t size);
+    Buffer& append(RingBuffer& data, size_t size);
 
     std::vector<uint8_t>& contents();
 

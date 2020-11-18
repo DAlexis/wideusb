@@ -29,4 +29,29 @@ protected:
 
 };
 
+class StatusResponseSerializer : public IMessageSerializer
+{
+public:
+    StatusResponseSerializer(const StatusResponse& response);
+
+    PBuffer serialize() override;
+
+private:
+    const StatusResponse& m_response;
+};
+
+class StatusResponseDeserializer : public MessageDeserializer<StatusResponse>
+{
+public:
+    StatusResponseDeserializer(MessageDeserializer::Callback callback) :
+        MessageDeserializer(callback)
+    { }
+
+protected:
+    bool parse_impl(StatusResponse& target, RingBuffer& buffer) override;
+
+};
+
+
+
 #endif // COREMSGSERIALIZATION_HPP

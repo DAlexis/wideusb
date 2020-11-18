@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-typedef struct
+typedef struct RingBuffer
 {
     uint8_t *ring_buffer;
     uint32_t size;

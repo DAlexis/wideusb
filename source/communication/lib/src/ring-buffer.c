@@ -39,7 +39,7 @@ void ring_buffer_put_data(RingBuffer* buffer, uint8_t* buf, uint32_t len)
     } else {
         // Part add to the end and part add to the beginning
         memcpy(&buffer->ring_buffer[buffer->p_write], buf, free_tail);
-        uint32_t second_part_size = free_tail - len;
+        uint32_t second_part_size = len - free_tail;
         memcpy(&buffer->ring_buffer[0], &buf[free_tail], second_part_size);
         buffer->p_write = second_part_size;
     }
