@@ -2,8 +2,9 @@ project("wideusb-communication-unit-tests")
 
 set(EXE_SOURCES
     ${PROJECT_SOURCE_DIR}/test-ring-buffer.cpp
-    ${PROJECT_SOURCE_DIR}/test-msg-core-json.cpp
+    ${PROJECT_SOURCE_DIR}/test-msg-json.cpp
     ${PROJECT_SOURCE_DIR}/test-buffer.cpp
+    ${PROJECT_SOURCE_DIR}/test-send-receive-json.cpp
 )
 
 set(EXE_HPP

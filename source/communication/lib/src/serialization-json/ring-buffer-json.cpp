@@ -91,6 +91,16 @@ std::optional<std::string> extract_possible_json(RingBuffer* ring_buffer)
             result.append(&ring_buffer->ring_buffer[0], &ring_buffer->ring_buffer[possible_json_end]);
         }
         ring_buffer->p_read = possible_json_end;
+
+        // removing CR, LF, \0 from buffer
+        while (ring_buffer_data_size(ring_buffer) >= 1)
+        {
+            uint8_t c = *ring_buffer_at(ring_buffer, 0);
+            if (c != '\r' && c != '\n' && c != '\0')
+                break;
+            ring_buffer_skip(ring_buffer, 1);
+        }
+
         return result;
     }
     return std::nullopt;

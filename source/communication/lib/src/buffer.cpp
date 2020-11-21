@@ -8,6 +8,18 @@ std::shared_ptr<Buffer> Buffer::create(size_t size, const uint8_t* init_data )
     return std::shared_ptr<Buffer>(new Buffer(size, init_data));
 }
 
+PBuffer Buffer::create(RingBuffer& data, size_t size)
+{
+    PBuffer result = create();
+    result->append(data,  size);
+    return result;
+}
+
+PBuffer Buffer::create(RingBuffer& data)
+{
+    return create(data, ring_buffer_data_size(&data));
+}
+
 Buffer::Buffer(size_t size, const uint8_t* init_data) :
     m_contents(size)
 {
@@ -45,6 +57,12 @@ void Buffer::clear()
     m_contents.clear();
 }
 
+const Buffer& Buffer::operator>>(RingBuffer& target) const
+{
+    ring_buffer_put_data(&target, data(), size());
+    return *this;
+}
+
 Buffer& Buffer::operator<<(const Buffer& buf)
 {
     return append(buf.data(), buf.size());
@@ -54,6 +72,12 @@ Buffer& Buffer::operator<<(Buffer&& buf)
 {
     *this << buf;
     buf.clear();
+    return *this;
+}
+
+Buffer& Buffer::operator<<(RingBuffer& ring_buffer)
+{
+    append(ring_buffer, ring_buffer_data_size(&ring_buffer));
     return *this;
 }
 

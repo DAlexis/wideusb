@@ -1,12 +1,14 @@
 #include "serialization-json/header-json.hpp"
 #include "serialization-json/ring-buffer-json.hpp"
 
+#include "serialization-json/json-helpers.hpp"
+
 #include "rapidjson-config.h"
 #include "rapidjson/document.h"
 
 using namespace rapidjson;
 
-std::optional<MessageHeader> HeaderParserJSON::deserialize(RingBuffer& buffer)
+std::optional<MessageHeader> HeaderDeserializerJSON::deserialize(RingBuffer& buffer)
 {
     auto result = extract_possible_json(&buffer);
 
@@ -26,4 +28,18 @@ std::optional<MessageHeader> HeaderParserJSON::deserialize(RingBuffer& buffer)
     header.message_type = doc["type"].GetString();
     header.body_size_bytes = doc["size"].GetUint();
     return header;
+}
+
+PBuffer HeaderSerializerJSON::serialize(const MessageHeader& header)
+{
+    Document d;
+    d.SetObject();
+    auto & alloc = d.GetAllocator();
+
+    Value type(kStringType);
+    type.SetString(StringRef(header.message_type.c_str()), alloc);
+    d.AddMember("type", type, alloc);
+    d.AddMember("size", Value(header.body_size_bytes), alloc);
+
+    return buffer_from_document(d);
 }

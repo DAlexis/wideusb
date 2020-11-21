@@ -55,4 +55,9 @@ TEST(BufferClass, Operating)
     ASSERT_EQ(b2->size(), 0);
     ASSERT_EQ(b1->size(), 16);
     ASSERT_EQ(0, memcmp(test_data2, b1->data()+12, 4));
+
+    PBuffer b3 = Buffer::create();
+    float pi = 3.14;
+    *b3 << int(25) << pi << "qwer";
+    ASSERT_EQ(b3->size(), sizeof(int) + sizeof(pi) + 5);
 }

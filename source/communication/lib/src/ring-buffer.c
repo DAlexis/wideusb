@@ -28,7 +28,7 @@ uint32_t ring_buffer_data_size(const RingBuffer* ring_buffer)
     }
 }
 
-void ring_buffer_put_data(RingBuffer* buffer, uint8_t* buf, uint32_t len)
+void ring_buffer_put_data(RingBuffer* buffer, const uint8_t* buf, uint32_t len)
 {
     uint32_t free_tail = buffer->size - buffer->p_write;
     if (len < free_tail)
@@ -63,4 +63,21 @@ void ring_buffer_get_data(RingBuffer* buffer, uint8_t* buf, uint32_t len)
             buffer->p_read = len - tail;
         }
     }
+}
+
+void ring_buffer_skip(RingBuffer* ring_buffer, uint32_t len)
+{
+    ring_buffer->p_read += len;
+    if (ring_buffer->p_read >= ring_buffer->size)
+        ring_buffer->p_read -= ring_buffer->size;
+}
+
+uint8_t* ring_buffer_at(RingBuffer* ring_buffer, uint32_t pos)
+{
+    uint32_t target_pos = pos + ring_buffer->p_read;
+    if (target_pos > ring_buffer->size)
+    {
+        target_pos -= ring_buffer->size;
+    }
+    return &ring_buffer->ring_buffer[target_pos];
 }

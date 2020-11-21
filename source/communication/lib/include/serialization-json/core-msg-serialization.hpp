@@ -2,53 +2,48 @@
 #define COREMSGSERIALIZATION_HPP
 
 #include "messages/core-messages.hpp"
+#include "serialization-json/serialization-json-base.hpp"
 
-#include "message-send.hpp"
-#include "message-receive.hpp"
-
-class StatusRequestSerializer : public IMessageSerializer
+//////////////////////////
+// Status request
+template<>
+class JSONSerializer<StatusRequest> : public IMessageSerializer
 {
 public:
-    StatusRequestSerializer(const StatusRequest& request);
-
-    PBuffer serialize() override;
-
+    JSONSerializer(const StatusRequest& request);
+    PBuffer serialize() const override;
 private:
     const StatusRequest& m_request;
 };
 
-class StatusRequestDeserializer : public MessageDeserializer<StatusRequest>
+template<>
+class JSONDeserializer<StatusRequest> : public MessageDeserializer<StatusRequest>
 {
 public:
-    StatusRequestDeserializer(MessageDeserializer::Callback callback) :
-        MessageDeserializer(callback)
-    { }
-
+    JSONDeserializer(MessageDeserializer::Callback callback);
 protected:
-    bool parse_impl(StatusRequest& target, RingBuffer& buffer) override;
-
+    bool parse_impl(StatusRequest& target, const PBuffer buffer) override;
 };
 
-class StatusResponseSerializer : public IMessageSerializer
+//////////////////////////
+// Status response
+template<>
+class JSONSerializer<StatusResponse> : public IMessageSerializer
 {
 public:
-    StatusResponseSerializer(const StatusResponse& response);
-
-    PBuffer serialize() override;
-
+    JSONSerializer(const StatusResponse& response);
+    PBuffer serialize() const override;
 private:
     const StatusResponse& m_response;
 };
 
-class StatusResponseDeserializer : public MessageDeserializer<StatusResponse>
+template<>
+class JSONDeserializer<StatusResponse> : public MessageDeserializer<StatusResponse>
 {
 public:
-    StatusResponseDeserializer(MessageDeserializer::Callback callback) :
-        MessageDeserializer(callback)
-    { }
-
+    JSONDeserializer(MessageDeserializer::Callback callback);
 protected:
-    bool parse_impl(StatusResponse& target, RingBuffer& buffer) override;
+    bool parse_impl(StatusResponse& target, const PBuffer buffer) override;
 
 };
 

@@ -53,6 +53,7 @@ set(SOURCES
     ./include/serialization-json/ring-buffer-json.hpp
     ./include/serialization-json/header-json.hpp
     ./include/serialization-json/core-msg-serialization.hpp
+    ./include/serialization-json/json-helpers.hpp
 
     ./src/buffer.cpp
     ./src/message-receive.cpp
@@ -61,6 +62,7 @@ set(SOURCES
     ./src/serialization-json/ring-buffer-json.cpp
     ./src/serialization-json/header-json.cpp
     ./src/serialization-json/core-msg-serialization.cpp
+    ./src/serialization-json/json-helpers.cpp
 )
 
 set(INCLUDE_DIRS

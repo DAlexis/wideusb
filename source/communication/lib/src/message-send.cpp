@@ -5,7 +5,7 @@ DataSender::DataSender(std::shared_ptr<IHeaderSerializer> header_serializer) :
 {
 }
 
-void DataSender::push(const char* type, IMessageSerializer& serializer)
+void DataSender::push(const char* type, const IMessageSerializer& serializer)
 {
     PBuffer body = serializer.serialize();
     MessageHeader header;
@@ -22,4 +22,9 @@ PBuffer DataSender::next_message()
     PBuffer result = m_messages.front();
     m_messages.pop();
     return result;
+}
+
+bool DataSender::empty()
+{
+    return m_messages.empty();
 }
