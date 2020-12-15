@@ -2,6 +2,7 @@
 #define MESSAGEISERIALIZER_HPP
 
 #include "buffer.hpp"
+#include "message.hpp"
 #include "message-header.hpp"
 
 class IHeaderSerializer
@@ -14,7 +15,9 @@ public:
 class IMessageSerializer
 {
 public:
-    virtual PBuffer serialize() const = 0;
+    virtual PBuffer serialize(const Message* msg) const = 0;
 };
+
+
 
 #endif // MESSAGEISERIALIZER_HPP

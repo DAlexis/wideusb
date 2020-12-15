@@ -1,4 +1,4 @@
-#include "serialization-json/ring-buffer-json.hpp"
+#include "json/ring-buffer-json.hpp"
 
 std::optional<std::string> extract_possible_json(RingBuffer* ring_buffer)
 {

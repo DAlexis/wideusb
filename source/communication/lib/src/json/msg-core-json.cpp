@@ -1,24 +1,21 @@
-#include "serialization-json/core-msg-serialization.hpp"
+#include "json/msg-core-json.hpp"
 
 #include "rapidjson-config.h"
 #include "rapidjson/document.h"
 
-#include "serialization-json/json-helpers.hpp"
+#include "json/helpers-json.hpp"
 
 using namespace rapidjson;
 
-JSONSerializer<StatusRequest>::JSONSerializer(const StatusRequest& request) :
-    m_request(request)
-{
-}
 
-PBuffer JSONSerializer<StatusRequest>::serialize() const
+PBuffer JSONSerializer<StatusRequest>::serialize(const Message* msg) const
 {
+    const StatusRequest* request = static_cast<const StatusRequest*>(msg);
     Document d;
     d.SetObject();
     auto & alloc = d.GetAllocator();
 
-    d.AddMember("do_blink", Value(m_request.do_blink), alloc);
+    d.AddMember("do_blink", Value(request->do_blink), alloc);
 
     return buffer_from_document(d);
 }
@@ -39,25 +36,20 @@ bool JSONDeserializer<StatusRequest>::parse_impl(StatusRequest& target, const PB
     return true;
 }
 
-
-JSONSerializer<StatusResponse>::JSONSerializer(const StatusResponse& response) :
-    m_response(response)
+PBuffer JSONSerializer<StatusResponse>::serialize(const Message* msg) const
 {
-}
-
-PBuffer JSONSerializer<StatusResponse>::serialize() const
-{
+    const StatusResponse* response = static_cast<const StatusResponse*>(msg);
     Document d;
     d.SetObject();
     auto & alloc = d.GetAllocator();
 
-    Value life_status(m_response.alive);
+    Value life_status(response->alive);
     d.AddMember("alive", life_status, alloc);
 
-    Value system_ticks(int(m_response.system_ticks));
+    Value system_ticks(int(response->system_ticks));
     d.AddMember("system_ticks", system_ticks, alloc);
 
-    Value free_mem(int(m_response.free_mem));
+    Value free_mem(int(response->free_mem));
     d.AddMember("free_mem", free_mem, alloc);
 
     return buffer_from_document(d);

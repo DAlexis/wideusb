@@ -1,5 +1,5 @@
-#include "serialization-json/core-msg-serialization.hpp"
-#include "serialization-json/header-json.hpp"
+#include "json/msg-core-json.hpp"
+#include "json/header-json.hpp"
 #include "ring-buffer.h"
 
 #include "gtest/gtest.h"
@@ -42,8 +42,8 @@ TEST(StatusRequestMsg, Serialization)
 
     StatusRequest target;
 
-    JSONSerializer<StatusRequest> serializer(src);
-    PBuffer stream = serializer.serialize();
+    JSONSerializer<StatusRequest> serializer;
+    PBuffer stream = serializer.serialize(&src);
 
     JSONDeserializer<StatusRequest> deserializer([&target](const StatusRequest& result) { target = result; });
     deserializer.deserialize(stream);
@@ -60,8 +60,8 @@ TEST(StatusResponseMsg, Serialization)
 
     StatusResponse target;
 
-    JSONSerializer<StatusResponse> serializer(src);
-    PBuffer stream = serializer.serialize();
+    JSONSerializer<StatusResponse> serializer;
+    PBuffer stream = serializer.serialize(&src);
 
     JSONDeserializer<StatusResponse> deserializer([&target](const StatusResponse& result) { target = result; });
     deserializer.deserialize(stream);

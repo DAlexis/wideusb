@@ -2,7 +2,7 @@
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
-#include "serialization-json/ring-buffer-json.hpp"
+#include "json/ring-buffer-json.hpp"
 
 #include "gtest/gtest.h"
 

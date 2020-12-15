@@ -5,8 +5,8 @@
 
 #include "ring-buffer.h"
 
-#include "serialization-json/header-json.hpp"
-#include "serialization-json/core-msg-serialization.hpp"
+#include "json/header-json.hpp"
+#include "json/msg-core-json.hpp"
 
 TEST(SendReceiveTest, SingleMessage)
 {
@@ -38,8 +38,8 @@ TEST(SendReceiveTest, SingleMessage)
     status_response_to_send.free_mem = 123;
     status_response_to_send.system_ticks = 321;
 
-    sender.push("core.status_request", JSONSerializer<StatusRequest>(status_request_to_send));
-    sender.push("core.status_response", JSONSerializer<StatusResponse>(status_response_to_send));
+    sender.push("core.status_request", JSONSerializer<StatusRequest>(), &status_request_to_send);
+    sender.push("core.status_response", JSONSerializer<StatusResponse>(), &status_response_to_send);
 
     RingBuffer ring_buffer;
     std::vector<uint8_t> contents(200);

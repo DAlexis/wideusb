@@ -5,6 +5,8 @@ set(EXE_SOURCES
     ${PROJECT_SOURCE_DIR}/test-msg-json.cpp
     ${PROJECT_SOURCE_DIR}/test-buffer.cpp
     ${PROJECT_SOURCE_DIR}/test-send-receive-json.cpp
+    ${PROJECT_SOURCE_DIR}/test-messages-new.cpp
+    ${PROJECT_SOURCE_DIR}/test-streamificator-json.cpp
 )
 
 set(EXE_HPP

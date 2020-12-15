@@ -43,26 +43,42 @@ set(SOURCES
     ./include/rapidjson/internal/strtod.h
     ./include/rapidjson/internal/dtoa.h
 
+    ./include/communication/message.hpp
+    ./include/communication/receiver.hpp
+    ./include/communication/sender.hpp
+    ./include/communication/serialization.hpp
+    ./include/communication/streamification.hpp
+    ./include/communication/utils.hpp
+    ./include/communication/json/streamificator.hpp
     ./include/buffer.hpp
     ./include/messages/core-messages.hpp
+    ./include/messages/gps-messages.hpp
     ./include/message-receive.hpp
     ./include/message-send.hpp
     ./include/message-header.hpp
+    ./include/message.hpp
+    ./include/transport.hpp
     ./include/rapidjson-config.h
     ./include/ring-buffer.h
-    ./include/serialization-json/ring-buffer-json.hpp
-    ./include/serialization-json/header-json.hpp
-    ./include/serialization-json/core-msg-serialization.hpp
-    ./include/serialization-json/json-helpers.hpp
+    ./include/json/ring-buffer-json.hpp
+    ./include/json/header-json.hpp
+    ./include/json/msg-core-json.hpp
+    ./include/json/msg-gps-json.hpp
+    ./include/json/helpers-json.hpp
 
+    ./src/communication/receiver.cpp
+    ./src/communication/sender.cpp
+    ./src/communication/utils.cpp
+    ./src/communication/json/streamificator.cpp
     ./src/buffer.cpp
     ./src/message-receive.cpp
     ./src/message-send.cpp
     ./src/ring-buffer.c
-    ./src/serialization-json/ring-buffer-json.cpp
-    ./src/serialization-json/header-json.cpp
-    ./src/serialization-json/core-msg-serialization.cpp
-    ./src/serialization-json/json-helpers.cpp
+    ./src/json/ring-buffer-json.cpp
+    ./src/json/header-json.cpp
+    ./src/json/msg-core-json.cpp
+    ./src/json/msg-gps-json.cpp
+    ./src/json/helpers-json.cpp
 )
 
 set(INCLUDE_DIRS

@@ -1,7 +1,7 @@
-#include "serialization-json/header-json.hpp"
-#include "serialization-json/ring-buffer-json.hpp"
+#include "json/header-json.hpp"
+#include "json/ring-buffer-json.hpp"
 
-#include "serialization-json/json-helpers.hpp"
+#include "json/helpers-json.hpp"
 
 #include "rapidjson-config.h"
 #include "rapidjson/document.h"

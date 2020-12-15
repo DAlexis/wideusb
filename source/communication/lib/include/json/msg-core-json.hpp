@@ -2,7 +2,7 @@
 #define COREMSGSERIALIZATION_HPP
 
 #include "messages/core-messages.hpp"
-#include "serialization-json/serialization-json-base.hpp"
+#include "json/json-base.hpp"
 
 //////////////////////////
 // Status request
@@ -10,10 +10,7 @@ template<>
 class JSONSerializer<StatusRequest> : public IMessageSerializer
 {
 public:
-    JSONSerializer(const StatusRequest& request);
-    PBuffer serialize() const override;
-private:
-    const StatusRequest& m_request;
+    PBuffer serialize(const Message* msg) const override;
 };
 
 template<>
@@ -31,10 +28,7 @@ template<>
 class JSONSerializer<StatusResponse> : public IMessageSerializer
 {
 public:
-    JSONSerializer(const StatusResponse& response);
-    PBuffer serialize() const override;
-private:
-    const StatusResponse& m_response;
+    PBuffer serialize(const Message* msg) const override;
 };
 
 template<>

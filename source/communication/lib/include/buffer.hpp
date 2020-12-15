@@ -13,7 +13,7 @@ using PBuffer = std::shared_ptr<Buffer>;
 class Buffer : public std::enable_shared_from_this<Buffer>
 {
 public:
-    static PBuffer create(size_t size = 0, const uint8_t* init_data = nullptr);
+    static PBuffer create(size_t size = 0, const void* init_data = nullptr);
     static PBuffer create(RingBuffer& data, size_t size);
     static PBuffer create(RingBuffer& data);
 
@@ -45,8 +45,10 @@ public:
         return *this;
     }
 
+    bool operator==(const Buffer& right) const;
+
 private:
-    Buffer(size_t size = 0, const uint8_t* init_data = nullptr);
+    Buffer(size_t size = 0, const void* init_data = nullptr);
 
     std::vector<uint8_t> m_contents;
 };

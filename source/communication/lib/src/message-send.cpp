@@ -5,9 +5,9 @@ DataSender::DataSender(std::shared_ptr<IHeaderSerializer> header_serializer) :
 {
 }
 
-void DataSender::push(const char* type, const IMessageSerializer& serializer)
+void DataSender::push(const char* type, const IMessageSerializer& serializer, const Message* msg)
 {
-    PBuffer body = serializer.serialize();
+    PBuffer body = serializer.serialize(msg);
     MessageHeader header;
     header.message_type = type;
     header.body_size_bytes = body->size();

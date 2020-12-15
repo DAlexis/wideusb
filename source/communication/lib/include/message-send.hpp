@@ -3,6 +3,9 @@
 
 #include "message-i-serializer.hpp"
 
+#include "message.hpp"
+#include "transport.hpp"
+
 #include <string>
 #include <optional>
 #include <memory>
@@ -13,7 +16,7 @@ class DataSender
 public:
     DataSender(std::shared_ptr<IHeaderSerializer> header_serializer);
 
-    void push(const char* type, const IMessageSerializer& serializer);
+    void push(const char* type, const IMessageSerializer& serializer, const Message* msg);
 
     PBuffer next_message();
     bool empty();
@@ -22,5 +25,7 @@ private:
     std::shared_ptr<IHeaderSerializer> m_header_serializer;
     std::queue<PBuffer> m_messages;
 };
+
+
 
 #endif // MESSAGESERIALIZER_HPP

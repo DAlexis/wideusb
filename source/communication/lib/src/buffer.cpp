@@ -3,7 +3,7 @@
 
 #include <cstring>
 
-std::shared_ptr<Buffer> Buffer::create(size_t size, const uint8_t* init_data )
+std::shared_ptr<Buffer> Buffer::create(size_t size, const void* init_data )
 {
     return std::shared_ptr<Buffer>(new Buffer(size, init_data));
 }
@@ -20,7 +20,7 @@ PBuffer Buffer::create(RingBuffer& data)
     return create(data, ring_buffer_data_size(&data));
 }
 
-Buffer::Buffer(size_t size, const uint8_t* init_data) :
+Buffer::Buffer(size_t size, const void* init_data) :
     m_contents(size)
 {
     if (init_data != nullptr)
@@ -81,6 +81,11 @@ Buffer& Buffer::operator<<(RingBuffer& ring_buffer)
     return *this;
 }
 
+bool Buffer::operator==(const Buffer& right) const
+{
+    return m_contents == right.m_contents;
+}
+
 std::vector<uint8_t>& Buffer::contents()
 {
     return m_contents;
@@ -96,6 +101,9 @@ Buffer& Buffer::append(const uint8_t* data, size_t size)
 
 Buffer& Buffer::append(RingBuffer& data, size_t size)
 {
+    if (size == 0)
+        return *this;
+
     size_t buffer_size = ring_buffer_data_size(&data);
     if (buffer_size < size)
         size  = buffer_size;
