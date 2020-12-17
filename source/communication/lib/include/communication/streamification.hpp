@@ -8,7 +8,7 @@
 class IStreamificator
 {
 public:
-    virtual void pack(RingBuffer& ring_buffer, const PBuffer buffer) = 0;
+    virtual bool pack(RingBuffer& ring_buffer, const PBuffer buffer) = 0;
 
     virtual ~IStreamificator() = default;
 };

@@ -16,7 +16,7 @@ struct Header
 class StreamificatorJSON : public IStreamificator
 {
 public:
-    void pack(RingBuffer& ring_buffer, const PBuffer buffer) override;
+    bool pack(RingBuffer& ring_buffer, const PBuffer buffer) override;
 
 private:
 };

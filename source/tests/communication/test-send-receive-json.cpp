@@ -7,7 +7,7 @@
 
 #include "json/header-json.hpp"
 #include "json/msg-core-json.hpp"
-
+/*
 TEST(SendReceiveTest, SingleMessage)
 {
     MessageReceiver receiver(std::make_shared<HeaderDeserializerJSON>());
@@ -63,3 +63,4 @@ TEST(SendReceiveTest, SingleMessage)
     // Creating message
 
 }
+*/

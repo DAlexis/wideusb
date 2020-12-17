@@ -12,9 +12,9 @@ uint32_t ring_buffer_free_space(const RingBuffer* ring_buffer)
 {
     if (ring_buffer->p_read <= ring_buffer->p_write)
     {
-        return ring_buffer->size + ring_buffer->p_read - ring_buffer->p_write;
+        return ring_buffer->size + ring_buffer->p_read - ring_buffer->p_write - 1;
     } else {
-        return ring_buffer->p_read - ring_buffer->p_write;
+        return ring_buffer->p_read - ring_buffer->p_write - 1;
     }
 }
 

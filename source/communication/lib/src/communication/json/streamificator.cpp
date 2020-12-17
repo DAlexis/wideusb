@@ -19,6 +19,8 @@ std::optional<Header> Header::parse(const std::string& str)
 {
     Document doc;
     doc.Parse(str.c_str());
+    if (!doc.IsObject())
+        return std::nullopt;
 
     if (!doc.HasMember("checksum") || !doc["checksum"].IsUint())
         return std::nullopt;
@@ -88,12 +90,18 @@ void DestreamificatorJSON::reset()
     m_header = Header();
 }
 
-void StreamificatorJSON::pack(RingBuffer& ring_buffer, const PBuffer buffer)
+bool StreamificatorJSON::pack(RingBuffer& ring_buffer, const PBuffer buffer)
 {
     uint32_t sum = checksum(buffer);
     Header header;
     header.size = buffer->size();
     header.checksum = sum;
-    *header.serialize() >> ring_buffer;
+    PBuffer header_buf = header.serialize();
+
+    if (header_buf->size() + buffer->size() > ring_buffer_free_space(&ring_buffer))
+        return false;
+
+    *header_buf >> ring_buffer;
     *buffer >> ring_buffer;
+    return true;
 }

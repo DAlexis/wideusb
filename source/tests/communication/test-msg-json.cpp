@@ -7,7 +7,7 @@
 #include <iostream>
 
 using namespace std;
-
+/*
 TEST(HeaderJSON, Serialization)
 {
     MessageHeader header;
@@ -70,3 +70,4 @@ TEST(StatusResponseMsg, Serialization)
     ASSERT_EQ(src.free_mem, target.free_mem);
     ASSERT_EQ(src.system_ticks, target.system_ticks);
 }
+*/

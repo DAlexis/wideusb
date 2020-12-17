@@ -1,15 +1,18 @@
 #include "json/ring-buffer-json.hpp"
 
+static uint32_t next(uint32_t i, uint32_t size)
+{
+    if (i == size-1)
+        return 0;
+    else
+        return i+1;
+}
+
 std::optional<std::string> extract_possible_json(RingBuffer* ring_buffer)
 {
     /* Buffer content may be extended during this function call,
      * when interrupt may be called.
      */
-    /*
-    if (ring_buffer->buffer_on_timeout)
-    {
-        return std::nullopt;
-    }*/
 
     if (ring_buffer->p_read == ring_buffer->p_write)
         return std::nullopt; // buffer is empty
@@ -32,10 +35,7 @@ std::optional<std::string> extract_possible_json(RingBuffer* ring_buffer)
             break;
         }
 
-        if (i == ring_buffer->size-1)
-            i = 0;
-        else
-            i++;
+        i = next(i, ring_buffer->size);
     }
     ring_buffer->p_read = i;
     if (!success)
@@ -69,19 +69,17 @@ std::optional<std::string> extract_possible_json(RingBuffer* ring_buffer)
         {
             success = false;
             // Next read attempt after the '}' brace
-            ring_buffer->p_read = i+1;
+            ring_buffer->p_read = next(i, ring_buffer->size);
             break;
         }
 
-        if (i == ring_buffer->size-1)
-            i = 0;
-        else
-            i++;
+        i = next(i, ring_buffer->size);
     }
 
     if (success)
     {
-        uint32_t possible_json_end = i+1;
+        uint32_t possible_json_end = next(i, ring_buffer->size);
+
         std::string result;
         if (possible_json_begin < possible_json_end)
         {
