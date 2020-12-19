@@ -15,7 +15,7 @@ uint32_t checksum(const PBuffer data)
     return hash_Ly(data->data(), data->size());
 }
 
-std::optional<Header> Header::parse(const std::string& str)
+std::optional<StreamChunkHeaderJSON> StreamChunkHeaderJSON::parse(const std::string& str)
 {
     Document doc;
     doc.Parse(str.c_str());
@@ -28,13 +28,13 @@ std::optional<Header> Header::parse(const std::string& str)
     if (!doc.HasMember("size") || !doc["size"].IsUint())
         return std::nullopt;
 
-    Header header;
+    StreamChunkHeaderJSON header;
     header.checksum = doc["checksum"].GetUint();
     header.size = doc["size"].GetUint();
     return header;
 }
 
-PBuffer Header::serialize()
+PBuffer StreamChunkHeaderJSON::serialize()
 {
     Document d;
     d.SetObject();
@@ -56,7 +56,7 @@ std::optional<PBuffer> DestreamificatorJSON::unpack(RingBuffer& ring_buffer)
             if (!result.has_value())
                 return std::nullopt;
 
-            std::optional<Header> header = Header::parse(*result);
+            std::optional<StreamChunkHeaderJSON> header = StreamChunkHeaderJSON::parse(*result);
             if (!header.has_value())
                 return std::nullopt;
             m_header = *header;
@@ -87,13 +87,13 @@ void DestreamificatorJSON::reset()
 {
     m_state = State::waiting_header;
     m_buffer_bytes_left = 0;
-    m_header = Header();
+    m_header = StreamChunkHeaderJSON();
 }
 
 bool StreamificatorJSON::pack(RingBuffer& ring_buffer, const PBuffer buffer)
 {
     uint32_t sum = checksum(buffer);
-    Header header;
+    StreamChunkHeaderJSON header;
     header.size = buffer->size();
     header.checksum = sum;
     PBuffer header_buf = header.serialize();

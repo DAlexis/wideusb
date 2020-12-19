@@ -112,3 +112,82 @@ Buffer& Buffer::append(RingBuffer& data, size_t size)
     ring_buffer_get_data(&data, m_contents.data() +  old_size, size);
     return *this;
 }
+
+RingBufferClass::RingBufferClass(size_t capacity) :
+    m_contents(capacity + 1)
+{
+}
+
+size_t RingBufferClass::free_space()
+{
+    if (m_p_read <= m_p_write)
+    {
+        return m_contents.size() + m_p_read - m_p_write - 1;
+    } else {
+        return m_p_read - m_p_write - 1;
+    }
+}
+
+size_t RingBufferClass::data_size()
+{
+    if (m_p_read <= m_p_write)
+    {
+        return m_p_write - m_p_read;
+    } else {
+        return m_contents.size() + m_p_write - m_p_read;
+    }
+}
+
+void RingBufferClass::put(const uint8_t* buf, size_t size)
+{
+    size_t free_tail = m_contents.size() - m_p_write;
+    if (size < free_tail)
+    {
+        // Add to the end
+        memcpy(&m_contents[m_p_write], buf, size);
+        m_p_write += size;
+    } else {
+        // Part add to the end and part add to the beginning
+        memcpy(&m_contents[m_p_write], buf, free_tail);
+        uint32_t second_part_size = size - free_tail;
+        memcpy(&m_contents[0], &buf[free_tail], second_part_size);
+        m_p_write = second_part_size;
+    }
+}
+
+void RingBufferClass::get(uint8_t* buf, size_t size)
+{
+    if (m_p_write >= m_p_read)
+    {
+        memcpy(buf, &m_contents[m_p_read], size);
+        m_p_read += size;
+    } else {
+        uint32_t tail = m_contents.size() - m_p_read;
+        if (tail > size)
+        {
+            memcpy(buf, &m_contents[m_p_read], size);
+            m_p_read += size;
+        } else {
+            memcpy(buf, &m_contents[m_p_read], tail);
+            memcpy(buf+tail, &m_contents[0], size - tail);
+            m_p_read = size - tail;
+        }
+    }
+}
+
+void RingBufferClass::skip(size_t size)
+{
+    m_p_read += size;
+    if (m_p_read >= m_contents.size())
+        m_p_read -= m_contents.size();
+}
+
+uint8_t* RingBufferClass::operator[](size_t pos)
+{
+    size_t target_pos = pos + m_p_read;
+    if (target_pos > m_contents.size())
+    {
+        target_pos -= m_contents.size();
+    }
+    return &m_contents[target_pos];
+}

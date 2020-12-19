@@ -30,15 +30,6 @@ const MessageType* message_cast(const NewMessage* msg)
         return static_cast<const MessageType*>(msg);
 }
 
-/*
-// Extract message from possibly inconsistent stream
-class IMessageExtractor
-{
-public:
-    virtual std::optional<PBuffer> extract(RingBuffer& ring_buffer) = 0;
-};
-*/
-
 class ISingleMessageService
 {
 public:

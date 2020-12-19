@@ -3,14 +3,14 @@
 
 #include "communication/streamification.hpp"
 
-struct Header
+struct StreamChunkHeaderJSON
 {
     uint32_t size = 0;
     uint32_t checksum = 0;
 
     PBuffer serialize();
 
-    static std::optional<Header> parse(const std::string& str);
+    static std::optional<StreamChunkHeaderJSON> parse(const std::string& str);
 };
 
 class StreamificatorJSON : public IStreamificator
@@ -35,7 +35,7 @@ private:
     };
 
     State m_state = State::waiting_header;
-    Header m_header;
+    StreamChunkHeaderJSON m_header;
     uint32_t m_buffer_bytes_left = 0;
     PBuffer m_data;
 };

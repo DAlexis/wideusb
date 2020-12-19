@@ -54,5 +54,23 @@ private:
 };
 
 
+class RingBufferClass
+{
+public:
+    RingBufferClass(size_t capacity);
+
+    size_t free_space();
+    size_t data_size();
+    void put(const uint8_t* buf, size_t size);
+    void get(uint8_t* buf, size_t size);
+    void skip(size_t size);
+
+    uint8_t* operator[](size_t pos);
+
+private:
+    std::vector<uint8_t> m_contents;
+    uint32_t m_p_write = 0, m_p_read = 0;
+};
+
 
 #endif // BUFFER_HPP

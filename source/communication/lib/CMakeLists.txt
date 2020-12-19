@@ -48,8 +48,10 @@ set(SOURCES
     ./include/communication/sender.hpp
     ./include/communication/serialization.hpp
     ./include/communication/streamification.hpp
+    ./include/communication/identification.hpp
     ./include/communication/utils.hpp
     ./include/communication/json/streamificator.hpp
+    ./include/communication/json/identificator.hpp
     ./include/buffer.hpp
     ./include/messages/core-messages.hpp
     ./include/messages/gps-messages.hpp
@@ -70,6 +72,7 @@ set(SOURCES
     ./src/communication/sender.cpp
     ./src/communication/utils.cpp
     ./src/communication/json/streamificator.cpp
+    ./src/communication/json/identificator.cpp
     ./src/buffer.cpp
     ./src/message-receive.cpp
     ./src/message-send.cpp
