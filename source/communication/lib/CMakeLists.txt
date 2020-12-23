@@ -55,18 +55,10 @@ set(SOURCES
     ./include/buffer.hpp
     ./include/messages/core-messages.hpp
     ./include/messages/gps-messages.hpp
-    ./include/message-receive.hpp
-    ./include/message-send.hpp
-    ./include/message-header.hpp
-    ./include/message.hpp
     ./include/transport.hpp
-    ./include/rapidjson-config.h
+    ./include/communication/json/rapidjson-config.h
     ./include/ring-buffer.h
-    ./include/json/ring-buffer-json.hpp
-    ./include/json/header-json.hpp
-    ./include/json/msg-core-json.hpp
-    ./include/json/msg-gps-json.hpp
-    ./include/json/helpers-json.hpp
+    ./include/communication/json/helpers-json.hpp
 
     ./src/communication/receiver.cpp
     ./src/communication/sender.cpp
@@ -74,14 +66,8 @@ set(SOURCES
     ./src/communication/json/streamificator.cpp
     ./src/communication/json/identificator.cpp
     ./src/buffer.cpp
-    ./src/message-receive.cpp
-    ./src/message-send.cpp
     ./src/ring-buffer.c
-    ./src/json/ring-buffer-json.cpp
-    ./src/json/header-json.cpp
-    ./src/json/msg-core-json.cpp
-    ./src/json/msg-gps-json.cpp
-    ./src/json/helpers-json.cpp
+    ./src/communication/json/helpers-json.cpp
 )
 
 set(INCLUDE_DIRS

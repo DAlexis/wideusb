@@ -1,12 +1,12 @@
-#include "json/msg-core-json.hpp"
+/*#include "json/msg-core-json.hpp"
 
 #include "rapidjson-config.h"
 #include "rapidjson/document.h"
-
+*/
 #include "json/helpers-json.hpp"
 
 using namespace rapidjson;
-
+/*
 
 PBuffer JSONSerializer<StatusRequest>::serialize(const Message* msg) const
 {
@@ -77,3 +77,4 @@ bool JSONDeserializer<StatusResponse>::parse_impl(StatusResponse& target, PBuffe
     m_message.free_mem = d["free_mem"].GetInt();
     return true;
 }
+*/

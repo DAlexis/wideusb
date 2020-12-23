@@ -1,13 +1,12 @@
-#include "gtest/gtest.h"
+/*#include "gtest/gtest.h"
 
-#include "message-receive.hpp"
 #include "message-send.hpp"
 
 #include "ring-buffer.h"
 
 #include "json/header-json.hpp"
 #include "json/msg-core-json.hpp"
-/*
+
 TEST(SendReceiveTest, SingleMessage)
 {
     MessageReceiver receiver(std::make_shared<HeaderDeserializerJSON>());

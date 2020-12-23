@@ -16,8 +16,7 @@ protected:
 
     void init_ring_buffer(size_t size)
     {
-        ring_contents.resize(size);
-        ring_buffer_init(&rb, ring_contents.data(), ring_contents.size());
+        rb.reset(new RingBufferClass(size));
     }
 
     StreamificatorJSON out;
@@ -29,18 +28,16 @@ protected:
     PBuffer some_data_buf;
     PBuffer header_attack_buf;
 
-    std::vector<uint8_t> ring_contents;
-    RingBuffer rb;
-
+    std::unique_ptr<RingBufferClass> rb;
 };
 
 TEST_F(StreamificationJSON, ConsistentStreamSingleMsg)
 {
     init_ring_buffer(100);
 
-    out.pack(rb, some_data_buf);
+    out.pack(*rb, some_data_buf);
 
-    auto unpacked = in.unpack(rb);
+    auto unpacked = in.unpack(*rb);
     ASSERT_TRUE(unpacked.has_value());
 
     PBuffer buf = *unpacked;
@@ -54,39 +51,41 @@ TEST_F(StreamificationJSON, ConsistentStreamMultipleMsgs)
     {
         // Putting data until the buffer is filled
         int count = 0;
-        while (out.pack(rb, some_data_buf))
+        while (out.pack(*rb, some_data_buf))
         {
             count++;
         }
 
         for (int i = 0; i < count; i++)
         {
-            auto unpacked = in.unpack(rb);
+            auto unpacked = in.unpack(*rb);
             ASSERT_TRUE(unpacked.has_value());
 
             PBuffer buf = *unpacked;
             ASSERT_EQ(*some_data_buf, *buf);
         }
 
-        auto unpacked = in.unpack(rb);
+        auto unpacked = in.unpack(*rb);
         ASSERT_FALSE(unpacked.has_value());
     }
 }
 
 TEST_F(StreamificationJSON, ConsistentStreamParsingPartByPart)
 {
-    init_ring_buffer(200);
-    out.pack(rb, some_data_buf);
-    uint32_t real_p_write = rb.p_write;
-    rb.p_write = rb.p_read;
 
-    for (rb.p_write = rb.p_read; rb.p_write < real_p_write; rb.p_write++)
+    RingBufferClass tmp(200);
+    init_ring_buffer(200);
+
+    out.pack(tmp, some_data_buf);
+
+    while(tmp.size() > 1)
     {
-        auto unpacked = in.unpack(rb);
+        rb->move_data(tmp, 1);
+        auto unpacked = in.unpack(*rb);
         ASSERT_FALSE(unpacked.has_value());
     }
-    rb.p_write = real_p_write;
-    auto unpacked = in.unpack(rb);
+    rb->move_data(tmp, 1);
+    auto unpacked = in.unpack(*rb);
     ASSERT_TRUE(unpacked.has_value());
 
     PBuffer buf = *unpacked;
@@ -97,17 +96,17 @@ TEST_F(StreamificationJSON, InconsistentStreamGarbage)
 {
     init_ring_buffer(1000);
 
-    out.pack(rb, some_data_buf);
+    out.pack(*rb, some_data_buf);
     uint8_t garbage[256];
     for (int i = 0; i < 256; i++)
         garbage[i] = (uint8_t) i;
 
-    ring_buffer_put_data(&rb, garbage, 256); // Garbage includes {}
+    rb->put(garbage, 256); // Garbage includes {}
 
-    out.pack(rb, some_data_buf);
+    out.pack(*rb, some_data_buf);
 
 
-    auto unpacked_first = in.unpack(rb);
+    auto unpacked_first = in.unpack(*rb);
     ASSERT_TRUE(unpacked_first.has_value());
 
     PBuffer buf = *unpacked_first;
@@ -118,7 +117,7 @@ TEST_F(StreamificationJSON, InconsistentStreamGarbage)
     bool parsed_finally = false;
     for (int i = 0; i < 10; i++)
     {
-        auto unpacked = in.unpack(rb);
+        auto unpacked = in.unpack(*rb);
         if (unpacked.has_value())
         {
             buf = *unpacked;
@@ -133,17 +132,16 @@ TEST_F(StreamificationJSON, InconsistentStreamGarbage)
 TEST_F(StreamificationJSON, InconsistentCorrupted)
 {
     init_ring_buffer(1000);
-    out.pack(rb, some_data_buf);
-    uint32_t p_write = rb.p_write;
-    out.pack(rb, some_data_buf);
-    rb.ring_buffer[p_write] = '|'; // Changing '{'
-    out.pack(rb, some_data_buf);
+    out.pack(*rb, some_data_buf); // Rec 1
+    out.pack(*rb, some_data_buf); // Rec 2
+    out.pack(*rb, some_data_buf); // Rec 3
+    (*rb)[rb->size() / 2] = 'X'; // Some part of Rec 2
 
     int unpacked_count = 0;
 
     for (int i = 0; i < 10; i++)
     {
-        auto unpacked = in.unpack(rb);
+        auto unpacked = in.unpack(*rb);
         if (unpacked.has_value())
         {
             ASSERT_EQ(*some_data_buf, **unpacked);

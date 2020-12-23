@@ -1,6 +1,7 @@
+/*
 #include "tools/json-objects.hpp"
 
-#include "rapidjson-config.h"
+#include "communication/json/rapidjson-config.h"
 #include "rapidjson/document.h"
 #include "rapidjson/stringbuffer.h"
 #include "rapidjson/writer.h"
@@ -35,17 +36,7 @@ TEST(PropertiesCollectionClass, BasicUsage)
     {
         Document doc;
         doc.Parse("{\"host_object\": {\"int_par_1\" : 123, \"int_par_2\": 234} }");
-        /*doc.SetObject();
-        auto & alloc = doc.GetAllocator();
 
-        Value host_object(kObjectType);
-        ASSERT_TRUE(host_object.IsObject());
-
-        host_object.AddMember("int_par_1", Value(123), alloc);
-        host_object.AddMember("int_par_2", Value(234), alloc);
-
-        ASSERT_TRUE(host_object.IsObject());
-        doc.AddMember("host_object", host_object, alloc);*/
         ASSERT_TRUE(doc["host_object"].IsObject());
 
         auto result = pc.receive_object(doc["host_object"]);
@@ -200,3 +191,4 @@ TEST(ModuleActionProperties, TypicalUsage)
         ASSERT_FALSE(result.has_value());
     }
 }
+*/

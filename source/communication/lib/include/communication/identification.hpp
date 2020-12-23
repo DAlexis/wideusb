@@ -9,7 +9,7 @@
 class IMessageIdentificator
 {
 public:
-    virtual void put_massage_id(PBuffer buf, MessageId id) = 0;
+    virtual void put_message_id(PBuffer buf, MessageId id) = 0;
     /**
      * @brief Parse message id identificator from Buffer and move reading pointer
      * @param buf   source buffer

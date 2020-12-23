@@ -1,11 +1,10 @@
 #include "communication/json/streamificator.hpp"
 #include "communication/utils.hpp"
 
-#include "json/ring-buffer-json.hpp"
-#include "rapidjson-config.h"
+#include "communication/json/rapidjson-config.h"
 #include "rapidjson/document.h"
 
-#include "json/helpers-json.hpp"
+#include "communication/json/helpers-json.hpp"
 
 
 using namespace rapidjson;
@@ -46,13 +45,13 @@ PBuffer StreamChunkHeaderJSON::serialize()
     return buffer_from_document(d);
 }
 
-std::optional<PBuffer> DestreamificatorJSON::unpack(RingBuffer& ring_buffer)
+std::optional<PBuffer> DestreamificatorJSON::unpack(RingBufferClass& ring_buffer)
 {
     switch (m_state)
     {
     case State::waiting_header:
         {
-            std::optional<std::string> result = extract_possible_json(&ring_buffer);
+            std::optional<std::string> result = extract_possible_json(ring_buffer);
             if (!result.has_value())
                 return std::nullopt;
 
@@ -66,8 +65,8 @@ std::optional<PBuffer> DestreamificatorJSON::unpack(RingBuffer& ring_buffer)
         } // No break here, it is ok
     case State::waiting_buffer:
         {
-            uint32_t size_to_read = std::min(ring_buffer_data_size(&ring_buffer), m_buffer_bytes_left);
-            m_data->append(ring_buffer, size_to_read);
+            uint32_t size_to_read = std::min(ring_buffer.size(), m_buffer_bytes_left);
+            m_data->put(ring_buffer, size_to_read);
             m_buffer_bytes_left -= size_to_read;
             if (m_buffer_bytes_left == 0)
             {
@@ -90,7 +89,7 @@ void DestreamificatorJSON::reset()
     m_header = StreamChunkHeaderJSON();
 }
 
-bool StreamificatorJSON::pack(RingBuffer& ring_buffer, const PBuffer buffer)
+bool StreamificatorJSON::pack(RingBufferClass& ring_buffer, const PBuffer buffer)
 {
     uint32_t sum = checksum(buffer);
     StreamChunkHeaderJSON header;
@@ -98,10 +97,10 @@ bool StreamificatorJSON::pack(RingBuffer& ring_buffer, const PBuffer buffer)
     header.checksum = sum;
     PBuffer header_buf = header.serialize();
 
-    if (header_buf->size() + buffer->size() > ring_buffer_free_space(&ring_buffer))
+    if (header_buf->size() + buffer->size() > ring_buffer.free_space())
         return false;
 
-    *header_buf >> ring_buffer;
-    *buffer >> ring_buffer;
+    ring_buffer << *header_buf;
+    ring_buffer << *buffer;
     return true;
 }

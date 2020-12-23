@@ -1,4 +1,4 @@
-#include "json/msg-core-json.hpp"
+/*#include "json/msg-core-json.hpp"
 #include "json/header-json.hpp"
 #include "ring-buffer.h"
 
@@ -7,7 +7,7 @@
 #include <iostream>
 
 using namespace std;
-/*
+
 TEST(HeaderJSON, Serialization)
 {
     MessageHeader header;

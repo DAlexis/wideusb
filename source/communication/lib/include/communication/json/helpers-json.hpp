@@ -6,6 +6,10 @@
 #include "rapidjson-config.h"
 #include "rapidjson/document.h"
 
+#include <string>
+#include <optional>
+
 PBuffer buffer_from_document(const rapidjson::Document& doc);
+std::optional<std::string> extract_possible_json(ISerialReadAccessor& ring_buffer);
 
 #endif // JSONHELPERS_HPP

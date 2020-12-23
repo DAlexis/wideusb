@@ -1,16 +1,16 @@
 #ifndef COREMESSAGES_HPP
 #define COREMESSAGES_HPP
 
-#include "message.hpp"
+//#include "message.hpp"
 
 #include <cstdint>
 
-struct StatusRequest : public Message
+struct StatusRequest //: public Message
 {
     bool do_blink = false;
 };
 
-struct StatusResponse : public Message
+struct StatusResponse //: public Message
 {
     bool alive = false;
     uint32_t system_ticks = 0;

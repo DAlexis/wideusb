@@ -37,8 +37,8 @@ TEST(BufferClass, Operating)
     uint8_t test_data1[] = {12, 23, 34, 45};
     uint8_t test_data2[] = {98, 87, 76, 65};
 
-    b1->append(test_data1, 4);
-    b1->append(test_data1, 4);
+    b1->put(test_data1, 4);
+    b1->put(test_data1, 4);
 
     ASSERT_EQ(b1->size(), 8);
     ASSERT_EQ(0, memcmp(test_data1, b1->data(), 4));

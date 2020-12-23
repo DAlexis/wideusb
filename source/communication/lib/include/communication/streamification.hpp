@@ -8,7 +8,7 @@
 class IStreamificator
 {
 public:
-    virtual bool pack(RingBuffer& ring_buffer, const PBuffer buffer) = 0;
+    virtual bool pack(RingBufferClass& ring_buffer, const PBuffer buffer) = 0;
 
     virtual ~IStreamificator() = default;
 };
@@ -16,7 +16,7 @@ public:
 class IDestreamificator
 {
 public:
-    virtual std::optional<PBuffer> unpack(RingBuffer& ring_buffer) = 0;
+    virtual std::optional<PBuffer> unpack(RingBufferClass& ring_buffer) = 0;
     virtual void reset() = 0;
 
     virtual ~IDestreamificator() = default;

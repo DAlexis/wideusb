@@ -7,7 +7,7 @@
 #include <optional>
 #include <functional>
 
-#include "rapidjson-config.h"
+#include "communication/json/rapidjson-config.h"
 #include "rapidjson/document.h"
 
 class PropertiesCollection;

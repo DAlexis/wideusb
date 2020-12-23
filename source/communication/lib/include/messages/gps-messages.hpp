@@ -1,11 +1,9 @@
 #ifndef GPSMESSAGES_HPP
 #define GPSMESSAGES_HPP
 
-#include "message.hpp"
-
 #include <cstdint>
 
-struct GPSPoint : public Message
+struct GPSPoint //: public Message
 {
     bool has_position = false;
     float latitude = 0.0f;

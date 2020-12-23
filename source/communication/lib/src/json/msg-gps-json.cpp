@@ -1,4 +1,4 @@
-#include "json/msg-gps-json.hpp"
+/*#include "json/msg-gps-json.hpp"
 
 #include "rapidjson-config.h"
 #include "rapidjson/document.h"
@@ -40,3 +40,4 @@ bool JSONDeserializer<GPSPoint>::parse_impl(GPSPoint& target, const PBuffer buff
 {
     return false;
 }
+*/
