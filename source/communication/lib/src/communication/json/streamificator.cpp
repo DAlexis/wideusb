@@ -45,7 +45,7 @@ PBuffer StreamChunkHeaderJSON::serialize()
     return buffer_from_document(d);
 }
 
-std::optional<PBuffer> DestreamificatorJSON::unpack(RingBufferClass& ring_buffer)
+std::optional<PBuffer> DestreamificatorJSON::unpack(SerialReadAccessor& ring_buffer)
 {
     switch (m_state)
     {
@@ -89,7 +89,7 @@ void DestreamificatorJSON::reset()
     m_header = StreamChunkHeaderJSON();
 }
 
-bool StreamificatorJSON::pack(RingBufferClass& ring_buffer, const PBuffer buffer)
+bool StreamificatorJSON::pack(RingBuffer& ring_buffer, const PBuffer buffer)
 {
     uint32_t sum = checksum(buffer);
     StreamChunkHeaderJSON header;
@@ -100,7 +100,7 @@ bool StreamificatorJSON::pack(RingBufferClass& ring_buffer, const PBuffer buffer
     if (header_buf->size() + buffer->size() > ring_buffer.free_space())
         return false;
 
-    ring_buffer << *header_buf;
-    ring_buffer << *buffer;
+    ring_buffer << BufferAccessor(header_buf);
+    ring_buffer << BufferAccessor(buffer);
     return true;
 }

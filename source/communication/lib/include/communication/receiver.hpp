@@ -15,7 +15,7 @@ public:
     void add(std::shared_ptr<IMessageSerializerNew> msg_serializer);
     void add(std::shared_ptr<IMessageReceiverNew> msg_receiver);
 
-    void receive(RingBuffer& msg);
+    void receive(SerialReadAccessor& msg);
 private:
     std::shared_ptr<IStreamificator> m_streamificator;
 

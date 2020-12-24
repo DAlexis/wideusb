@@ -23,7 +23,7 @@ protected:
     void test_ring_buf(const std::string& str, bool is_json)
     {
 
-        RingBufferClass rb(400);
+        RingBuffer rb(400);
         char c = 'x';
         for (size_t i = 0; i < 390; i++)
             rb.put((const uint8_t*) &c, 1);
@@ -33,7 +33,7 @@ protected:
         test_accessor(rb, is_json);
     }
 
-    void test_accessor(ISerialReadAccessor& accessor,  bool is_json)
+    void test_accessor(SerialReadAccessor& accessor,  bool is_json)
     {
         ASSERT_NO_THROW(opt = extract_possible_json(accessor));
         if (is_json)

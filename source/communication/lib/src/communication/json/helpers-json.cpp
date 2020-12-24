@@ -15,7 +15,7 @@ PBuffer buffer_from_document(const rapidjson::Document& doc)
     return Buffer::create(buffer.GetSize(), (uint8_t*) buffer.GetString());
 }
 
-std::optional<std::string> extract_possible_json(ISerialReadAccessor& ring_buffer)
+std::optional<std::string> extract_possible_json(SerialReadAccessor& ring_buffer)
 {
     /* Buffer content may be extended during this function call,
      * when interrupt may be called.

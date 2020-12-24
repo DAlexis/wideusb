@@ -1,22 +1,32 @@
 #include "buffer.hpp"
-#include "ring-buffer.h"
 
 #include <cstring>
 #include <string>
+
+SerialWriteAccessor& SerialWriteAccessor::operator<<(SerialReadAccessor&& accessor)
+{
+    return *this << accessor;
+}
+
+SerialWriteAccessor& SerialWriteAccessor::operator<<(SerialReadAccessor& accessor)
+{
+    put(accessor, accessor.size());
+    return *this;
+}
 
 std::shared_ptr<Buffer> Buffer::create(size_t size, const void* init_data)
 {
     return std::shared_ptr<Buffer>(new Buffer(size, init_data));
 }
 
-PBuffer Buffer::create(RingBufferClass& data, size_t size)
+PBuffer Buffer::create(RingBuffer& data, size_t size)
 {
     PBuffer result = create();
     result->put(data, size);
     return result;
 }
 
-PBuffer Buffer::create(RingBufferClass& data)
+PBuffer Buffer::create(RingBuffer& data)
 {
     return create(data, data.size());
 }
@@ -49,11 +59,6 @@ size_t Buffer::size() const
     return m_contents.size();
 }
 
-bool Buffer::empty() const
-{
-    return m_contents.empty();
-}
-
 uint8_t* Buffer::data()
 {
     return m_contents.data();
@@ -73,36 +78,6 @@ uint8_t& Buffer::operator[](size_t pos)
 {
     return m_contents[pos];
 }
-/*
-const Buffer& Buffer::operator>>(RingBuffer& target) const
-{
-    ring_buffer_put_data(&target, data(), size());
-    return *this;
-}*/
-
-Buffer& Buffer::operator<<(const Buffer& buf)
-{
-    return put(buf.data(), buf.size());
-}
-
-Buffer& Buffer::operator<<(Buffer&& buf)
-{
-    *this << buf;
-    buf.clear();
-    return *this;
-}
-/*
-Buffer& Buffer::operator<<(RingBuffer& ring_buffer)
-{
-    put(ring_buffer, ring_buffer_data_size(&ring_buffer));
-    return *this;
-}*/
-
-Buffer& Buffer::operator<<(RingBufferClass& ring_buffer)
-{
-    put(ring_buffer, ring_buffer.size());
-    return *this;
-}
 
 bool Buffer::operator==(const Buffer& right) const
 {
@@ -114,54 +89,32 @@ std::vector<uint8_t>& Buffer::contents()
     return m_contents;
 }
 
-Buffer& Buffer::put(const uint8_t* data, size_t size)
+void Buffer::put(const void* data, size_t size)
 {
     size_t old_size = m_contents.size();
     extend(size);
 
     memcpy(m_contents.data() + old_size, data, size);
-    return *this;
 }
 
-/*Buffer& Buffer::put(RingBuffer& data, size_t size)
+void Buffer::put(SerialReadAccessor& accessor, size_t size)
 {
     if (size == 0)
-        return *this;
+        return;
 
-    size_t buffer_size = ring_buffer_data_size(&data);
+    size_t buffer_size = accessor.size();
     if (buffer_size < size)
         size = buffer_size;
 
     size_t old_size = m_contents.size();
     extend(size);
-    ring_buffer_get_data(&data, m_contents.data() +  old_size, size);
-    return *this;
-}
-*/
-Buffer& Buffer::put(RingBufferClass& ring_buffer, size_t size)
-{
-    if (size == 0)
-        return *this;
-
-    size_t buffer_size = ring_buffer.size();
-    if (buffer_size < size)
-        size = buffer_size;
-
-    size_t old_size = m_contents.size();
-    extend(size);
-    ring_buffer.get(m_contents.data() + old_size, size);
-    return *this;
+    accessor.get(m_contents.data() + old_size, size);
 }
 
 BufferAccessor::BufferAccessor(PBuffer buf, size_t pos) :
     m_buffer(buf),
     m_offset(pos)
 {
-}
-
-bool BufferAccessor::empty() const
-{
-    return m_buffer->size() <= m_offset;
 }
 
 void BufferAccessor::skip(size_t count)
@@ -185,12 +138,12 @@ uint8_t BufferAccessor::operator[](size_t pos) const
     return (*m_buffer)[pos + m_offset];
 }
 
-RingBufferClass::RingBufferClass(size_t capacity) :
+RingBuffer::RingBuffer(size_t capacity) :
     m_contents(capacity + 1)
 {
 }
 
-size_t RingBufferClass::free_space()
+size_t RingBuffer::free_space()
 {
     if (m_p_read <= m_p_write)
     {
@@ -200,7 +153,7 @@ size_t RingBufferClass::free_space()
     }
 }
 
-size_t RingBufferClass::size() const
+size_t RingBuffer::size() const
 {
     if (m_p_read <= m_p_write)
     {
@@ -210,7 +163,7 @@ size_t RingBufferClass::size() const
     }
 }
 
-void RingBufferClass::put(const void* src, size_t size)
+void RingBuffer::put(const void* src, size_t size)
 {
     const uint8_t* buf = (const uint8_t*) src;
     size_t free_tail = m_contents.size() - m_p_write;
@@ -228,7 +181,24 @@ void RingBufferClass::put(const void* src, size_t size)
     }
 }
 
-void RingBufferClass::get(uint8_t* buf, size_t size)
+void RingBuffer::put(SerialReadAccessor& accessor, size_t size)
+{
+    size_t free_tail = m_contents.size() - m_p_write;
+    if (size < free_tail)
+    {
+        // Add to the end
+        accessor.get(&m_contents[m_p_write], size);
+        m_p_write += size;
+    } else {
+        // Part add to the end and part add to the beginning
+        accessor.get(&m_contents[m_p_write], free_tail);
+        uint32_t second_part_size = size - free_tail;
+        accessor.get(&m_contents[0], second_part_size);
+        m_p_write = second_part_size;
+    }
+}
+
+void RingBuffer::get(uint8_t* buf, size_t size)
 {
     if (m_p_write >= m_p_read)
     {
@@ -248,35 +218,29 @@ void RingBufferClass::get(uint8_t* buf, size_t size)
     }
 }
 
-void RingBufferClass::skip(size_t size)
+void RingBuffer::skip(size_t size)
 {
     m_p_read += size;
     if (m_p_read >= m_contents.size())
         m_p_read -= m_contents.size();
 }
 
-void RingBufferClass::move_data(RingBufferClass& ring_buffer, size_t size)
-{
-    PBuffer b = Buffer::create(ring_buffer, size);
-    *this << *b;
-}
-
-bool RingBufferClass::empty() const
+bool RingBuffer::empty() const
 {
     return m_p_read == m_p_write;
 }
 
-void RingBufferClass::clear()
+void RingBuffer::clear()
 {
     m_p_write = m_p_read = 0;
 }
 
-uint8_t RingBufferClass::operator[](size_t pos) const
+uint8_t RingBuffer::operator[](size_t pos) const
 {
-    return const_cast<RingBufferClass*>(this)->operator[](pos);
+    return const_cast<RingBuffer*>(this)->operator[](pos);
 }
 
-uint8_t& RingBufferClass::operator[](size_t pos)
+uint8_t& RingBuffer::operator[](size_t pos)
 {
     size_t target_pos = pos + m_p_read;
     if (target_pos >= m_contents.size())
@@ -286,13 +250,7 @@ uint8_t& RingBufferClass::operator[](size_t pos)
     return m_contents[target_pos];
 }
 
-RingBufferClass& RingBufferClass::operator<<(const Buffer& buffer)
-{
-    put(buffer.data(), buffer.size());
-    return *this;
-}
-
-RingBufferHandle RingBufferClass::handle()
+RingBufferHandle RingBuffer::handle()
 {
     RingBufferHandle h;
     h.p_ring_buffer = this;

@@ -16,7 +16,7 @@ public:
      * @param pos   index in buffer that will be moved
      * @return Message id if parsing is OK
      */
-    virtual std::optional<MessageId> get_message_id(PBuffer buf, size_t& pos) = 0;
+    virtual std::optional<MessageId> get_message_id(SerialReadAccessor& accessor) = 0;
 };
 
 #endif // IDENTIFICATION_HPP

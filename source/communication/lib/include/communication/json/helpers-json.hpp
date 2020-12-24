@@ -10,6 +10,6 @@
 #include <optional>
 
 PBuffer buffer_from_document(const rapidjson::Document& doc);
-std::optional<std::string> extract_possible_json(ISerialReadAccessor& ring_buffer);
+std::optional<std::string> extract_possible_json(SerialReadAccessor& ring_buffer);
 
 #endif // JSONHELPERS_HPP

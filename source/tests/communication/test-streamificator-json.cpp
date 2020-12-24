@@ -2,8 +2,6 @@
 
 #include "gtest/gtest.h"
 
-#include "ring-buffer.h"
-
 #include <iostream>
 
 class StreamificationJSON : public ::testing::Test
@@ -16,7 +14,7 @@ protected:
 
     void init_ring_buffer(size_t size)
     {
-        rb.reset(new RingBufferClass(size));
+        rb.reset(new RingBuffer(size));
     }
 
     StreamificatorJSON out;
@@ -28,7 +26,7 @@ protected:
     PBuffer some_data_buf;
     PBuffer header_attack_buf;
 
-    std::unique_ptr<RingBufferClass> rb;
+    std::unique_ptr<RingBuffer> rb;
 };
 
 TEST_F(StreamificationJSON, ConsistentStreamSingleMsg)
@@ -44,47 +42,60 @@ TEST_F(StreamificationJSON, ConsistentStreamSingleMsg)
     ASSERT_EQ(*some_data_buf, *buf);
 }
 
+/**
+ * @brief Heavy test for various buffer sizes with many use cycles.
+ * The idea is to exhaust all cases of data location inside ring buffer
+ * and buffer all cases of head/tail size during operating
+ *
+ */
 TEST_F(StreamificationJSON, ConsistentStreamMultipleMsgs)
 {
-    init_ring_buffer(200);
-    for (int global = 0; global < 100; global++)
+    for (size_t buffer_size = 100; buffer_size <= 250; buffer_size++)
     {
-        // Putting data until the buffer is filled
-        int count = 0;
-        while (out.pack(*rb, some_data_buf))
+        init_ring_buffer(buffer_size);
+        for (int global = 0; global < 150; global++)
         {
-            count++;
-        }
+            // Putting data until the buffer is filled
+            if (global == 34)
+                std::cout << "w";
+            int count = 0;
+            while (out.pack(*rb, some_data_buf))
+            {
+                count++;
+            }
 
-        for (int i = 0; i < count; i++)
-        {
+            for (int i = 0; i < count; i++)
+            {
+                if (global == 34 && i == 0)
+                    std::cout << "w";
+                auto unpacked = in.unpack(*rb);
+                ASSERT_TRUE(unpacked.has_value());
+
+                PBuffer buf = *unpacked;
+                ASSERT_EQ(*some_data_buf, *buf);
+            }
+
             auto unpacked = in.unpack(*rb);
-            ASSERT_TRUE(unpacked.has_value());
-
-            PBuffer buf = *unpacked;
-            ASSERT_EQ(*some_data_buf, *buf);
+            ASSERT_FALSE(unpacked.has_value());
         }
-
-        auto unpacked = in.unpack(*rb);
-        ASSERT_FALSE(unpacked.has_value());
+        ASSERT_TRUE(rb->empty());
     }
 }
 
 TEST_F(StreamificationJSON, ConsistentStreamParsingPartByPart)
 {
-
-    RingBufferClass tmp(200);
+    RingBuffer tmp(200);
     init_ring_buffer(200);
 
     out.pack(tmp, some_data_buf);
 
     while(tmp.size() > 1)
     {
-        rb->move_data(tmp, 1);
+        rb->put(tmp, 1);
         auto unpacked = in.unpack(*rb);
         ASSERT_FALSE(unpacked.has_value());
     }
-    rb->move_data(tmp, 1);
+    rb->put(tmp, 1);
     auto unpacked = in.unpack(*rb);
     ASSERT_TRUE(unpacked.has_value());
 

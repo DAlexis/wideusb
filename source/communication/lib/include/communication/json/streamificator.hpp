@@ -16,7 +16,7 @@ struct StreamChunkHeaderJSON
 class StreamificatorJSON : public IStreamificator
 {
 public:
-    bool pack(RingBufferClass& ring_buffer, const PBuffer buffer) override;
+    bool pack(RingBuffer& ring_buffer, const PBuffer buffer) override;
 
 private:
 };
@@ -24,7 +24,7 @@ private:
 class DestreamificatorJSON : public IDestreamificator
 {
 public:
-    std::optional<PBuffer> unpack(RingBufferClass& ring_buffer) override;
+    std::optional<PBuffer> unpack(SerialReadAccessor& ring_buffer) override;
     void reset() override;
 
 private:

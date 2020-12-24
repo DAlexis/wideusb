@@ -57,7 +57,6 @@ set(SOURCES
     ./include/messages/gps-messages.hpp
     ./include/transport.hpp
     ./include/communication/json/rapidjson-config.h
-    ./include/ring-buffer.h
     ./include/communication/json/helpers-json.hpp
 
     ./src/communication/receiver.cpp
@@ -66,7 +65,6 @@ set(SOURCES
     ./src/communication/json/streamificator.cpp
     ./src/communication/json/identificator.cpp
     ./src/buffer.cpp
-    ./src/ring-buffer.c
     ./src/communication/json/helpers-json.cpp
 )
 

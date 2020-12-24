@@ -10,12 +10,12 @@ class RingBufferTest : public ::testing::Test
 {
 protected:
     void SetUp() override {
-        buffer.reset(new RingBufferClass(buffer_size));
+        buffer.reset(new RingBuffer(buffer_size));
     }
 
     const size_t buffer_size = 10;
 
-    std::unique_ptr<RingBufferClass> buffer;
+    std::unique_ptr<RingBuffer> buffer;
 
     uint8_t test_data[4] = {12, 23, 34, 45};
     uint8_t receiver[10];
@@ -23,7 +23,7 @@ protected:
 
 TEST(RingBufferTestBasic, Instantiation)
 {
-    RingBufferClass buffer(10);
+    RingBuffer buffer(10);
 
     ASSERT_EQ(buffer.free_space(), 10);
     ASSERT_EQ(buffer.size(), 0);
@@ -87,8 +87,9 @@ TEST_F(RingBufferTest, PutFromBuffer)
 {
     auto linear_buf = Buffer::create();
     float test_val = 3.1415;
-    *linear_buf << test_val;
-    *buffer << *linear_buf;
+    linear_buf->put(&test_val, sizeof(test_val));
+    BufferAccessor buff_acc(linear_buf);
+    *buffer << buff_acc;
 
     ASSERT_EQ(buffer->size(), sizeof(test_val));
 

@@ -8,27 +8,78 @@
 #include "buffer-c.h"
 
 class Buffer;
-class RingBufferClass;
-struct RingBuffer;
+class RingBuffer;
 
 using PBuffer = std::shared_ptr<Buffer>;
 
-class Buffer : public std::enable_shared_from_this<Buffer>
+class SerialReadAccessor
+{
+public:
+    virtual bool empty() const
+    { return size() == 0; }
+    virtual void skip(size_t count) = 0;
+    virtual void get(uint8_t* buf, size_t size) = 0;
+    virtual size_t size() const = 0;
+
+    virtual uint8_t operator[](size_t pos) const = 0;
+    virtual ~SerialReadAccessor() = default;
+};
+
+class SerialWriteAccessor
+{
+private:
+    class RawStream;
+
+public:
+    virtual void put(const void* data, size_t size) = 0;
+    virtual void put(SerialReadAccessor& buffer, size_t size) = 0;
+
+    virtual SerialWriteAccessor& operator<<(SerialReadAccessor&& accessor);
+    virtual SerialWriteAccessor& operator<<(SerialReadAccessor& accessor);
+
+    virtual ~SerialWriteAccessor() = default;
+
+    /**
+     * @brief Create raw data accessor to trivially serialize anything by copying it
+     * @return
+     */
+    RawStream raw() { return RawStream(*this); }
+
+private:
+    class RawStream
+    {
+    public:
+        RawStream(SerialWriteAccessor& write_accessor) :
+            m_write_accessor(write_accessor)
+        {}
+
+        template<typename T>
+        RawStream& operator<<(const T& variable)
+        {
+            m_write_accessor.put(reinterpret_cast<const void*>(&variable), sizeof(T));
+            return *this;
+        }
+    private:
+        SerialWriteAccessor& m_write_accessor;
+    };
+};
+
+
+class Buffer : public std::enable_shared_from_this<Buffer>, public SerialWriteAccessor
 {
 public:
     static PBuffer create(size_t size = 0, const void* init_data = nullptr);
-    static PBuffer create(RingBufferClass& data, size_t size);
-    static PBuffer create(RingBufferClass& data);
+    static PBuffer create(RingBuffer& data, size_t size);
+    static PBuffer create(RingBuffer& data);
 
-    Buffer& put(const uint8_t* data, size_t size);
-    Buffer& put(RingBufferClass& ring_buffer, size_t size);
+    void put(const void* data, size_t size) override;
+    void put(SerialReadAccessor& accessor, size_t size) override;
 
     std::vector<uint8_t>& contents();
 
     PBuffer clone();
 
     size_t size() const;
-    bool empty() const;
     uint8_t* data();
     const uint8_t* data() const;
 
@@ -36,18 +87,8 @@ public:
 
     uint8_t& operator[](size_t pos);
 
-    Buffer& operator<<(const Buffer& buf);
-    Buffer& operator<<(Buffer&& buf);
-
-    //Buffer& operator<<(RingBuffer& ring_buffer);
-    Buffer& operator<<(RingBufferClass& ring_buffer);
-
-    template<typename T>
-    Buffer& operator<<(const T& variable)
-    {
-        put(reinterpret_cast<const uint8_t*>(&variable), sizeof(T));
-        return *this;
-    }
+/*
+    */
 
     bool operator==(const Buffer& right) const;
 
@@ -58,23 +99,10 @@ private:
     std::vector<uint8_t> m_contents;
 };
 
-class ISerialReadAccessor
-{
-public:
-    virtual bool empty() const = 0;
-    virtual void skip(size_t count) = 0;
-    virtual void get(uint8_t* buf, size_t size) = 0;
-    virtual size_t size() const = 0;
-
-    virtual uint8_t operator[](size_t pos) const = 0;
-    virtual ~ISerialReadAccessor() = default;
-};
-
-class BufferAccessor : public ISerialReadAccessor
+class BufferAccessor : public SerialReadAccessor
 {
 public:
     BufferAccessor(PBuffer buf, size_t pos = 0);
-    bool empty() const override;
     void skip(size_t count) override;
     void get(uint8_t* buf, size_t size) override;
     size_t size() const override;
@@ -89,10 +117,10 @@ private:
  * @brief The RingBufferClass class is always a serial accessor to itself,
  * because it stores reading pointer and it should be the only one
  */
-class RingBufferClass : public ISerialReadAccessor
+class RingBuffer : public SerialReadAccessor, public SerialWriteAccessor
 {
 public:
-    RingBufferClass(size_t capacity);
+    RingBuffer(size_t capacity);
 
     size_t free_space();
     /**
@@ -100,10 +128,12 @@ public:
      * @return currently stored data size
      */
     size_t size() const override;
-    void put(const void* src, size_t size);
+
+    void put(const void* src, size_t size) override;
+    void put(SerialReadAccessor& accessor, size_t size) override;
+
     void get(uint8_t* buf, size_t size) override;
     void skip(size_t size) override;
-    void move_data(RingBufferClass& ring_buffer, size_t size);
 
     bool empty() const override;
     void clear();
@@ -111,7 +141,7 @@ public:
     uint8_t operator[](size_t pos) const override;
     uint8_t& operator[](size_t pos);
 
-    RingBufferClass& operator<<(const Buffer& buffer);
+
 
     RingBufferHandle handle();
 
