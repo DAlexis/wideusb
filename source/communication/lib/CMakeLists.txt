@@ -43,27 +43,40 @@ set(SOURCES
     ./include/rapidjson/internal/strtod.h
     ./include/rapidjson/internal/dtoa.h
 
+    ./include/communication/communicator.hpp
     ./include/communication/message.hpp
     ./include/communication/receiver.hpp
     ./include/communication/sender.hpp
     ./include/communication/serialization.hpp
-    ./include/communication/streamification.hpp
+    ./include/communication/channel-layer.hpp
     ./include/communication/identification.hpp
     ./include/communication/utils.hpp
+    ./include/communication/networking.hpp
+    ./include/communication/networking-interfaces.hpp
     ./include/communication/json/streamificator.hpp
     ./include/communication/json/identificator.hpp
+    ./include/communication/json/rapidjson-config.h
+    ./include/communication/json/helpers-json.hpp
+    ./include/communication/json/messages-core.hpp
+    ./include/communication/binary/channel.hpp
+    ./include/communication/binary/network.hpp
+    ./include/communication/binary/transport.hpp
     ./include/buffer.hpp
     ./include/messages/core-messages.hpp
     ./include/messages/gps-messages.hpp
     ./include/transport.hpp
-    ./include/communication/json/rapidjson-config.h
-    ./include/communication/json/helpers-json.hpp
 
+
+    ./src/communication/communicator.cpp
     ./src/communication/receiver.cpp
     ./src/communication/sender.cpp
     ./src/communication/utils.cpp
     ./src/communication/json/streamificator.cpp
     ./src/communication/json/identificator.cpp
+    ./src/communication/json/messages-core.cpp
+    ./src/communication/binary/channel.cpp
+    ./src/communication/binary/network.cpp
+    ./src/communication/binary/transport.cpp
     ./src/buffer.cpp
     ./src/communication/json/helpers-json.cpp
 )

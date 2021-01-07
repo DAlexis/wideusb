@@ -1,14 +1,14 @@
-#ifndef IDENTIFICATOR_HPP
-#define IDENTIFICATOR_HPP
+#ifndef JSON_IDENTIFICATOR_HPP
+#define JSON_IDENTIFICATOR_HPP
 
 #include "communication/identification.hpp"
 
 class IdentificatorJSON : public IMessageIdentificator
 {
 public:
-    void put_message_id(PBuffer buf, MessageId id) override;
+    bool put_message_id(SerialWriteAccessor& buf, const MessageHeader& header) override;
 
-    std::optional<MessageId> get_message_id(SerialReadAccessor& accessor) override;
+    std::optional<MessageHeader> get_message_id(SerialReadAccessor& accessor) override;
 };
 
-#endif // IDENTIFICATOR_HPP
+#endif // JSON_IDENTIFICATOR_HPP

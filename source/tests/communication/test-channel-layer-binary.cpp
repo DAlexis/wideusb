@@ -1,0 +1,89 @@
+#include "communication/binary/channel.hpp"
+
+#include "gtest/gtest.h"
+
+TEST(ChannelLayerBinaryClass, SimpleOperating)
+{
+    const char test_data_1[] = ">Whatever you want here<";
+    const char test_data_2[] = ">Anything else<";
+    uint8_t tmp[255];
+    ChannelLayerBinary channel(200);
+
+    // Single frame test
+    SegmentBuffer sg1(Buffer::create(sizeof(test_data_1), test_data_1));
+    channel.encode(sg1);
+
+    PBuffer result = sg1.merge();
+
+    std::vector<DecodedFrame> frames = channel.decode(result->data(), result->size());
+
+    ASSERT_EQ(frames.size(), 1);
+    ASSERT_EQ(frames[0].frame.size(), sizeof(test_data_1));
+    frames[0].frame.extract(tmp, frames[0].frame.size());
+
+    ASSERT_EQ(0, memcmp(test_data_1, tmp, frames[0].frame.size()));
+
+    // 2 frames test
+    SegmentBuffer sg2(Buffer::create(sizeof(test_data_2), test_data_2));
+    channel.encode(sg2);
+
+    sg1.push_back(sg2);
+    result = sg1.merge();
+
+    frames = channel.decode(result->data(), result->size());
+    ASSERT_EQ(frames.size(), 2);
+    ASSERT_EQ(frames[0].frame.size(), sizeof(test_data_1));
+    frames[0].frame.extract(tmp, frames[0].frame.size());
+
+    ASSERT_EQ(0, memcmp(test_data_1, tmp, frames[0].frame.size()));
+
+    ASSERT_EQ(frames[1].frame.size(), sizeof(test_data_2));
+    frames[1].frame.extract(tmp, frames[1].frame.size());
+
+    ASSERT_EQ(0, memcmp(test_data_2, tmp, frames[1].frame.size()));
+}
+
+TEST(ChannelLayerBinaryClass, FalseHeaders)
+{
+    const char test_data_1[] = ">Whatever you want here<";
+    const char test_data_2[] = ">Anything else<";
+    uint8_t tmp[255];
+    ChannelLayerBinary channel(200);
+
+    ChannelHeader false_header;
+    false_header.size = 5;
+
+    // False header
+    SegmentBuffer sg1;
+
+    // Real data
+    sg1.push_back(Buffer::create(sizeof(test_data_1), test_data_1));
+    channel.encode(sg1);
+
+    sg1.push_front(Buffer::create(sizeof(false_header), &false_header));
+
+    // False header
+    sg1.push_back(Buffer::create(sizeof(false_header), &false_header));
+    // False header
+    sg1.push_back(Buffer::create(sizeof(false_header), &false_header));
+
+    // Real data
+    SegmentBuffer sg2(Buffer::create(sizeof(test_data_2), test_data_2));
+    channel.encode(sg2);
+
+    sg1.push_back(sg2);
+    PBuffer result = sg1.merge();
+
+    auto frames = channel.decode(result->data(), result->size());
+    ASSERT_EQ(frames.size(), 2);
+    ASSERT_EQ(frames[0].frame.size(), sizeof(test_data_1));
+    frames[0].frame.extract(tmp, frames[0].frame.size());
+
+    ASSERT_EQ(0, memcmp(test_data_1, tmp, frames[0].frame.size()));
+
+    ASSERT_EQ(frames[1].frame.size(), sizeof(test_data_2));
+    frames[1].frame.extract(tmp, frames[1].frame.size());
+
+    ASSERT_EQ(0, memcmp(test_data_2, tmp, frames[1].frame.size()));
+}
+

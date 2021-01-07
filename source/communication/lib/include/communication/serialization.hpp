@@ -6,37 +6,38 @@
 #include "buffer.hpp"
 
 // Concrete message serialization
-class IMessageSerializerNew : public SingleMessageService
+class MessageSerializer : public SingleMessageService
 {
 public:
-    virtual PBuffer serialize(const NewMessage* msg) = 0;
-    virtual std::shared_ptr<NewMessage> deserialize(PBuffer buffer) = 0;
-    virtual ~IMessageSerializerNew() = default;
+    MessageSerializer(MessageId id) : SingleMessageService(id) { }
+    virtual bool serialize(SerialWriteAccessor& accessor, const Message& msg) = 0;
+    virtual std::shared_ptr<Message> deserialize(SerialReadAccessor& buffer) = 0;
+    virtual ~MessageSerializer() = default;
 };
 
 
 // Final point for receiver message
-class IMessageReceiverNew : public SingleMessageService
+class MessageReceiver : public SingleMessageService
 {
 public:
-    virtual void receive(const NewMessage*) = 0;
-    virtual ~IMessageReceiverNew() = default;
+    MessageReceiver(MessageId id) : SingleMessageService(id) { }
+    virtual void receive(const Message& msg) = 0;
+    virtual ~MessageReceiver() = default;
 };
 
 template <typename MessageType>
-class MessageCallback : public IMessageReceiverNew
+class MessageCallback : public MessageReceiver
 {
 public:
     using Callback = std::function<void(const MessageType& msg)>;
     MessageCallback(Callback callback) : m_callback(callback) { }
 
-    void receive(const NewMessage* generic_msg) override
+    void receive(const Message& generic_msg) override
     {
-        const MessageType* message = message_cast<MessageType>(generic_msg);
-        if (message != nullptr)
-        {
-            m_callback(message);
-        }
+        const MessageType* message = message_cast<MessageType>(&generic_msg);
+        if (message == nullptr)
+            return;
+        m_callback(message);
     }
 
 private:
@@ -44,7 +45,35 @@ private:
 };
 
 template <typename MessageType>
-class MessageSetValue : public IMessageReceiverNew
+class Property : public MessageReceiver
+{
+public:
+    Property() : MessageReceiver(MessageType::id) {}
+    void receive(const Message& generic_msg) override
+    {
+        const MessageType* message = message_cast<MessageType>(&generic_msg);
+        if (message == nullptr)
+            return;
+        m_message = *message;
+    }
+
+    MessageType& operator*()
+    {
+        return m_message;
+    }
+
+    MessageType* operator->()
+    {
+        return &m_message;
+    }
+
+private:
+    MessageType m_message;
+};
+
+
+template <typename MessageType>
+class MessageSetValue : public MessageReceiver
 {
 };
 

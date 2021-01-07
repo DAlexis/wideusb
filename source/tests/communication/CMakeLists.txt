@@ -9,6 +9,8 @@ set(EXE_SOURCES
     ${PROJECT_SOURCE_DIR}/test-streamificator-json.cpp
     ${PROJECT_SOURCE_DIR}/test-json-helpers.cpp
     ${PROJECT_SOURCE_DIR}/test-identification-json.cpp
+    ${PROJECT_SOURCE_DIR}/test-channel-layer-binary.cpp
+    ${PROJECT_SOURCE_DIR}/test-network-layer-binary.cpp
 )
 
 set(EXE_HPP

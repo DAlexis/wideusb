@@ -87,7 +87,7 @@ std::optional<std::string> extract_possible_json(SerialReadAccessor& ring_buffer
 
     std::string result(possible_json_size, 'X');
 
-    ring_buffer.get((uint8_t*) &result[0], possible_json_size);
+    ring_buffer.extract((uint8_t*) &result[0], possible_json_size);
 /*
     // removing CR, LF, \0 from buffer
     while (ring_buffer_data_size(ring_buffer) >= 1)

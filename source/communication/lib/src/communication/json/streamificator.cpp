@@ -21,14 +21,19 @@ std::optional<StreamChunkHeaderJSON> StreamChunkHeaderJSON::parse(const std::str
     if (!doc.IsObject())
         return std::nullopt;
 
-    if (!doc.HasMember("checksum") || !doc["checksum"].IsUint())
-        return std::nullopt;
-
     if (!doc.HasMember("size") || !doc["size"].IsUint())
         return std::nullopt;
 
     StreamChunkHeaderJSON header;
-    header.checksum = doc["checksum"].GetUint();
+    if (doc.HasMember("checksum"))
+    {
+        if (!doc["checksum"].IsUint())
+            return std::nullopt;
+        header.need_checksum = true;
+        header.checksum = doc["checksum"].GetUint();
+    } else {
+        header.need_checksum = false;
+    }
     header.size = doc["size"].GetUint();
     return header;
 }
@@ -40,9 +45,41 @@ PBuffer StreamChunkHeaderJSON::serialize()
     auto & alloc = d.GetAllocator();
 
     d.AddMember("size", Value(size), alloc);
-    d.AddMember("checksum", Value(checksum), alloc);
+    if (need_checksum)
+        d.AddMember("checksum", Value(checksum), alloc);
 
     return buffer_from_document(d);
+}
+
+StreamificatorJSON::StreamificatorJSON(bool need_checksum) :
+    m_need_checksum(need_checksum)
+{
+}
+
+bool StreamificatorJSON::pack(SerialWriteAccessor& accessor, const PBuffer buffer)
+{
+    StreamChunkHeaderJSON header;
+    header.size = buffer->size();
+    if (m_need_checksum) {
+        uint32_t sum = checksum(buffer);
+        header.checksum = sum;
+        header.need_checksum = true;
+    } else {
+        header.need_checksum = false;
+    }
+    PBuffer header_buf = header.serialize();
+
+    if (!accessor.will_fit(header_buf->size() + buffer->size()))
+        return false;
+
+    accessor << BufferAccessor(header_buf);
+    accessor << BufferAccessor(buffer);
+    return true;
+}
+
+DestreamificatorJSON::DestreamificatorJSON(bool need_checksum) :
+    m_need_checksum(need_checksum)
+{
 }
 
 std::optional<PBuffer> DestreamificatorJSON::unpack(SerialReadAccessor& ring_buffer)
@@ -58,6 +95,11 @@ std::optional<PBuffer> DestreamificatorJSON::unpack(SerialReadAccessor& ring_buf
             std::optional<StreamChunkHeaderJSON> header = StreamChunkHeaderJSON::parse(*result);
             if (!header.has_value())
                 return std::nullopt;
+            if (m_need_checksum && !header->need_checksum)
+            {
+                // Reject requests without a checksum
+                return std::nullopt;
+            }
             m_header = *header;
             m_state = State::waiting_buffer;
             m_buffer_bytes_left = m_header.size;
@@ -70,7 +112,7 @@ std::optional<PBuffer> DestreamificatorJSON::unpack(SerialReadAccessor& ring_buf
             m_buffer_bytes_left -= size_to_read;
             if (m_buffer_bytes_left == 0)
             {
-                if (checksum(m_data) == m_header.checksum)
+                if (!m_need_checksum || checksum(m_data) == m_header.checksum)
                 {
                     reset();
                     return m_data;
@@ -87,20 +129,4 @@ void DestreamificatorJSON::reset()
     m_state = State::waiting_header;
     m_buffer_bytes_left = 0;
     m_header = StreamChunkHeaderJSON();
-}
-
-bool StreamificatorJSON::pack(RingBuffer& ring_buffer, const PBuffer buffer)
-{
-    uint32_t sum = checksum(buffer);
-    StreamChunkHeaderJSON header;
-    header.size = buffer->size();
-    header.checksum = sum;
-    PBuffer header_buf = header.serialize();
-
-    if (header_buf->size() + buffer->size() > ring_buffer.free_space())
-        return false;
-
-    ring_buffer << BufferAccessor(header_buf);
-    ring_buffer << BufferAccessor(buffer);
-    return true;
 }

@@ -2,25 +2,33 @@
 #define SENDER_HPP
 
 #include "communication/serialization.hpp"
-#include "communication/streamification.hpp"
+#include "communication/channel-layer.hpp"
+#include "communication/identification.hpp"
+
+#include "buffer.hpp"
 
 #include <queue>
 
-class MessageSenderNew
+class MessageTransmitter
 {
 public:
-    MessageSenderNew(std::shared_ptr<IStreamificator> streamificator);
+    MessageTransmitter(std::shared_ptr<IStreamificator> streamificator, std::shared_ptr<IMessageIdentificator> identificator);
 
-    void add(std::shared_ptr<IMessageSerializerNew> serializer);
+    void add_serializer(std::shared_ptr<MessageSerializer> serializer);
 
-    void push(const NewMessage* message);
+    bool put_message(SerialWriteAccessor& accessor, const Message& msg);
+
+    bool put_ack(SerialWriteAccessor& accessor, MessageKey key);
+
+    /*void push(const Message& message);
 
     PBuffer next_message();
-    bool empty();
+    bool empty();*/
 
 private:
     std::shared_ptr<IStreamificator> m_streamificator;
-    std::map<MessageId, std::shared_ptr<IMessageSerializerNew>> m_serializers;
+    std::shared_ptr<IMessageIdentificator> m_identificator;
+    std::map<MessageId, std::shared_ptr<MessageSerializer>> m_serializers;
     std::queue<PBuffer> m_messages;
 };
 

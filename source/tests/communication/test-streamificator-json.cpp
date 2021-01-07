@@ -56,8 +56,6 @@ TEST_F(StreamificationJSON, ConsistentStreamMultipleMsgs)
         for (int global = 0; global < 150; global++)
         {
             // Putting data until the buffer is filled
-            if (global == 34)
-                std::cout << "w";
             int count = 0;
             while (out.pack(*rb, some_data_buf))
             {
@@ -66,8 +64,6 @@ TEST_F(StreamificationJSON, ConsistentStreamMultipleMsgs)
 
             for (int i = 0; i < count; i++)
             {
-                if (global == 34 && i == 0)
-                    std::cout << "w";
                 auto unpacked = in.unpack(*rb);
                 ASSERT_TRUE(unpacked.has_value());
 

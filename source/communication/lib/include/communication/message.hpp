@@ -6,25 +6,33 @@
 
 using MessageId = int;
 
-struct NewMessage
+class Message
 {
-    NewMessage(MessageId id) : id(id) {}
-    const MessageId id;
+public:
+    Message(MessageId id) : m_id(id) {}
+
+    MessageId id() const { return m_id; }
+
+protected:
+    Message& operator=(const Message&) = default;
+
+private:
+    MessageId m_id;
 };
 
 
-struct SomeMessage : NewMessage
+struct SomeMessage : Message
 {
     constexpr static int id = 123;
-    SomeMessage() : NewMessage(id) {}
+    SomeMessage() : Message(id) {}
 
     int data = 123;
 };
 
 template<typename MessageType>
-const MessageType* message_cast(const NewMessage* msg)
+const MessageType* message_cast(const Message* msg)
 {
-    if (MessageType::id != msg)
+    if (std::remove_pointer<MessageType>::type::id != msg->id())
         return nullptr;
     else
         return static_cast<const MessageType*>(msg);

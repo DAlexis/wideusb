@@ -37,7 +37,7 @@ TEST_F(RingBufferTest, SimplePutGet)
     ASSERT_EQ(buffer->free_space(), buffer_size - 4);
 
     size_t size = buffer->size();
-    ASSERT_NO_THROW(buffer->get(receiver, size));
+    ASSERT_NO_THROW(buffer->extract(receiver, size));
 
     ASSERT_EQ(0, memcmp(test_data, receiver, size));
 
@@ -58,12 +58,12 @@ TEST_F(RingBufferTest, CyclicPutGet)
         ASSERT_EQ(buffer->size(), 2 * sizeof(test_data));
 
         size_t size = sizeof(test_data);
-        ASSERT_NO_THROW(buffer->get(receiver, size));
+        ASSERT_NO_THROW(buffer->extract(receiver, size));
 
         ASSERT_EQ(0, memcmp(test_data, receiver, size));
         ASSERT_EQ(buffer->size(), sizeof(test_data));
 
-        ASSERT_NO_THROW(buffer->get(receiver, size));
+        ASSERT_NO_THROW(buffer->extract(receiver, size));
 
         ASSERT_EQ(0, memcmp(test_data, receiver, size));
         ASSERT_EQ(buffer->size(), 0);
@@ -73,7 +73,7 @@ TEST_F(RingBufferTest, CyclicPutGet)
 TEST_F(RingBufferTest, AtSkip)
 {
     buffer->put(test_data, sizeof(test_data)); // (0,4)
-    buffer->get(receiver, sizeof(test_data));
+    buffer->extract(receiver, sizeof(test_data));
 
     buffer->put(test_data, sizeof(test_data));  // (4,8)
     buffer->put(test_data, sizeof(test_data)); // (8,2)

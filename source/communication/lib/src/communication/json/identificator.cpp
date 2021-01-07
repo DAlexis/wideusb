@@ -7,17 +7,24 @@
 
 using namespace rapidjson;
 
-void IdentificatorJSON::put_message_id(PBuffer buf, MessageId id)
+bool IdentificatorJSON::put_message_id(SerialWriteAccessor& write_accessor, const MessageHeader& header)
 {
     Document d;
     d.SetObject();
     auto & alloc = d.GetAllocator();
 
-    d.AddMember("msg_id", Value(id), alloc);
-    *buf << BufferAccessor(buffer_from_document(d));
+    d.AddMember("id", Value(header.id), alloc);
+    d.AddMember("key", Value(header.key), alloc);
+
+    BufferAccessor message_buffer_accessor(buffer_from_document(d));
+    if (!write_accessor.will_fit(message_buffer_accessor.size()))
+        return false;
+
+    write_accessor.put(message_buffer_accessor);
+    return true;
 }
 
-std::optional<MessageId> IdentificatorJSON::get_message_id(SerialReadAccessor& accessor)
+std::optional<MessageHeader> IdentificatorJSON::get_message_id(SerialReadAccessor& accessor)
 {
     auto json = extract_possible_json(accessor);
     if (!json.has_value())
@@ -25,8 +32,11 @@ std::optional<MessageId> IdentificatorJSON::get_message_id(SerialReadAccessor& a
 
     Document d;
     d.Parse(json->c_str());
-    if (!d.HasMember("msg_id") || !d["msg_id"].IsUint())
+    if (!d.HasMember("id") || !d["id"].IsUint())
         return std::nullopt;
 
-    return d["msg_id"].GetUint();
+    if (!d.HasMember("key") || !d["key"].IsUint())
+        return std::nullopt;
+
+    return MessageHeader(d["id"].GetUint(), d["key"].GetUint());
 }

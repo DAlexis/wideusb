@@ -1,65 +1,52 @@
-/*#include "gtest/gtest.h"
+#include "communication/sender.hpp"
+#include "communication/receiver.hpp"
 
-#include "message-send.hpp"
+#include "communication/json/streamificator.hpp"
+#include "communication/json/identificator.hpp"
+#include "communication/json/messages-core.hpp"
 
-#include "ring-buffer.h"
+#include "gtest/gtest.h"
 
-#include "json/header-json.hpp"
-#include "json/msg-core-json.hpp"
-
-TEST(SendReceiveTest, SingleMessage)
+class SendReceive : public ::testing::Test
 {
-    MessageReceiver receiver(std::make_shared<HeaderDeserializerJSON>());
+protected:
+    void SetUp() override {
+        status_request_property = std::make_shared<Property<StatusRequest>>();
+        streamificator = std::make_shared<StreamificatorJSON>();
+        destreamificator = std::make_shared<DestreamificatorJSON>();
+        identificator = std::make_shared<IdentificatorJSON>();
 
-    StatusRequest status_request;
-    StatusResponse status_response;
+        sender = std::make_shared<MessageTransmitter>(streamificator, identificator);
+        sender->add_serializer(std::make_shared<StatusRequestSerializer>());
 
-    receiver.add_message_parser(
-                "core.status_request",
-                std::make_shared<JSONDeserializer<StatusRequest>>(
-                    [&status_request](const StatusRequest& val) { status_request = val; }
-                    )
-                );
+        receiver = std::make_shared<MessageListener>(destreamificator, identificator);
+        receiver->add(std::make_shared<StatusRequestSerializer>());
+        receiver->add(status_request_property);
 
-    receiver.add_message_parser(
-                "core.status_response",
-                std::make_shared<JSONDeserializer<StatusResponse>>(
-                    [&status_response](const StatusResponse& val) { status_response = val; }
-                    )
-                );
-
-    DataSender sender(std::make_shared<HeaderSerializerJSON>());
-    StatusRequest status_request_to_send;
-    status_request_to_send.do_blink = true;
-
-    StatusResponse status_response_to_send;
-    status_response_to_send.alive = true;
-    status_response_to_send.free_mem = 123;
-    status_response_to_send.system_ticks = 321;
-
-    sender.push("core.status_request", JSONSerializer<StatusRequest>(), &status_request_to_send);
-    sender.push("core.status_response", JSONSerializer<StatusResponse>(), &status_response_to_send);
-
-    RingBuffer ring_buffer;
-    std::vector<uint8_t> contents(200);
-    ring_buffer_init(&ring_buffer, contents.data(), contents.size());
-
-    while (!sender.empty())
-    {
-        *sender.next_message() >> ring_buffer;
     }
 
-    while (ring_buffer_data_size(&ring_buffer) != 0)
-    {
-        ASSERT_NO_THROW(receiver.try_receive(ring_buffer));
-    }
+    std::shared_ptr<IStreamificator> streamificator;
+    std::shared_ptr<IDestreamificator> destreamificator;
+    std::shared_ptr<IMessageIdentificator> identificator;
 
-    ASSERT_EQ(status_request.do_blink, status_request_to_send.do_blink);
-    ASSERT_EQ(status_response.alive, status_response_to_send.alive);
-    ASSERT_EQ(status_response.free_mem, status_response_to_send.free_mem);
-    ASSERT_EQ(status_response.system_ticks, status_response_to_send.system_ticks);
+    std::shared_ptr<MessageListener> receiver;
+    std::shared_ptr<MessageTransmitter> sender;
 
-    // Creating message
+    std::shared_ptr<Property<StatusRequest>> status_request_property;
 
+    RingBuffer ring_buffer{100};
+};
+
+TEST_F(SendReceive, SingleMessageCore)
+{
+    StatusRequest r;
+    r.do_blink = true;
+
+    (*status_request_property)->do_blink = true;
+
+    ASSERT_TRUE(sender->put_message(ring_buffer, r));
+
+    ASSERT_TRUE(receiver->receive_one(ring_buffer));
+
+    ASSERT_EQ((*status_request_property)->do_blink, r.do_blink);
 }
-*/
