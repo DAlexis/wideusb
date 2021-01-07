@@ -1,21 +1,39 @@
 #ifndef ITRANSPORTLAYER_HPP
 #define ITRANSPORTLAYER_HPP
 
-
 #include "buffer.hpp"
 
 struct DecodedSegment
 {
-    uint32_t port;
-    BufferAccessor segment;
+    DecodedSegment(uint32_t port, uint8_t flags, uint32_t segment_id, uint32_t ack_id, const BufferAccessor& segment) :
+        port(port), flags(flags), segment_id(segment_id), ack_id(ack_id), segment(segment)
+    { }
 
-    SegmentBuffer response;
+    struct Flags
+    {
+        constexpr static uint8_t need_ack = 1;
+        constexpr static uint8_t is_ack   = 2;
+    };
+
+    uint32_t port;
+    uint8_t flags;
+    uint32_t segment_id;
+    uint32_t ack_id;
+    BufferAccessor segment;
+};
+
+class ISocket
+{
+public:
+    virtual void push(PBuffer data);
+
 };
 
 class ITransportLayer
 {
 public:
-    virtual std::vector<DecodedSegment> receive(const BufferAccessor& packet) = 0;
+    virtual std::vector<DecodedSegment> decode(const BufferAccessor& packet) = 0;
+    virtual void encode(SegmentBuffer& segment, uint32_t port, uint32_t segment_id, bool need_ack = false, bool make_ack = false, uint32_t ack_id = 0) = 0;
 
     virtual ~ITransportLayer() = default;
 };

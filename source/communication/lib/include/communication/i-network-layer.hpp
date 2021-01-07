@@ -8,7 +8,7 @@
 
 struct DecodedPacket
 {
-    DecodedPacket(Address sender, Address receiver, uint8_t ttl, BufferAccessor packet) :
+    DecodedPacket(Address sender, Address receiver, uint8_t ttl, const BufferAccessor& packet) :
         sender(sender), receiver(receiver), ttl(ttl), packet(packet)
     { }
     Address sender;

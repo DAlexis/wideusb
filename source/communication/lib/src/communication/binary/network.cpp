@@ -8,13 +8,11 @@ std::vector<DecodedPacket> NetworkLayerBinary::decode(const BufferAccessor& fram
     {
         PacketHeader header;
         current_accessor >> header;
-        if (header.size <= current_accessor.size())
-        {
-            result.emplace_back(DecodedPacket(header.sender, header.receiver, header.ttl, BufferAccessor(current_accessor, 0, header.size)));
-            current_accessor.skip(header.size);
-        } else {
+        if (header.size > current_accessor.size())
             break;
-        }
+
+        result.emplace_back(DecodedPacket(header.sender, header.receiver, header.ttl, BufferAccessor(current_accessor, 0, header.size)));
+        current_accessor.skip(header.size);
     }
     return result;
 }
