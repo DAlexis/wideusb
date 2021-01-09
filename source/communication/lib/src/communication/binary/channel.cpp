@@ -4,17 +4,16 @@
 #include "communication/binary/channel.hpp"
 #include "communication/utils.hpp"
 
-ChannelLayerBinary::ChannelLayerBinary(size_t buffer_capacity) :
-    m_ring_buffer(buffer_capacity)
+ChannelLayerBinary::ChannelLayerBinary()
 {
 }
 
-PBuffer ChannelLayerBinary::find_sucessful_instance()
+PBuffer ChannelLayerBinary::find_sucessful_instance(RingBuffer& ring_buffer)
 {
     for (auto it = m_decoding_instances.begin(); it != m_decoding_instances.end();)
     {
         size_t size = it->header.size;
-        if (size  + it->body_begin > m_ring_buffer.size())
+        if (size  + it->body_begin > ring_buffer.size())
         {
             ++it;
             continue;
@@ -24,7 +23,7 @@ PBuffer ChannelLayerBinary::find_sucessful_instance()
         uint32_t hash_value = 0;
         for (size_t i = 0; i != size; i++)
         {
-            hash_value = hash_Ly(&m_ring_buffer[i + it->body_begin], 1, hash_value);
+            hash_value = hash_Ly(&ring_buffer[i + it->body_begin], 1, hash_value);
         }
 
         if (hash_value != it->header.checksum)
@@ -39,8 +38,8 @@ PBuffer ChannelLayerBinary::find_sucessful_instance()
 
         // Seccess, we have correct block
         PBuffer pbuf = Buffer::create(size);
-        m_ring_buffer.skip(this_block_begin);
-        m_ring_buffer.extract(pbuf->data(), size);
+        ring_buffer.skip(this_block_begin);
+        ring_buffer.extract(pbuf->data(), size);
 
         // Erasing all blocks that intersect current block
 
@@ -75,43 +74,41 @@ PBuffer ChannelLayerBinary::find_sucessful_instance()
     return nullptr;
 }
 
-void ChannelLayerBinary::find_next_headers()
+void ChannelLayerBinary::find_next_headers(RingBuffer& ring_buffer)
 {
-    if (m_ring_buffer.size() < sizeof(ChannelHeader))
+    if (ring_buffer.size() < sizeof(ChannelHeader))
         return;
 
 
-    size_t search_limit = m_ring_buffer.size() - sizeof(ChannelHeader);
+    size_t search_limit = ring_buffer.size() - sizeof(ChannelHeader);
     for (size_t i = m_header_search_pos; i < search_limit; ++i)
     {
-        if (m_ring_buffer.as<uint32_t>(i) != ChannelHeader::magic_number_value)
+        if (ring_buffer.as<uint32_t>(i) != ChannelHeader::magic_number_value)
             continue;
 
         DecodingInstance new_instance;
         new_instance.body_begin = i + sizeof(ChannelHeader);
-        new_instance.header = m_ring_buffer.as<ChannelHeader>(i);
+        new_instance.header = ring_buffer.as<ChannelHeader>(i);
 
         m_decoding_instances.push_back(new_instance);
     }
     m_header_search_pos = search_limit;
 }
 
-PBuffer ChannelLayerBinary::decode_single()
+PBuffer ChannelLayerBinary::decode_single(RingBuffer& ring_buffer)
 {
-    find_next_headers();
-    return find_sucessful_instance();
+    find_next_headers(ring_buffer);
+    return find_sucessful_instance(ring_buffer);
 }
 
-std::vector<DecodedFrame> ChannelLayerBinary::decode(const uint8_t* data, size_t size)
+std::vector<DecodedFrame> ChannelLayerBinary::decode(RingBuffer& ring_buffer)
 {
-    m_ring_buffer.put(data, size);
-
     std::vector<DecodedFrame> result;
 
     PBuffer next_frame_contents = nullptr;
     for (;;)
     {
-        next_frame_contents = decode_single();
+        next_frame_contents = decode_single(ring_buffer);
         if (!next_frame_contents)
             break;
         result.push_back(DecodedFrame(BufferAccessor(next_frame_contents)));

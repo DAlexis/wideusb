@@ -20,7 +20,7 @@ TEST(TransportLayerBinaryClass, Operating)
     ASSERT_EQ(segments.size(), 2);
     ASSERT_EQ(segments[0].port, 123);
     ASSERT_EQ(segments[0].segment_id, 0xABC);
-    ASSERT_EQ(segments[0].ack_id, 0);
+    ASSERT_EQ(segments[0].ack_for_segment_id, 0);
     ASSERT_TRUE(segments[0].flags & DecodedSegment::Flags::need_ack);
     ASSERT_FALSE(segments[0].flags & DecodedSegment::Flags::is_ack);
     ASSERT_EQ(segments[0].segment.size(), sizeof(test_data_1));
@@ -29,7 +29,7 @@ TEST(TransportLayerBinaryClass, Operating)
 
     ASSERT_EQ(segments[1].port, 321);
     ASSERT_EQ(segments[1].segment_id, 0xDEF);
-    ASSERT_EQ(segments[1].ack_id, 0xABC);
+    ASSERT_EQ(segments[1].ack_for_segment_id, 0xABC);
     ASSERT_FALSE(segments[1].flags & DecodedSegment::Flags::need_ack);
     ASSERT_TRUE(segments[1].flags & DecodedSegment::Flags::is_ack);
     ASSERT_EQ(segments[1].segment.size(), sizeof(test_data_2));

@@ -16,7 +16,7 @@ struct DecodedFrame
 class IChannelLayer
 {
 public:
-    virtual std::vector<DecodedFrame> decode(const uint8_t* data, size_t size) = 0;
+    virtual std::vector<DecodedFrame> decode(RingBuffer& ring_buffer) = 0;
     virtual void encode(SegmentBuffer& frame) = 0;
     virtual ~IChannelLayer() = default;
 };

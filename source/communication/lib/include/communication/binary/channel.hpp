@@ -1,7 +1,7 @@
 #ifndef CHANNEL_HPP
 #define CHANNEL_HPP
 
-#include "communication/i-channel-level.hpp"
+#include "communication/i-channel-layer.hpp"
 
 #pragma pack(push, 1)
 struct ChannelHeader
@@ -16,8 +16,8 @@ struct ChannelHeader
 class ChannelLayerBinary : public IChannelLayer
 {
 public:
-    ChannelLayerBinary(size_t buffer_capacity);
-    std::vector<DecodedFrame> decode(const uint8_t* data, size_t size) override;
+    ChannelLayerBinary();
+    std::vector<DecodedFrame> decode(RingBuffer& ring_buffer) override;
     void encode(SegmentBuffer& frame) override;
 
 private:
@@ -36,11 +36,9 @@ private:
         ChannelHeader header;
     };
 
-    PBuffer decode_single();
-    PBuffer find_sucessful_instance();
-    void find_next_headers();
-
-    RingBuffer m_ring_buffer;
+    PBuffer decode_single(RingBuffer& ring_buffer);
+    PBuffer find_sucessful_instance(RingBuffer& ring_buffer);
+    void find_next_headers(RingBuffer& ring_buffer);
 
     std::list<DecodingInstance> m_decoding_instances;
     size_t m_header_search_pos = 0;

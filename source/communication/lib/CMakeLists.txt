@@ -53,6 +53,10 @@ set(SOURCES
     ./include/communication/utils.hpp
     ./include/communication/networking.hpp
     ./include/communication/networking-interfaces.hpp
+    ./include/communication/i-channel-layer.hpp
+    ./include/communication/i-network-layer.hpp
+    ./include/communication/i-physical-layer.hpp
+    ./include/communication/i-transport-layer.hpp
     ./include/communication/json/streamificator.hpp
     ./include/communication/json/identificator.hpp
     ./include/communication/json/rapidjson-config.h
@@ -68,9 +72,11 @@ set(SOURCES
 
 
     ./src/communication/communicator.cpp
+    ./src/communication/networking.cpp
     ./src/communication/receiver.cpp
     ./src/communication/sender.cpp
     ./src/communication/utils.cpp
+    ./src/communication/physical-layer.cpp
     ./src/communication/json/streamificator.cpp
     ./src/communication/json/identificator.cpp
     ./src/communication/json/messages-core.cpp

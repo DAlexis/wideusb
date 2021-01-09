@@ -7,15 +7,17 @@ TEST(ChannelLayerBinaryClass, SimpleOperating)
     const char test_data_1[] = ">Whatever you want here<";
     const char test_data_2[] = ">Anything else<";
     uint8_t tmp[255];
-    ChannelLayerBinary channel(200);
+    RingBuffer ring_buffer(200);
+    ChannelLayerBinary channel;
 
     // Single frame test
     SegmentBuffer sg1(Buffer::create(sizeof(test_data_1), test_data_1));
     channel.encode(sg1);
 
-    PBuffer result = sg1.merge();
+    BufferAccessor acc1(sg1.merge());
+    ring_buffer.put(acc1, acc1.size());
 
-    std::vector<DecodedFrame> frames = channel.decode(result->data(), result->size());
+    std::vector<DecodedFrame> frames = channel.decode(ring_buffer);
 
     ASSERT_EQ(frames.size(), 1);
     ASSERT_EQ(frames[0].frame.size(), sizeof(test_data_1));
@@ -28,9 +30,10 @@ TEST(ChannelLayerBinaryClass, SimpleOperating)
     channel.encode(sg2);
 
     sg1.push_back(sg2);
-    result = sg1.merge();
+    BufferAccessor acc2(sg1.merge());
+    ring_buffer.put(acc2, acc2.size());
 
-    frames = channel.decode(result->data(), result->size());
+    frames = channel.decode(ring_buffer);
     ASSERT_EQ(frames.size(), 2);
     ASSERT_EQ(frames[0].frame.size(), sizeof(test_data_1));
     frames[0].frame.extract(tmp, frames[0].frame.size());
@@ -48,7 +51,8 @@ TEST(ChannelLayerBinaryClass, FalseHeaders)
     const char test_data_1[] = ">Whatever you want here<";
     const char test_data_2[] = ">Anything else<";
     uint8_t tmp[255];
-    ChannelLayerBinary channel(200);
+    RingBuffer ring_buffer(200);
+    ChannelLayerBinary channel;
 
     ChannelHeader false_header;
     false_header.size = 5;
@@ -72,9 +76,10 @@ TEST(ChannelLayerBinaryClass, FalseHeaders)
     channel.encode(sg2);
 
     sg1.push_back(sg2);
-    PBuffer result = sg1.merge();
+    BufferAccessor acc1(sg1.merge());
+    ring_buffer.put(acc1, acc1.size());
 
-    auto frames = channel.decode(result->data(), result->size());
+    auto frames = channel.decode(ring_buffer);
     ASSERT_EQ(frames.size(), 2);
     ASSERT_EQ(frames[0].frame.size(), sizeof(test_data_1));
     frames[0].frame.extract(tmp, frames[0].frame.size());
