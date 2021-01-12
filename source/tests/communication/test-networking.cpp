@@ -1,0 +1,119 @@
+#include "communication/networking.hpp"
+#include "communication/binary/channel.hpp"
+#include "communication/binary/network.hpp"
+#include "communication/binary/transport.hpp"
+
+#include "gtest/gtest.h"
+
+class NetworkingTest : public ::testing::Test
+{
+protected:
+    void SetUp() override {
+        physical = std::make_shared<PhysicalLayerBuffer>(500);
+        service = std::make_shared<NetSevice>(physical,
+                                              std::make_shared<ChannelLayerBinary>(),
+                                              std::make_shared<NetworkLayerBinary>(),
+                                              std::make_shared<TransportLayerBinary>());
+
+    }
+
+    std::shared_ptr<PhysicalLayerBuffer> physical;
+    std::shared_ptr<NetSevice> service;
+
+    const char test_data[23] = ">Some data here again<";
+};
+
+TEST_F(NetworkingTest, BasicOperating)
+{
+    bool data_delivered = false;
+
+    Socket sock1(*service, 0x12345678, 0x87654321, 10, [&data_delivered](uint32_t, bool success) { data_delivered = success; });
+    Socket sock2(*service, 0x87654321, 0x12345678, 10);
+
+    Socket sock3(*service, 0x87654321, 0x12345678, 11);
+    Socket sock4(*service, 0x87654320, 0x12345678, 10);
+
+    sock1.send(Buffer::create(sizeof(test_data), test_data));
+
+    // Send data to physical device
+    service->serve_sockets(0);
+
+    // Loop back device
+    loop_back(*physical);
+
+    // Receive data, send ack
+    service->serve_sockets(0);
+
+    ASSERT_FALSE(sock1.has_data());
+    ASSERT_TRUE(sock2.has_data());
+    ASSERT_FALSE(sock3.has_data());
+    ASSERT_FALSE(sock4.has_data());
+
+    PBuffer data = sock2.get();
+    ASSERT_EQ(0, memcmp(data->data(), test_data, sizeof(test_data)));
+
+    // Loop back for acknoledgement
+    loop_back(*physical);
+
+    // Receive ack
+    service->serve_sockets(0);
+
+    ASSERT_TRUE(data_delivered);
+}
+
+TEST_F(NetworkingTest, DataCorruption)
+{
+    bool data_delivered_1_to_2 = false;
+    bool data_delivered_2_to_1 = false;
+
+    Socket sock1(*service, 0x12345678, 0x87654321, 10, [&data_delivered_1_to_2](uint32_t, bool success) { data_delivered_1_to_2 = success; });
+    Socket sock2(*service, 0x87654321, 0x12345678, 10, [&data_delivered_2_to_1](uint32_t, bool success) { data_delivered_2_to_1 = success; });
+
+    sock1.send(Buffer::create(sizeof(test_data), test_data));
+    service->serve_sockets(0);
+
+    ASSERT_EQ(1, physical->out_queue_size());
+    //size_t total_data_size = physical->out_next()->size();
+
+    // Corrupting
+    PBuffer data = physical->out_next();
+    (*data)[data->size() / 2] += 1;
+
+    physical->in_next(data->data(), data->size());
+
+    // Getting corrupted data
+    service->serve_sockets(0);
+    ASSERT_FALSE(data_delivered_1_to_2);
+    ASSERT_FALSE(data_delivered_2_to_1);
+    ASSERT_EQ(0, physical->out_queue_size());
+
+    service->serve_sockets(1001); // Data should be sent again
+    ASSERT_EQ(1, physical->out_queue_size());
+
+    // Corrupting
+    data = physical->out_next();
+    (*data)[data->size() / 3] += 1;
+
+    physical->in_next(data->data(), data->size());
+    // Getting corrupted data
+    service->serve_sockets(1001);
+    ASSERT_FALSE(data_delivered_1_to_2);
+    ASSERT_FALSE(data_delivered_2_to_1);
+
+    //loop_back(*physical);
+    service->serve_sockets(2002); // Data should be sent again
+    ASSERT_EQ(1, physical->out_queue_size());
+    loop_back(*physical); // Now sending correct data on physical
+
+    service->serve_sockets(2003); // Data received, sending ack
+
+    ASSERT_TRUE(sock2.has_data());
+    data = sock2.get();
+    ASSERT_EQ(0, memcmp(data->data(), test_data, sizeof(test_data)));
+
+    loop_back(*physical); // Now ack over physical layer
+
+    service->serve_sockets(2004); // Now ack should be received
+
+    ASSERT_TRUE(data_delivered_1_to_2);
+}

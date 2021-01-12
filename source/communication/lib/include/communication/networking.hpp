@@ -57,6 +57,7 @@ public:
     virtual PBuffer get() = 0;
     virtual SocketOptions& options() = 0;
     virtual AddressFilter& address_filter() = 0;
+    virtual bool has_data() = 0;
 };
 
 class ISocketSystemSide
@@ -85,6 +86,7 @@ public:
     PBuffer get() override;
     SocketOptions& options() override;
     AddressFilter& address_filter() override;
+    bool has_data() override;
 
     // ISocketSystemSide
     virtual PBuffer front() override;
@@ -153,7 +155,7 @@ private:
     void receive_all_sockets();
 
     void send_data(PBuffer data, Address src, Address dst, uint32_t port, uint32_t ttl, bool need_ack, uint32_t seg_id);
-    uint32_t send_ack(Address src, Address dst, uint32_t port, uint32_t ttl, uint32_t ack_id);
+    uint32_t send_ack(Address src, Address dst, uint32_t port, uint32_t ttl, uint32_t ack_id, uint32_t seg_id);
 
     bool is_already_received(uint32_t segment_id);
 

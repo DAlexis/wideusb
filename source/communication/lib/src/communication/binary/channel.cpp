@@ -79,6 +79,20 @@ void ChannelLayerBinary::find_next_headers(RingBuffer& ring_buffer)
     if (ring_buffer.size() < sizeof(ChannelHeader))
         return;
 
+    if (m_decoding_instances.empty())
+    {
+        // we had not detected header before, so rewind buffer to headers begin
+        // TODO add code here
+        ring_buffer.skip(m_header_search_pos);
+        size_t search_limit = ring_buffer.size() - sizeof(ChannelHeader);
+        for (m_header_search_pos = 0; m_header_search_pos < search_limit; ++m_header_search_pos)
+        {
+            if (ring_buffer.as<uint32_t>(m_header_search_pos) == ChannelHeader::magic_number_value)
+                break;
+        }
+        ring_buffer.skip(m_header_search_pos);
+        m_header_search_pos = 0;
+    }
 
     size_t search_limit = ring_buffer.size() - sizeof(ChannelHeader);
     for (size_t i = m_header_search_pos; i < search_limit; ++i)
@@ -119,6 +133,7 @@ std::vector<DecodedFrame> ChannelLayerBinary::decode(RingBuffer& ring_buffer)
 
 void ChannelLayerBinary::encode(SegmentBuffer& frame)
 {
+    // TODO make it without merge call
     PBuffer merged = frame.merge();
     ChannelHeader header;
     header.checksum = hash_Ly(merged->data(), merged->size());

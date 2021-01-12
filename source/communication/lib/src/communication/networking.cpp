@@ -1,6 +1,24 @@
 #include "communication/networking.hpp"
 #include <cmath>
 
+void AddressFilter::listen_address(Address addr, Address mask)
+{
+    Target t;
+    t.addr = addr;
+    t.mask = mask;
+    m_targets.push_back(t);
+}
+
+bool AddressFilter::is_acceptable(const Address& addr) const
+{
+    for (const auto &t : m_targets)
+    {
+        if ((addr & t.mask) == (t.addr & t.mask))
+            return true;
+    }
+    return false;
+}
+
 Socket::Socket(NetSevice& net_service,
                Address my_address,
                Address destination_address,
@@ -12,6 +30,7 @@ Socket::Socket(NetSevice& net_service,
     m_options.my_address = my_address;
     m_options.destination_address = destination_address;
     m_net_service.add_socket(*this);
+    m_filter.listen_address(m_options.my_address, 0xFFFFFFFF);
 }
 
 Socket::~Socket()
@@ -47,6 +66,11 @@ SocketOptions& Socket::options()
 AddressFilter& Socket::address_filter()
 {
     return m_filter;
+}
+
+bool Socket::has_data()
+{
+    return !m_incoming.empty();
 }
 
 // ISocketSystemSide
@@ -143,10 +167,9 @@ void NetSevice::send_data(PBuffer data, Address src, Address dst, uint32_t port,
     m_physical->send(sb.merge());
 }
 
-uint32_t NetSevice::send_ack(Address src, Address dst, uint32_t port, uint32_t ttl, uint32_t ack_id)
+uint32_t NetSevice::send_ack(Address src, Address dst, uint32_t port, uint32_t ttl, uint32_t ack_id, uint32_t seg_id)
 {
     SegmentBuffer sb;
-    uint32_t seg_id = m_rand_gen();
     m_transport->encode(sb, port, seg_id, false, true, ack_id);
     m_network->encode(sb, src, dst, ttl);
     m_channel->encode(sb);
@@ -244,9 +267,15 @@ void NetSevice::receive_all_sockets()
         {
             std::vector<Subscriber*> receivers = receivers_of_addr(packet.receiver);
 
+            if (receivers.empty())
+                continue;
+
             std::vector<DecodedSegment> segments = m_transport->decode(packet.packet);
             for (const auto& segment : segments)
             {
+                if (is_already_received(segment.segment_id))
+                    continue;
+
                 for (auto receiver : receivers)
                 {
                     ISocketSystemSide* socket = receiver->socket;
@@ -254,14 +283,24 @@ void NetSevice::receive_all_sockets()
 
                     if (options.port != segment.port)
                         continue;
-                    // todo: acknoledgement sending
 
                     if (segment.flags & DecodedSegment::Flags::need_ack)
                     {
-                        send_ack(options.my_address, packet.sender, options.port, options.ttl, segment.segment_id);
+                        send_ack(options.my_address, packet.sender, options.port, options.ttl, segment.segment_id, segment.segment_id + 1);
                     }
 
-                    if (!is_already_received(segment.segment_id))
+                    // If we get package with acknoledgement and we are waiting for it
+                    if ((segment.flags & DecodedSegment::Flags::is_ack) && (receiver->state == Subscriber::State::some_tries_sent))
+                    {
+                        if (segment.ack_for_segment_id == receiver->segment_id)
+                        {
+                            // We were waiting for this ack
+                            receiver->clear();
+                            receiver->socket->pop(true);
+                        }
+                    }
+
+                    if (!segment.segment.empty())
                     {
                         BufferAccessor accessor(segment.segment);
                         socket->push(Buffer::create(accessor));
@@ -271,16 +310,11 @@ void NetSevice::receive_all_sockets()
         }
     }
 }
-/*
-void NetSevice::send(Socket& socket, PBuffer data)
-{
 
-}
-*/
 std::vector<NetSevice::Subscriber*> NetSevice::receivers_of_addr(Address addr)
 {
     std::vector<Subscriber*> result;
-    for (auto subscriber : m_subscribers)
+    for (auto& subscriber : m_subscribers)
     {
         if (subscriber.socket->get_address_filter().is_acceptable(addr))
         {
@@ -289,18 +323,4 @@ std::vector<NetSevice::Subscriber*> NetSevice::receivers_of_addr(Address addr)
     }
     return result;
 }
-/*
-void NetSevice::filter_by_port(std::vector<Socket*>& sockets, uint32_t port)
-{
-    for (size_t i = 0; i < sockets.size();)
-    {
-        if (sockets[i]->port() != port)
-        {
-            sockets[i] = sockets.back();
-            sockets.pop_back();
-        } else {
-            i++;
-        }
-    }
 
-}*/

@@ -12,6 +12,7 @@ set(EXE_SOURCES
     ${PROJECT_SOURCE_DIR}/test-channel-layer-binary.cpp
     ${PROJECT_SOURCE_DIR}/test-network-layer-binary.cpp
     ${PROJECT_SOURCE_DIR}/test-transport-layer-binary.cpp
+    ${PROJECT_SOURCE_DIR}/test-networking.cpp
 )
 
 set(EXE_HPP

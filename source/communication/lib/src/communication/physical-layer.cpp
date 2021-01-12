@@ -17,6 +17,8 @@ void PhysicalLayerBuffer::send(const PBuffer data)
 
 PBuffer PhysicalLayerBuffer::out_next()
 {
+    if (m_out_queue.empty())
+        return nullptr;
     PBuffer result = m_out_queue.front();
     m_out_queue.pop();
     return result;
@@ -25,4 +27,19 @@ PBuffer PhysicalLayerBuffer::out_next()
 void PhysicalLayerBuffer::in_next(const void* data, size_t size)
 {
     m_ring_buffer.put(data, size);
+}
+
+size_t PhysicalLayerBuffer::out_queue_size()
+{
+    return m_out_queue.size();
+}
+
+
+void loop_back(PhysicalLayerBuffer& phys_layer)
+{
+    PBuffer data;
+    while (nullptr != (data = phys_layer.out_next()))
+    {
+        phys_layer.in_next(data->data(), data->size());
+    }
 }

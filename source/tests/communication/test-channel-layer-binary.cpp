@@ -92,3 +92,34 @@ TEST(ChannelLayerBinaryClass, FalseHeaders)
     ASSERT_EQ(0, memcmp(test_data_2, tmp, frames[1].frame.size()));
 }
 
+TEST(ChannelLayerBinaryClass, Corruption)
+{
+    const char test_data_1[] = ">Whatever you want here<";
+    uint8_t tmp[255];
+    RingBuffer ring_buffer(200);
+    ChannelLayerBinary channel;
+
+    const char garbage[] = "#THIS IS A GARBAGE#";
+
+    for (size_t i = 0; i < 100; i ++)
+    {
+        // Single frame test
+        SegmentBuffer sg1(Buffer::create(sizeof(test_data_1), test_data_1));
+        channel.encode(sg1);
+
+        ring_buffer.put(garbage, sizeof(garbage));
+
+        BufferAccessor acc1(sg1.merge());
+        ring_buffer.put(acc1, acc1.size());
+
+        ring_buffer.put(garbage, sizeof(garbage));
+
+        std::vector<DecodedFrame> frames = channel.decode(ring_buffer);
+
+        ASSERT_EQ(frames.size(), 1);
+        ASSERT_EQ(frames[0].frame.size(), sizeof(test_data_1));
+        frames[0].frame.extract(tmp, frames[0].frame.size());
+
+        ASSERT_EQ(0, memcmp(test_data_1, tmp, frames[0].frame.size()));
+    }
+}

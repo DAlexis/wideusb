@@ -23,10 +23,13 @@ public:
 
     PBuffer out_next();
     void in_next(const void* data, size_t size);
+    size_t out_queue_size();
 
 private:
     RingBuffer m_ring_buffer;
     std::queue<PBuffer> m_out_queue;
 };
+
+void loop_back(PhysicalLayerBuffer& phys_layer);
 
 #endif // IPHYSICALLAYER_HPP
