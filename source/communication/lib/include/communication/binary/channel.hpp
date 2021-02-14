@@ -17,7 +17,7 @@ class ChannelLayerBinary : public IChannelLayer
 {
 public:
     ChannelLayerBinary();
-    std::vector<DecodedFrame> decode(RingBuffer& ring_buffer) override;
+    std::vector<DecodedFrame> decode(SerialReadAccessor& ring_buffer) override;
     void encode(SegmentBuffer& frame) override;
 
 private:
@@ -36,9 +36,9 @@ private:
         ChannelHeader header;
     };
 
-    PBuffer decode_single(RingBuffer& ring_buffer);
-    PBuffer find_sucessful_instance(RingBuffer& ring_buffer);
-    void find_next_headers(RingBuffer& ring_buffer);
+    PBuffer decode_single(SerialReadAccessor& ring_buffer);
+    PBuffer find_sucessful_instance(SerialReadAccessor& ring_buffer);
+    void find_next_headers(SerialReadAccessor& ring_buffer);
 
     std::list<DecodingInstance> m_decoding_instances;
     size_t m_header_search_pos = 0;

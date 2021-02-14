@@ -382,6 +382,11 @@ bool SegmentBuffer::empty()
     return m_segments.empty();
 }
 
+const std::list<PBuffer>& SegmentBuffer::segments()
+{
+    return m_segments;
+}
+
 size_t SegmentBuffer::size()
 {
     size_t total_size = 0;

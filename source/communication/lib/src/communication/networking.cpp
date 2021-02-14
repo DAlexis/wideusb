@@ -24,13 +24,13 @@ Socket::Socket(NetSevice& net_service,
                Address destination_address,
                uint32_t port,
                OnDataReceivedCallback callback) :
-    m_net_service(net_service), m_callback(callback)
+    m_net_service(net_service),
+    m_options(NetworkOptions(my_address, destination_address)),
+    m_callback(callback)
 {
     m_options.port = port;
-    m_options.my_address = my_address;
-    m_options.destination_address = destination_address;
     m_net_service.add_socket(*this);
-    m_filter.listen_address(m_options.my_address, 0xFFFFFFFF);
+    m_filter.listen_address(m_options.network_options.sender, 0xFFFFFFFF);
 }
 
 Socket::~Socket()
@@ -41,9 +41,9 @@ Socket::~Socket()
 // ISocketUserSide
 uint32_t Socket::send(PBuffer data)
 {
-    OutgoingItem item;
+    SocketData item;
     item.data = data->clone();
-    item.id = m_id_counter++;
+    item.id = m_net_service.generate_segment_id();
     m_outgoing.push_back(item);
     return item.id;
 }
@@ -73,12 +73,20 @@ bool Socket::has_data()
     return !m_incoming.empty();
 }
 
+void Socket::drop_currently_sending()
+{
+    m_state.clear();
+}
+
 // ISocketSystemSide
 PBuffer Socket::front()
 {
-    if (m_outgoing.empty())
-        return nullptr;
     return m_outgoing.front().data;
+}
+
+bool Socket::has_outgoing_data()
+{
+    return !m_outgoing.empty();
 }
 
 void Socket::pop(bool success)
@@ -104,18 +112,22 @@ const AddressFilter& Socket::get_address_filter()
     return m_filter;
 }
 
-NetSevice::Subscriber::Subscriber()
+SocketState& Socket::state()
+{
+    return m_state;
+}
+
+SocketState::SocketState()
 {
     clear();
 }
 
-void NetSevice::Subscriber::clear()
+void SocketState::clear()
 {
-    segment_id = 0;
-    state = State::clear;
-    last_send_time = 0;
+    state = OutgoingState::clear;
+    /*last_send_time = 0;
     repeats_count = 0;
-    state_clear = true;
+    state_clear = true;*/
 }
 
 NetSevice::NetSevice(
@@ -123,6 +135,7 @@ NetSevice::NetSevice(
         std::shared_ptr<IChannelLayer> channel,
         std::shared_ptr<INetworkLayer> network,
         std::shared_ptr<ITransportLayer> transport,
+        std::shared_ptr<IPhysicalLayer> default_transit_physical,
         RandomGenerator rand_gen) :
     m_physical(physical), m_channel(channel), m_network(network), m_transport(transport)
 {
@@ -134,16 +147,14 @@ NetSevice::NetSevice(
 
 void NetSevice::add_socket(Socket& socket)
 {
-    Subscriber s;
-    s.socket = &socket;
-    m_subscribers.push_back(s);
+    m_subscribers.push_back(&socket);
 }
 
 void NetSevice::remove_socket(Socket& socket)
 {
     for (size_t i = 0; i < m_subscribers.size(); i++)
     {
-        if (m_subscribers[i].socket == &socket)
+        if (m_subscribers[i] == &socket)
         {
             m_subscribers[i] = m_subscribers.back();
             m_subscribers.pop_back();
@@ -152,17 +163,23 @@ void NetSevice::remove_socket(Socket& socket)
     }
 }
 
+uint32_t NetSevice::generate_segment_id()
+{
+    return m_rand_gen();
+}
+
 void NetSevice::serve_sockets(uint32_t time_ms)
 {
     receive_all_sockets();
     send_all_sockets(time_ms);
+    serve_time_planner(time_ms);
 }
 
 void NetSevice::send_data(PBuffer data, Address src, Address dst, uint32_t port, uint32_t ttl, bool need_ack, uint32_t seg_id)
 {
     SegmentBuffer sb(data);
     m_transport->encode(sb, port, seg_id, need_ack);
-    m_network->encode(sb, src, dst, ttl);
+    m_network->encode(sb, NetworkOptions(src, dst, ttl));
     m_channel->encode(sb);
     m_physical->send(sb.merge());
 }
@@ -171,7 +188,7 @@ uint32_t NetSevice::send_ack(Address src, Address dst, uint32_t port, uint32_t t
 {
     SegmentBuffer sb;
     m_transport->encode(sb, port, seg_id, false, true, ack_id);
-    m_network->encode(sb, src, dst, ttl);
+    m_network->encode(sb, NetworkOptions(src, dst, ttl));
     m_channel->encode(sb);
     m_physical->send(sb.merge());
     return seg_id;
@@ -205,36 +222,64 @@ void NetSevice::send_all_sockets(uint32_t time_ms)
     // Sending cycle
     for (auto& subscriber : m_subscribers)
     {
-        ISocketSystemSide* socket = subscriber.socket;
-        const SocketOptions& options = socket->get_options();
+        SocketState& state = subscriber->state();
+        const SocketOptions& options = subscriber->get_options();
 
+        if (state.state == SocketState::OutgoingState::repeating_untill_ack)
+        {
+            // Socket is waiting for acknoledgement. Lets check if message expired
+            if (!m_time_planner.has_task(state.segment_id))
+            {
+                subscriber->pop(false);
+                state.clear();
+            }
+        }
+
+        if (state.state == SocketState::OutgoingState::clear)
+        {
+            // Socket is ready to transmit data
+            if (!subscriber->has_outgoing_data())
+                continue; // No data
+
+            state.segment_id = m_rand_gen();
+            m_time_planner.add(TimePlanner<ISocketSystemSide*>::Task(subscriber, state.segment_id, time_ms, options.retransmitting_options));
+
+            if (options.need_acknoledgement)
+            {
+                state.state = SocketState::OutgoingState::repeating_untill_ack;
+            } else {
+                subscriber->pop(true);
+            }
+        }
+
+/*
         // case A: socket sent data and has already been waiting for ack
-        if (subscriber.state == Subscriber::State::some_tries_sent)
+        if (state.state == SocketState::OutgoingState::repeating)
         {
             if (options.need_acknoledgement)
             {
                 // If sending attempts limit is out
-                if (time_ms - subscriber.last_send_time > options.timeout_ms)
+                if (time_ms - state.last_send_time > options.timeout_ms)
                 {
                     // Delivery failed
-                    socket->pop(false);
-                    subscriber.clear();
+                    subscriber->pop(false);
+                    state.clear();
                     continue;
                 }
-                if (subscriber.repeats_count > options.repeats_limit || time_ms - subscriber.last_send_time < options.repeat_interval_ms)
+                if (state.repeats_count > options.repeats_limit || time_ms - state.last_send_time < options.repeat_interval_ms)
                 {
                     // No need to repeat
                     continue;
                 }
             } else {
-                if (subscriber.repeats_count > options.repeats_limit)
+                if (state.repeats_count > options.repeats_limit)
                 {
                     // No-ack package was sent enough times
-                    socket->pop(true);
-                    subscriber.clear();
+                    subscriber->pop(true);
+                    state.clear();
                     continue;
                 }
-                if (time_ms - subscriber.last_send_time < options.repeat_interval_ms)
+                if (time_ms - state.last_send_time < options.repeat_interval_ms)
                 {
                     // No need to repeat
                     continue;
@@ -242,16 +287,17 @@ void NetSevice::send_all_sockets(uint32_t time_ms)
             }
         } else {
             // We had not tried to send actual data from this socket
-            if (!socket->front())
+            if (!subscriber->has_outgoing_data())
                 continue; // No data
 
-            subscriber.state = Subscriber::State::some_tries_sent;
-            subscriber.segment_id = m_rand_gen();
+            state.state = SocketState::OutgoingState::repeating;
+            state.segment_id = m_rand_gen();
         }
 
-        subscriber.last_send_time = time_ms;
-        subscriber.repeats_count++;
-        send_data(socket->front(), options.my_address, options.destination_address, options.port, options.ttl, options.need_acknoledgement, subscriber.segment_id);
+        state.last_send_time = time_ms;
+        state.repeats_count++;
+        send_data(subscriber->front(), options.network_options.sender, options.network_options.receiver, options.port, options.network_options.ttl, options.need_acknoledgement, state.segment_id);
+        */
     }
 }
 
@@ -265,7 +311,7 @@ void NetSevice::receive_all_sockets()
 
         for (const auto& packet : packets)
         {
-            std::vector<Subscriber*> receivers = receivers_of_addr(packet.receiver);
+            std::vector<ISocketSystemSide*> receivers = receivers_of_addr(packet.options.receiver);
 
             if (receivers.empty())
                 continue;
@@ -278,32 +324,37 @@ void NetSevice::receive_all_sockets()
 
                 for (auto receiver : receivers)
                 {
-                    ISocketSystemSide* socket = receiver->socket;
-                    const SocketOptions& options = socket->get_options();
+                    SocketState& state = receiver->state();
+                    const SocketOptions& options = receiver->get_options();
 
                     if (options.port != segment.port)
                         continue;
 
                     if (segment.flags & DecodedSegment::Flags::need_ack)
                     {
-                        send_ack(options.my_address, packet.sender, options.port, options.ttl, segment.segment_id, segment.segment_id + 1);
+                        send_ack(options.network_options.sender, packet.options.sender, options.port, options.network_options.ttl, segment.segment_id, segment.segment_id + 1);
                     }
 
-                    // If we get package with acknoledgement and we are waiting for it
-                    if ((segment.flags & DecodedSegment::Flags::is_ack) && (receiver->state == Subscriber::State::some_tries_sent))
+                    // If we got package with acknoledgement and we are waiting for it
+                    if (segment.flags & DecodedSegment::Flags::is_ack)
                     {
-                        if (segment.ack_for_segment_id == receiver->segment_id)
+                        m_time_planner.remove(segment.ack_for_segment_id);
+                        // TODO ^last added
+                        if (state.state == SocketState::OutgoingState::repeating_untill_ack)
                         {
-                            // We were waiting for this ack
-                            receiver->clear();
-                            receiver->socket->pop(true);
+                            if (segment.ack_for_segment_id == state.segment_id)
+                            {
+                                // We were waiting for this ack
+                                state.clear();
+                                receiver->pop(true);
+                            }
                         }
                     }
 
                     if (!segment.segment.empty())
                     {
                         BufferAccessor accessor(segment.segment);
-                        socket->push(Buffer::create(accessor));
+                        receiver->push(Buffer::create(accessor));
                     }
                 }
             }
@@ -311,14 +362,45 @@ void NetSevice::receive_all_sockets()
     }
 }
 
-std::vector<NetSevice::Subscriber*> NetSevice::receivers_of_addr(Address addr)
+void NetSevice::serve_time_planner(uint32_t time_ms)
 {
-    std::vector<Subscriber*> result;
+    auto batch = m_time_planner.get_batch(time_ms);
+    if (batch.tasks.empty())
+        return;
+
+    // Classifying packages by its network options
+    std::map <NetworkOptions, SegmentBuffer> package_by_addr;
+    for (auto socket : batch.tasks)
+    {
+        SegmentBuffer sb(socket->front());
+        const NetworkOptions& opts = socket->get_options().network_options;
+        m_transport->encode(
+                    sb,
+                    socket->get_options().port,
+                    socket->state().segment_id,
+                    socket->get_options().need_acknoledgement);
+        package_by_addr[opts].push_back(sb);
+    }
+
+    // Encoding grouped packages
+    for (auto& it: package_by_addr)
+    {
+        SegmentBuffer& sb = it.second;
+        const NetworkOptions& opts = it.first;
+        m_network->encode(sb, opts);
+        m_channel->encode(sb);
+        m_physical->send(sb.merge());
+    }
+}
+
+std::vector<ISocketSystemSide*> NetSevice::receivers_of_addr(Address addr)
+{
+    std::vector<ISocketSystemSide*> result;
     for (auto& subscriber : m_subscribers)
     {
-        if (subscriber.socket->get_address_filter().is_acceptable(addr))
+        if (subscriber->get_address_filter().is_acceptable(addr))
         {
-            result.push_back(&subscriber);
+            result.push_back(subscriber);
         }
     }
     return result;

@@ -6,6 +6,7 @@
 #include "communication/i-channel-layer.hpp"
 #include "communication/i-network-layer.hpp"
 #include "communication/i-transport-layer.hpp"
+#include "communication/utils/time-group-maker.hpp"
 #include "buffer.hpp"
 
 #include <vector>
@@ -38,14 +39,37 @@ private:
 
 struct SocketOptions
 {
+    SocketOptions(const NetworkOptions& net_opts) :
+        network_options(net_opts)
+    { }
     uint32_t port = 0;
-    Address my_address = 0;
-    Address destination_address = 0;
+    NetworkOptions network_options;
+    TimePlanningOptions retransmitting_options{1000, 100, 10, 5000};
+
     bool need_acknoledgement = true;
-    uint32_t timeout_ms = 60000;
+    /*uint32_t timeout_ms = 60000;
     uint32_t repeat_interval_ms = 1000;
-    uint32_t repeats_limit = 10;
-    uint8_t ttl = 10;
+    uint32_t repeats_limit = 10;*/
+};
+
+class ISocketSystemSide;
+
+struct SocketState
+{
+    SocketState();
+    void clear();
+
+    enum class OutgoingState
+    {
+        clear = 0,
+        repeating_untill_ack
+    };
+
+    uint32_t segment_id = 0;
+    OutgoingState state = OutgoingState::clear;
+    /*bool state_clear = true;
+    uint32_t last_send_time = 0;
+    uint32_t repeats_count = 0;*/
 };
 
 class ISocketUserSide
@@ -58,17 +82,26 @@ public:
     virtual SocketOptions& options() = 0;
     virtual AddressFilter& address_filter() = 0;
     virtual bool has_data() = 0;
+    virtual void drop_currently_sending() = 0;
 };
 
 class ISocketSystemSide
 {
 public:
+    struct SocketData
+    {
+        PBuffer data;
+        uint32_t id = 0;
+    };
+
     virtual ~ISocketSystemSide() = default;
     virtual PBuffer front() = 0;
+    virtual bool has_outgoing_data() = 0;
     virtual void pop(bool success) = 0;
     virtual void push(PBuffer data) = 0;
     virtual const SocketOptions& get_options() = 0;
     virtual const AddressFilter& get_address_filter() = 0;
+    virtual SocketState& state() = 0;
 };
 
 class Socket : public ISocketUserSide, public ISocketSystemSide
@@ -87,27 +120,26 @@ public:
     SocketOptions& options() override;
     AddressFilter& address_filter() override;
     bool has_data() override;
+    void drop_currently_sending() override;
 
+private:
     // ISocketSystemSide
-    virtual PBuffer front() override;
+    PBuffer front() override;
+    bool has_outgoing_data() override;
     void pop(bool success) override;
     void push(PBuffer data) override;
     const SocketOptions& get_options() override;
     const AddressFilter& get_address_filter() override;
-
-private:
-    struct OutgoingItem
-    {
-        PBuffer data;
-        uint32_t id = 0;
-    };
+    SocketState& state() override;
 
     NetSevice& m_net_service;
     SocketOptions m_options;
     uint32_t m_port;
     AddressFilter m_filter;
     std::list<PBuffer> m_incoming;
-    std::list<OutgoingItem> m_outgoing;
+    std::list<SocketData> m_outgoing;
+
+    SocketState m_state;
 
     uint32_t m_id_counter = 0;
     OnDataReceivedCallback m_callback;
@@ -122,6 +154,7 @@ public:
             std::shared_ptr<IChannelLayer> channel,
             std::shared_ptr<INetworkLayer> network,
             std::shared_ptr<ITransportLayer> transport,
+            std::shared_ptr<IPhysicalLayer> default_transit_physical = nullptr,
             RandomGenerator rand_gen = nullptr);
 
     void serve_sockets(uint32_t time_ms);
@@ -129,51 +162,35 @@ public:
     void add_socket(Socket& socket);
     void remove_socket(Socket& socket);
 
-
+    uint32_t generate_segment_id();
 
 private:
-    struct Subscriber
-    {
-        Subscriber();
-        void clear();
-
-        enum class State
-        {
-            clear = 0,
-            some_tries_sent
-        };
-
-        ISocketSystemSide* socket = nullptr;
-        uint32_t segment_id = 0;
-        State state = State::clear;
-        bool state_clear = true;
-        uint32_t last_send_time = 0;
-        uint32_t repeats_count = 0;
-    };
 
     void send_all_sockets(uint32_t time_ms);
     void receive_all_sockets();
+    void serve_time_planner(uint32_t time_ms);
 
     void send_data(PBuffer data, Address src, Address dst, uint32_t port, uint32_t ttl, bool need_ack, uint32_t seg_id);
     uint32_t send_ack(Address src, Address dst, uint32_t port, uint32_t ttl, uint32_t ack_id, uint32_t seg_id);
 
     bool is_already_received(uint32_t segment_id);
 
-    //void send_ack(Address orig_sender, Address orig_reciver, uint32_t orig_msg_id, uint32_t );
-
-    std::vector<Subscriber*> receivers_of_addr(Address addr);
-    //void filter_by_port(std::vector<Socket*>& sockets, uint32_t port);
+    std::vector<ISocketSystemSide*> receivers_of_addr(Address addr);
 
     std::shared_ptr<IPhysicalLayer> m_physical;
     std::shared_ptr<IChannelLayer> m_channel;
     std::shared_ptr<INetworkLayer> m_network;
     std::shared_ptr<ITransportLayer> m_transport;
 
-    std::vector<Subscriber> m_subscribers;
+    std::shared_ptr<IPhysicalLayer> m_default_transit_physical;
+
+    std::vector<ISocketSystemSide*> m_subscribers;
     RandomGenerator m_rand_gen;
 
     const size_t m_already_received_capacity = 100;
     std::list<uint32_t> m_already_received;
+
+    TimePlanner<ISocketSystemSide*> m_time_planner; // TODO
 };
 
 #endif // NETWORKING_HPP

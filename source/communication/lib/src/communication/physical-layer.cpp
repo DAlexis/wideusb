@@ -5,7 +5,7 @@ PhysicalLayerBuffer::PhysicalLayerBuffer(size_t incoming_capacity) :
 {
 }
 
-RingBuffer& PhysicalLayerBuffer::incoming()
+SerialReadAccessor& PhysicalLayerBuffer::incoming()
 {
     return m_ring_buffer;
 }
@@ -41,5 +41,17 @@ void loop_back(PhysicalLayerBuffer& phys_layer)
     while (nullptr != (data = phys_layer.out_next()))
     {
         phys_layer.in_next(data->data(), data->size());
+    }
+}
+
+void exchange_data(std::vector<PhysicalLayerBuffer*> phys_layers)
+{
+    for (auto source : phys_layers)
+    {
+        PBuffer data = source->out_next();
+        for (auto dest : phys_layers)
+        {
+            dest->in_next(data->data(), data->size());
+        }
     }
 }

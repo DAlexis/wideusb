@@ -68,7 +68,6 @@ set(SOURCES
     ./include/buffer.hpp
     ./include/messages/core-messages.hpp
     ./include/messages/gps-messages.hpp
-    ./include/transport.hpp
 
 
     ./src/communication/communicator.cpp
@@ -83,6 +82,7 @@ set(SOURCES
     ./src/communication/binary/channel.cpp
     ./src/communication/binary/network.cpp
     ./src/communication/binary/transport.cpp
+    ./src/communication/utils/time-group-maker.cpp
     ./src/buffer.cpp
     ./src/communication/json/helpers-json.cpp
 )

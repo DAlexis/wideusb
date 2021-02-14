@@ -9,7 +9,8 @@ Nearest roadmap
     - [x] Implement sub-BufferAccessor 
     - [x] Channel binary layer
     - [x] Network binary layer
-    - [ ] Transport binary layer
+    - [x] Transport binary layer
+    - [ ] Socket state knowledge
     
 1. [ ] Running GPS functionality with hardcoded requests with python
     - [ ] Run new stack on board. Merge to master

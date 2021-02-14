@@ -145,19 +145,6 @@ private:
     const size_t m_limit;
 };
 
-/*
-class Slice : public SerialReadAccessor
-{
-public:
-    Slice(const SerialReadAccessor)
-    virtual void skip(size_t count) = 0;
-    virtual void get(uint8_t* buf, size_t size) = 0;
-    virtual size_t size() const = 0;
-
-    virtual uint8_t operator[](size_t pos) const = 0;
-    virtual ~SerialReadAccessor() = default;
-};*/
-
 /**
  * @brief The RingBufferClass class is always a serial accessor to itself,
  * because it stores reading pointer and it should be the only one
@@ -210,33 +197,7 @@ public:
     bool empty();
     size_t size();
 
-    /*
-    const std::list<PBuffer>& segments() const;
-
-    class Accessor : public SerialReadAccessor
-    {
-    public:
-        Accessor(const SegmentBuffer& seg_buf);
-        void skip(size_t count) override;
-        void get(uint8_t* buf, size_t size) override;
-        size_t size() const override;
-
-        uint8_t operator[](size_t pos) const override;
-
-    private:
-        struct SegmentDescriptor
-        {
-            std::list<PBuffer>::const_iterator segment;
-            size_t segment_offset = 0;
-        };
-
-        size_t m_total_size;
-        size_t m_skip_count = 0;
-
-        size_t find_segment(size_t element_index) const;
-
-        std::vector<SegmentDescriptor> m_segment_descriptors;
-    };*/
+    const std::list<PBuffer>& segments();
 
 private:
 
