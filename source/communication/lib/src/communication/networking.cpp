@@ -147,17 +147,17 @@ NetSevice::NetSevice(
 
 void NetSevice::add_socket(Socket& socket)
 {
-    m_subscribers.push_back(&socket);
+    m_sockets.push_back(&socket);
 }
 
 void NetSevice::remove_socket(Socket& socket)
 {
-    for (size_t i = 0; i < m_subscribers.size(); i++)
+    for (size_t i = 0; i < m_sockets.size(); i++)
     {
-        if (m_subscribers[i] == &socket)
+        if (m_sockets[i] == &socket)
         {
-            m_subscribers[i] = m_subscribers.back();
-            m_subscribers.pop_back();
+            m_sockets[i] = m_sockets.back();
+            m_sockets.pop_back();
             break;
         }
     }
@@ -170,28 +170,18 @@ uint32_t NetSevice::generate_segment_id()
 
 void NetSevice::serve_sockets(uint32_t time_ms)
 {
-    receive_all_sockets();
-    send_all_sockets(time_ms);
+    serve_sockets_input();
+    serve_sockets_output(time_ms);
     serve_time_planner(time_ms);
 }
 
-void NetSevice::send_data(PBuffer data, Address src, Address dst, uint32_t port, uint32_t ttl, bool need_ack, uint32_t seg_id)
-{
-    SegmentBuffer sb(data);
-    m_transport->encode(sb, port, seg_id, need_ack);
-    m_network->encode(sb, NetworkOptions(src, dst, ttl));
-    m_channel->encode(sb);
-    m_physical->send(sb.merge());
-}
-
-uint32_t NetSevice::send_ack(Address src, Address dst, uint32_t port, uint32_t ttl, uint32_t ack_id, uint32_t seg_id)
+void NetSevice::send_ack(Address src, Address dst, uint32_t port, uint32_t ttl, uint32_t ack_id, uint32_t seg_id)
 {
     SegmentBuffer sb;
     m_transport->encode(sb, port, seg_id, false, true, ack_id);
     m_network->encode(sb, NetworkOptions(src, dst, ttl));
     m_channel->encode(sb);
     m_physical->send(sb.merge());
-    return seg_id;
 }
 
 bool NetSevice::is_already_received(uint32_t segment_id)
@@ -217,20 +207,20 @@ bool NetSevice::is_already_received(uint32_t segment_id)
     return result;
 }
 
-void NetSevice::send_all_sockets(uint32_t time_ms)
+void NetSevice::serve_sockets_output(uint32_t time_ms)
 {
     // Sending cycle
-    for (auto& subscriber : m_subscribers)
+    for (auto& socket : m_sockets)
     {
-        SocketState& state = subscriber->state();
-        const SocketOptions& options = subscriber->get_options();
+        SocketState& state = socket->state();
+        const SocketOptions& options = socket->get_options();
 
         if (state.state == SocketState::OutgoingState::repeating_untill_ack)
         {
             // Socket is waiting for acknoledgement. Lets check if message expired
             if (!m_time_planner.has_task(state.segment_id))
             {
-                subscriber->pop(false);
+                socket->pop(false);
                 state.clear();
             }
         }
@@ -238,17 +228,17 @@ void NetSevice::send_all_sockets(uint32_t time_ms)
         if (state.state == SocketState::OutgoingState::clear)
         {
             // Socket is ready to transmit data
-            if (!subscriber->has_outgoing_data())
+            if (!socket->has_outgoing_data())
                 continue; // No data
 
             state.segment_id = m_rand_gen();
-            m_time_planner.add(TimePlanner<ISocketSystemSide*>::Task(subscriber, state.segment_id, time_ms, options.retransmitting_options));
+            m_time_planner.add(TimePlanner<ISocketSystemSide*>::Task(socket, state.segment_id, time_ms, options.retransmitting_options));
 
             if (options.need_acknoledgement)
             {
                 state.state = SocketState::OutgoingState::repeating_untill_ack;
             } else {
-                subscriber->pop(true);
+                socket->pop(true);
             }
         }
 
@@ -301,7 +291,7 @@ void NetSevice::send_all_sockets(uint32_t time_ms)
     }
 }
 
-void NetSevice::receive_all_sockets()
+void NetSevice::serve_sockets_input()
 {
     std::vector<DecodedFrame> frames = m_channel->decode(m_physical->incoming());
 
@@ -396,7 +386,7 @@ void NetSevice::serve_time_planner(uint32_t time_ms)
 std::vector<ISocketSystemSide*> NetSevice::receivers_of_addr(Address addr)
 {
     std::vector<ISocketSystemSide*> result;
-    for (auto& subscriber : m_subscribers)
+    for (auto& subscriber : m_sockets)
     {
         if (subscriber->get_address_filter().is_acceptable(addr))
         {

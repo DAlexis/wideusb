@@ -14,6 +14,21 @@ void SerialReadAccessor::extract(uint8_t* buf, size_t size)
     skip(size);
 }
 
+PBuffer SerialReadAccessor::extract_buf(size_t extraction_size)
+{
+    extraction_size = std::min(extraction_size, size());
+    PBuffer result = Buffer::create(extraction_size);
+    extract(result->data(), result->size());
+    return result;
+}
+
+PBuffer SerialReadAccessor::extract_buf()
+{
+    PBuffer result = Buffer::create(size());
+    extract(result->data(), result->size());
+    return result;
+}
+
 bool SerialWriteAccessor::put(SerialReadAccessor& buffer)
 {
     return put(buffer, buffer.size());

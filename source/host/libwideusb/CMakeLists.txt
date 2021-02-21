@@ -6,10 +6,12 @@ find_package(Boost REQUIRED COMPONENTS system)
 find_package(Threads)
 
 set(LIB_SOURCES
+    ${PROJECT_SOURCE_DIR}/src/serial-port-physical-layer.cpp
     ${PROJECT_SOURCE_DIR}/src/wideusb.cpp
 )
 
 set(LIB_INCLUDES
+    ${PROJECT_SOURCE_DIR}/include/serial-port-physical-layer.hpp
     ${PROJECT_SOURCE_DIR}/include/wideusb.hpp
 )
 
@@ -17,5 +19,5 @@ add_library(${PROJECT_NAME} ${LIB_SOURCES} ${LIB_INCLUDES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)
 
-target_link_libraries(${PROJECT_NAME} PUBLIC Boost::system Threads::Threads)
+target_link_libraries(${PROJECT_NAME} PUBLIC Boost::system Threads::Threads wideusb-communication)
 

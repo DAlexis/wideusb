@@ -4,8 +4,15 @@
 
 using namespace boost::asio;
 
-WideUSBDevice::WideUSBDevice(const std::string& port, int baudrate)
+
+WideUSBDevice::WideUSBDevice(const std::string& port, int baudrate) :
+    m_physical_layer(m_io_service, port, baudrate)
 {
-    m_serial_port.open(port);
-    m_serial_port.set_option(serial_port_base::baud_rate(baudrate));
+
+}
+
+void WideUSBDevice::run_io_service()
+{
+    for(;;)
+        m_io_service.run();
 }

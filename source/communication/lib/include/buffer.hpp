@@ -27,6 +27,8 @@ public:
 
     virtual bool empty() const;
     virtual void extract(uint8_t* buf, size_t size);
+    PBuffer extract_buf(size_t extraction_size);
+    PBuffer extract_buf();
 
     template <typename T>
     T as(size_t pos)

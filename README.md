@@ -10,7 +10,9 @@ Nearest roadmap
     - [x] Channel binary layer
     - [x] Network binary layer
     - [x] Transport binary layer
-    - [ ] Socket state knowledge
+    - [x] Socket state knowledge
+    - [ ] Internal transmission without network
+    - [ ] Struct-based layers parameters
     
 1. [ ] Running GPS functionality with hardcoded requests with python
     - [ ] Run new stack on board. Merge to master
@@ -20,4 +22,4 @@ Nearest roadmap
 5. [ ] Connect radio, nfr24 and LoRa
 6. [ ] Setup forwarding
     - [ ] Implement binary serialization for forwarding 
-6. [ ] Add state saving options
+7. [ ] Add state saving options

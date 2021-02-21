@@ -47,9 +47,6 @@ struct SocketOptions
     TimePlanningOptions retransmitting_options{1000, 100, 10, 5000};
 
     bool need_acknoledgement = true;
-    /*uint32_t timeout_ms = 60000;
-    uint32_t repeat_interval_ms = 1000;
-    uint32_t repeats_limit = 10;*/
 };
 
 class ISocketSystemSide;
@@ -67,9 +64,6 @@ struct SocketState
 
     uint32_t segment_id = 0;
     OutgoingState state = OutgoingState::clear;
-    /*bool state_clear = true;
-    uint32_t last_send_time = 0;
-    uint32_t repeats_count = 0;*/
 };
 
 class ISocketUserSide
@@ -166,12 +160,11 @@ public:
 
 private:
 
-    void send_all_sockets(uint32_t time_ms);
-    void receive_all_sockets();
+    void serve_sockets_output(uint32_t time_ms);
+    void serve_sockets_input();
     void serve_time_planner(uint32_t time_ms);
 
-    void send_data(PBuffer data, Address src, Address dst, uint32_t port, uint32_t ttl, bool need_ack, uint32_t seg_id);
-    uint32_t send_ack(Address src, Address dst, uint32_t port, uint32_t ttl, uint32_t ack_id, uint32_t seg_id);
+    void send_ack(Address src, Address dst, uint32_t port, uint32_t ttl, uint32_t ack_id, uint32_t seg_id);
 
     bool is_already_received(uint32_t segment_id);
 
@@ -184,7 +177,7 @@ private:
 
     std::shared_ptr<IPhysicalLayer> m_default_transit_physical;
 
-    std::vector<ISocketSystemSide*> m_subscribers;
+    std::vector<ISocketSystemSide*> m_sockets;
     RandomGenerator m_rand_gen;
 
     const size_t m_already_received_capacity = 100;
