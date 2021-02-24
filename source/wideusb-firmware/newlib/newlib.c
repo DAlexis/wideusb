@@ -1,3 +1,5 @@
+#include "newlib-monitor.h"
+
 #include <errno.h>
 #include <sys/stat.h>
 #include <sys/times.h>
@@ -12,7 +14,9 @@
 
 //extern uint32_t __get_MSP(void);
 //extern UART_HandleTypeDef UART_Handle;
-extern uint64_t virtualTimer;
+
+int heap_used = 0;
+int heap_total = 0;
 
 #undef errno
 extern int errno;
@@ -135,6 +139,9 @@ caddr_t _sbrk(int incr)
     }
 
     heap_end += incr;
+
+    heap_used = current_block_address - &__bss_end__;
+    heap_total = heap_limit - &__bss_end__;
 
     return (caddr_t) current_block_address;
 }

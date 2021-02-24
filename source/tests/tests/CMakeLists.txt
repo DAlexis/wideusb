@@ -3,20 +3,16 @@ project("wideusb-firmware-unit-tests")
 set(EXE_SOURCES
     ${PROJECT_SOURCE_DIR}/test-base64.cpp
     ${PROJECT_SOURCE_DIR}/test-nmea.cpp
-    ${PROJECT_SOURCE_DIR}/test-json-input.cpp
-    ${PROJECT_SOURCE_DIR}/test-properties.cpp
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/src/modules/gps/nmea-parser.cpp
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/src/modules/gps/minmea.cpp
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/src/modules/gps/point.cpp
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/src/tools/base64.cpp
-    ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/src/tools/json-objects.cpp
 )
 
 set(EXE_HPP
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/include/modules/gps/nmea-parser.hpp
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/include/modules/gps/minmea.h
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/include/tools/base64.hpp
-    ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/include/tools/json-objects.hpp
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/include/host-communication.hpp
 )
 

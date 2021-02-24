@@ -39,7 +39,6 @@ set(H_HEADERS
     ${PROJECT_SOURCE_DIR}/cpp/include/tools/base64.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/tools/buffer.hpp
     ${PROJECT_SOURCE_DIR}/c-tools/include/usbd-input-handle.h
-    ${PROJECT_SOURCE_DIR}/cpp/include/tools/json-objects.hpp
 
     ${PROJECT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h
     ${PROJECT_SOURCE_DIR}/Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
@@ -168,9 +167,7 @@ set(C_SOURCES
 )
 
 set(CPP_SOURCES
-    ${PROJECT_SOURCE_DIR}/cpp/test.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/utilities.cpp
-    ${PROJECT_SOURCE_DIR}/cpp/src/host-communication.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/cpp-bootstrap.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/module.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/data-saver.cpp
@@ -185,7 +182,6 @@ set(CPP_SOURCES
     ${PROJECT_SOURCE_DIR}/cpp/src/os/cpp-freertos-impl.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/tools/base64.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/tools/buffer.cpp
-    ${PROJECT_SOURCE_DIR}/cpp/src/tools/json-objects.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/host-communication/usb-physical-layer.cpp
 )
 
@@ -217,6 +213,7 @@ add_executable(${ELF_NAME} ${EXE_SOURCES})
 target_link_libraries(${ELF_NAME} wideusb-communication)
 
 target_include_directories(${ELF_NAME} PRIVATE
+    ${PROJECT_SOURCE_DIR}/newlib
     ${PROJECT_SOURCE_DIR}/Core/Inc
     ${PROJECT_SOURCE_DIR}/cpp/include
     ${PROJECT_SOURCE_DIR}/c-tools/include
