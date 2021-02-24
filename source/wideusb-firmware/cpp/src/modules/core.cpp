@@ -1,6 +1,6 @@
 #include "modules/core.hpp"
 #include "host-communication-interface.hpp"
-
+/*
 #include "rapidjson-config.h"
 #include "rapidjson/document.h"
 
@@ -49,3 +49,4 @@ void CoreModule::send_status()
 
     m_communicator->send_data(std::move(d));
 }
+*/

@@ -1,6 +1,6 @@
 #ifndef HOST_COMMUNICATION_INTERFACE_INCLUDED
 #define HOST_COMMUNICATION_INTERFACE_INCLUDED
-
+/*
 #include "module.hpp"
 #include "rapidjson/document.h"
 
@@ -14,5 +14,5 @@ public:
 
     virtual ~IHostCommunicator() = default;
 };
-
+*/
 #endif // HOST_COMMUNICATION_INTERFACE_INCLUDED

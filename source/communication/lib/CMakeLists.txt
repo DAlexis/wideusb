@@ -68,6 +68,7 @@ set(SOURCES
     ./include/buffer.hpp
     ./include/messages/core-messages.hpp
     ./include/messages/gps-messages.hpp
+    ./include/communication/modules/monitor.hpp
 
 
     ./src/communication/communicator.cpp

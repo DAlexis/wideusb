@@ -6,9 +6,9 @@
 
 #include "usart.h"
 
-GPSModule::GPSModule() :
-    Module("gps")
+GPSModule::GPSModule()
 {
+    /*
     m_action_filter.add(
         "get_point",
         [this](const rapidjson::Value&) -> ErrorCode
@@ -16,7 +16,7 @@ GPSModule::GPSModule() :
             send_point();
             return std::nullopt;
         }
-    );
+    );*/
 }
 
 GPSModule::~GPSModule() = default;
@@ -72,7 +72,7 @@ void GPSModule::check_pps_thread()
 }
 
 void GPSModule::send_signal_timings_thread()
-{
+{/*
     Point p;
     for (;;)
     {
@@ -80,17 +80,17 @@ void GPSModule::send_signal_timings_thread()
         auto doc = point_to_msg(p);
         add_module_field(*doc);
         m_communicator->send_data(std::move(doc));
-    }
+    }*/
 }
 
 void GPSModule::send_point()
-{
+{/*
     Point p = point();
     auto doc = point_to_msg(p);
     add_module_field(*doc);
-    m_communicator->send_data(std::move(doc));
+    m_communicator->send_data(std::move(doc));*/
 }
-
+/*
 std::unique_ptr<rapidjson::Document> GPSModule::point_to_msg(const Point& p)
 {
     using namespace rapidjson;
@@ -148,4 +148,4 @@ std::unique_ptr<rapidjson::Document> GPSModule::point_to_msg(const Point& p)
     d->AddMember("point", point, alloc);
 
     return d;
-}
+}*/

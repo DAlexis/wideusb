@@ -43,10 +43,10 @@ PBuffer StreamChunkHeaderJSON::serialize()
     Document d;
     d.SetObject();
     auto & alloc = d.GetAllocator();
-
+/*
     d.AddMember("size", Value(size), alloc);
     if (need_checksum)
-        d.AddMember("checksum", Value(checksum), alloc);
+        d.AddMember("checksum", Value(checksum), alloc);*/
 
     return buffer_from_document(d);
 }

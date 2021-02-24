@@ -121,7 +121,7 @@ extern USBD_CDC_ItfTypeDef USBD_Interface_fops_FS;
 
 /* USER CODE BEGIN EXPORTED_VARIABLES */
 
-extern USBDInputHandle USBD_input_handler;
+//extern USBDInputHandle USBD_input_handler;
 
 /* USER CODE END EXPORTED_VARIABLES */
 

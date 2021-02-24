@@ -83,8 +83,13 @@ public:
 
             uint32_t lifetime = time - task.m_creation_time;
 
-            // Remove task if timeouted
-            if (task.m_time_planning_options.timeout != 0 && lifetime >= task.m_time_planning_options.timeout)
+            // Remove tasks
+            if (
+                    // Remove task if timeouted
+                    (task.m_time_planning_options.timeout != 0 && lifetime >= task.m_time_planning_options.timeout)
+                    // or if all cycles are done AND timeout == 0
+                    || (task.m_time_planning_options.timeout == 0 && task.m_time_planning_options.cycles_count != 0 && task.m_repetitions >= task.m_time_planning_options.cycles_count)
+                )
             {
                 auto jt = std::next(it);
                 m_active_tasks.erase(it);

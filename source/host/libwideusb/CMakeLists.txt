@@ -7,11 +7,13 @@ find_package(Threads)
 
 set(LIB_SOURCES
     ${PROJECT_SOURCE_DIR}/src/serial-port-physical-layer.cpp
+    ${PROJECT_SOURCE_DIR}/src/monitor.cpp
     ${PROJECT_SOURCE_DIR}/src/wideusb.cpp
 )
 
 set(LIB_INCLUDES
     ${PROJECT_SOURCE_DIR}/include/serial-port-physical-layer.hpp
+    ${PROJECT_SOURCE_DIR}/include/monitor.hpp
     ${PROJECT_SOURCE_DIR}/include/wideusb.hpp
 )
 

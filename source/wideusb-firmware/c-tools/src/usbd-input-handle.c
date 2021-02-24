@@ -1,5 +1,5 @@
 #include "usbd-input-handle.h"
-
+/*
 void usbd_input_handle_receive(USBDInputHandle* handle, uint8_t* buf, uint32_t len, uint32_t time, uint32_t input_timeout)
 {
     if (handle->buffer_on_timeout)
@@ -29,3 +29,4 @@ void usbd_input_handle_init(USBDInputHandle* handler, uint8_t* buffer, uint32_t 
     handler->last_receive_time = 0;
     handler->buffer_on_timeout = 0;
 }
+*/

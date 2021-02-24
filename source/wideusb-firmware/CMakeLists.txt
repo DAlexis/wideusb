@@ -33,6 +33,7 @@ set(H_HEADERS
     ${PROJECT_SOURCE_DIR}/cpp/include/modules/gps/point.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/modules/gps/precision-timer.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/modules/gps.hpp
+    ${PROJECT_SOURCE_DIR}/cpp/include/modules/monitor.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/host-communication/usb-physical-layer.hpp
 
     ${PROJECT_SOURCE_DIR}/cpp/include/tools/base64.hpp
@@ -180,6 +181,7 @@ set(CPP_SOURCES
     ${PROJECT_SOURCE_DIR}/cpp/src/modules/gps/point.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/modules/gps/precision-timer.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/modules/gps.cpp
+    ${PROJECT_SOURCE_DIR}/cpp/src/modules/monitor.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/os/cpp-freertos-impl.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/tools/base64.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/tools/buffer.cpp

@@ -51,6 +51,7 @@
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN INCLUDE */
+#include "usbd-input-handle.h"
 #include "cmsis_os.h"
 
 #include <string.h>
@@ -146,8 +147,8 @@ uint8_t UserTxBufferFS[APP_TX_DATA_SIZE];
 extern USBD_HandleTypeDef hUsbDeviceFS;
 
 /* USER CODE BEGIN EXPORTED_VARIABLES */
-USBDInputHandle USBD_input_handler;
-uint8_t input_buffer[USB_RX_BUFFER_SIZE];
+//USBDInputHandle USBD_input_handler;
+//uint8_t input_buffer[USB_RX_BUFFER_SIZE];
 /* USER CODE END EXPORTED_VARIABLES */
 
 /**
@@ -188,7 +189,7 @@ USBD_CDC_ItfTypeDef USBD_Interface_fops_FS =
 static int8_t CDC_Init_FS(void)
 {
   /* USER CODE BEGIN 3 */
-  usbd_input_handle_init(&USBD_input_handler, input_buffer, USB_RX_BUFFER_SIZE);
+  //usbd_input_handle_init(&USBD_input_handler, input_buffer, USB_RX_BUFFER_SIZE);
   /* Set Application Buffers */
   USBD_CDC_SetTxBuffer(&hUsbDeviceFS, UserTxBufferFS, 0);
   USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
@@ -297,8 +298,9 @@ static int8_t CDC_Control_FS(uint8_t cmd, uint8_t* pbuf, uint16_t length)
 static int8_t CDC_Receive_FS(uint8_t* Buf, uint32_t *Len)
 {
   /* USER CODE BEGIN 6 */
-    usbd_input_handle_receive(&USBD_input_handler, Buf, *Len, osKernelSysTick(), USBD_CDC_INPUT_TIMEOUT);
+    //usbd_input_handle_receive(&USBD_input_handler, Buf, *Len, osKernelSysTick(), USBD_CDC_INPUT_TIMEOUT);
 
+    usbd_rx_handler(Buf, *Len);
     USBD_CDC_SetRxBuffer(&hUsbDeviceFS, UserRxBufferFS);
     USBD_CDC_ReceivePacket(&hUsbDeviceFS);
 

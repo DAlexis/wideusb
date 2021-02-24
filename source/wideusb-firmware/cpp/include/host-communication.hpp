@@ -1,6 +1,6 @@
 #ifndef HOST_COMMUNICATION_HPP_INCLUDED
 #define HOST_COMMUNICATION_HPP_INCLUDED
-
+/*
 #include "os/cpp-freertos.hpp"
 #include "modules/core.hpp"
 #include "host-communication-interface.hpp"
@@ -46,5 +46,5 @@ private:
 
     ObjectFilter m_modules_filter{"module"};
 };
-
+*/
 #endif // HOST_COMMUNICATION_HPP_INCLUDED

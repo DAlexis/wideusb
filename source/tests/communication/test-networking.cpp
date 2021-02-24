@@ -43,7 +43,7 @@ TEST_F(NetworkingTest, HeaderSize)
     std::cout << "[     INFO ] " << "Total header size for no-ack message = " << data->size() - 1 << std::endl;
 }
 
-TEST_F(NetworkingTest, BasicOperating)
+TEST_F(NetworkingTest, BasicOperatingWithAck)
 {
     bool data_delivered = false;
 
@@ -79,6 +79,43 @@ TEST_F(NetworkingTest, BasicOperating)
     service->serve_sockets(0);
 
     ASSERT_TRUE(data_delivered);
+}
+
+TEST_F(NetworkingTest, BasicOperatingNoAck)
+{
+    bool data_delivered = false;
+
+    Socket sock1(*service, 0x12345678, 0x87654321, 10, [&data_delivered](uint32_t, bool success) { data_delivered = success; });
+    Socket sock2(*service, 0x87654321, 0x12345678, 10);
+
+    sock1.options().need_acknoledgement = false;
+    sock1.options().retransmitting_options.cycles_count = 1;
+    sock1.options().retransmitting_options.timeout = 0;
+
+    sock1.send(Buffer::create(sizeof(test_data), test_data));
+
+    // Send data to physical device
+    service->serve_sockets(0);
+
+    // Call the callback: message is delivered
+    service->serve_sockets(0);
+
+    // Call the callback: message is delivered
+    service->serve_sockets(0);
+
+    ASSERT_TRUE(data_delivered);
+
+    // Loop back device
+    loop_back(*physical);
+
+    // Receive data, send ack
+    service->serve_sockets(0);
+
+    ASSERT_FALSE(sock1.has_data());
+    ASSERT_TRUE(sock2.has_data());
+
+    PBuffer data = sock2.get();
+    ASSERT_EQ(0, memcmp(data->data(), test_data, sizeof(test_data)));
 }
 
 TEST_F(NetworkingTest, DataCorruption)

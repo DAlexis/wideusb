@@ -10,7 +10,7 @@
 class PrecisionTimer;
 class NMEAReceiver;
 
-class GPSModule : public Module
+class GPSModule
 {
 public:
     GPSModule();
@@ -27,7 +27,7 @@ private:
 
     void send_point();
 
-    static std::unique_ptr<rapidjson::Document> point_to_msg(const Point& p);
+    //static std::unique_ptr<rapidjson::Document> point_to_msg(const Point& p);
 
     std::unique_ptr<PrecisionTimer> m_precision_timer;
     std::unique_ptr<NMEAReceiver> m_nmea_receiver;

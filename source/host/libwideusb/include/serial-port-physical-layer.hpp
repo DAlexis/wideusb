@@ -8,7 +8,13 @@
 class SerialPortPhysicalLayer : public IPhysicalLayer
 {
 public:
-    SerialPortPhysicalLayer(boost::asio::io_service& io_service, const std::string& port, int baudrate = 921600);
+    using OnIncominDataCallback = std::function<void(void)>;
+    SerialPortPhysicalLayer(
+            boost::asio::io_service& io_service,
+            const std::string& port,
+            OnIncominDataCallback incoming_callback,
+            int baudrate = 921600);
+
     SerialReadAccessor& incoming();
     void send(PBuffer data);
 
@@ -18,6 +24,7 @@ private:
 
     boost::asio::io_context::strand m_write_strand;
     boost::asio::serial_port m_serial_port;
+    OnIncominDataCallback m_incoming_callback;
     std::vector<uint8_t> m_input_buffer;
     RingBuffer m_input_ring_buffer;
     RingBuffer m_output_ring_buffer;

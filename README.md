@@ -13,9 +13,15 @@ Nearest roadmap
     - [x] Socket state knowledge
     - [ ] Internal transmission without network
     - [ ] Struct-based layers parameters
+    - [ ] Socket queue limiting
+    
+1. [ ] Add monitor module
+    - [x] Run new stack on board
+    - [ ] Merge to master: remove old code and files
+    
     
 1. [ ] Running GPS functionality with hardcoded requests with python
-    - [ ] Run new stack on board. Merge to master
+    
 2. [ ] Running this over C++ cli app with wideusb lib
 3. [ ] Make python wrapper of C++ lib
 4. [ ] Add streaming hardware functionality: DAC, ADC

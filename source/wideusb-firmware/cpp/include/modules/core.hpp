@@ -1,6 +1,12 @@
 #ifndef MODULES_CORE_HPP_INCLUDED
 #define MODULES_CORE_HPP_INCLUDED
 
+class CoreModule
+{
+public:
+private:
+};
+/*
 #include "os/cpp-freertos.hpp"
 #include "module.hpp"
 
@@ -19,5 +25,5 @@ private:
 
     //os::TaskCycled m_thread{ [this](){ thread_func(); }, "Core_module_thread" };
 };
-
+*/
 #endif // MODULES_CORE_HPP_INCLUDED

@@ -1,6 +1,6 @@
 #include "module.hpp"
 #include "host-communication.hpp"
-
+/*
 #include "rapidjson-config.h"
 #include "rapidjson/document.h"
 
@@ -70,3 +70,4 @@ const char* Module::name()
 {
     return m_name;
 }
+*/

@@ -46,6 +46,10 @@ struct SocketOptions
     NetworkOptions network_options;
     TimePlanningOptions retransmitting_options{1000, 100, 10, 5000};
 
+    uint32_t input_queue_limit = 0;
+    uint32_t output_queue_limit = 0;
+
+
     bool need_acknoledgement = true;
 };
 
@@ -59,7 +63,8 @@ struct SocketState
     enum class OutgoingState
     {
         clear = 0,
-        repeating_untill_ack
+        repeating_untill_ack,
+        repeating_untill_expired_no_ack
     };
 
     uint32_t segment_id = 0;

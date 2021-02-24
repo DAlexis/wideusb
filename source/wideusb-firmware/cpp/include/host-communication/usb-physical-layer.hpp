@@ -12,6 +12,8 @@ public:
 
     void receive(const uint8_t* data, size_t size);
 
+    void connect_to_usb_port();
+
 private:
     RingBuffer m_input_ring_buffer;
 };

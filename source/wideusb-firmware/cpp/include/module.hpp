@@ -1,8 +1,8 @@
 #ifndef MODULE_HPP_INCLUDED
 #define MODULE_HPP_INCLUDED
-
+/*
 #include "tools/json-objects.hpp"
-#include "rapidjson-config.h"
+#include "communication/json/rapidjson-config.h"
 #include "rapidjson/document.h"
 
 #include <string>
@@ -43,5 +43,5 @@ protected:
     IHostCommunicator* m_communicator = nullptr;
     const char* m_name;
 };
-
+*/
 #endif // MODULE_HPP_INCLUDED

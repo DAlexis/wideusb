@@ -2,8 +2,12 @@
 
 #include <iostream>
 
-SerialPortPhysicalLayer::SerialPortPhysicalLayer(boost::asio::io_service& io_service, const std::string& port, int baudrate) :
-    m_write_strand(io_service), m_serial_port(io_service), m_input_buffer(100), m_input_ring_buffer(10000), m_output_ring_buffer(10000)
+SerialPortPhysicalLayer::SerialPortPhysicalLayer(
+        boost::asio::io_service& io_service,
+        const std::string& port,
+        OnIncominDataCallback incoming_callback,
+        int baudrate) :
+    m_write_strand(io_service), m_serial_port(io_service), m_incoming_callback(incoming_callback), m_input_buffer(100), m_input_ring_buffer(10000), m_output_ring_buffer(10000)
 {
     m_serial_port.open(port);
     m_serial_port.set_option(boost::asio::serial_port_base::baud_rate(baudrate));
@@ -20,10 +24,18 @@ void SerialPortPhysicalLayer::async_read()
             {
                 return;
             }
+            if (bytes_transferred != 0)
+            {
+                size_t data_size = std::min(m_input_ring_buffer.free_space(), bytes_transferred);
+                m_input_buffer[bytes_transferred] = '\0';
+                //std::cout << "bytes: " << bytes_transferred << ": " << m_input_buffer.data() << std::endl;
+                m_input_ring_buffer.put(m_input_buffer.data(), data_size);
 
-            size_t data_size = std::min(m_input_ring_buffer.free_space(), bytes_transferred);
-            std::cout << "bytes: " << bytes_transferred << ": " << m_input_buffer.data() << std::endl;
-            m_input_ring_buffer.put(m_input_buffer.data(), data_size);
+
+                if (m_incoming_callback)
+                    m_incoming_callback();
+            }
+
             async_read();
         }
     );

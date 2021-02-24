@@ -14,7 +14,7 @@ bool IdentificatorJSON::put_message_id(SerialWriteAccessor& write_accessor, cons
     auto & alloc = d.GetAllocator();
 
     d.AddMember("id", Value(header.id), alloc);
-    d.AddMember("key", Value(header.key), alloc);
+    //d.AddMember("key", Value(header.key), alloc);
 
     BufferAccessor message_buffer_accessor(buffer_from_document(d));
     if (!write_accessor.will_fit(message_buffer_accessor.size()))

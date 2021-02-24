@@ -1,8 +1,21 @@
 #ifndef USBDINPUTHANDLE_H
 #define USBDINPUTHANDLE_H
 
-#include "ring-buffer.h"
+#include <stdint.h>
 
+#ifdef __cplusplus
+    extern "C" {
+#endif
+
+void usbd_rx_handler(const uint8_t* buffer, uint32_t size);
+
+#ifdef __cplusplus
+    }
+#endif
+
+
+//#include "ring-buffer.h"
+/*
 typedef struct
 {
     RingBuffer buffer;
@@ -19,6 +32,6 @@ void usbd_input_handle_receive(USBDInputHandle* handle, uint8_t* Buf, uint32_t L
 
 #ifdef __cplusplus
     }
-#endif
+#endif*/
 
 #endif // USBDINPUTHANDLE_H

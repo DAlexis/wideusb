@@ -1,6 +1,8 @@
 #include "communication/networking.hpp"
 #include <cmath>
 
+#include <cstdio>
+
 void AddressFilter::listen_address(Address addr, Address mask)
 {
     Target t;
@@ -44,7 +46,16 @@ uint32_t Socket::send(PBuffer data)
     SocketData item;
     item.data = data->clone();
     item.id = m_net_service.generate_segment_id();
+    if (
+            m_options.output_queue_limit != 0
+            && m_outgoing.size() >= m_options.output_queue_limit
+            && m_outgoing.size() >= 2)
+    {
+        // Remove the oldest one, but not front because it ma be in work
+        m_outgoing.erase(std::next(m_outgoing.begin()));
+    }
     m_outgoing.push_back(item);
+
     return item.id;
 }
 
@@ -99,6 +110,10 @@ void Socket::pop(bool success)
 
 void Socket::push(PBuffer data)
 {
+    if (m_options.input_queue_limit != 0 && m_incoming.size() >= m_options.input_queue_limit)
+    {
+        m_incoming.pop_front();
+    }
     m_incoming.push_back(data);
 }
 
@@ -215,16 +230,6 @@ void NetSevice::serve_sockets_output(uint32_t time_ms)
         SocketState& state = socket->state();
         const SocketOptions& options = socket->get_options();
 
-        if (state.state == SocketState::OutgoingState::repeating_untill_ack)
-        {
-            // Socket is waiting for acknoledgement. Lets check if message expired
-            if (!m_time_planner.has_task(state.segment_id))
-            {
-                socket->pop(false);
-                state.clear();
-            }
-        }
-
         if (state.state == SocketState::OutgoingState::clear)
         {
             // Socket is ready to transmit data
@@ -238,56 +243,26 @@ void NetSevice::serve_sockets_output(uint32_t time_ms)
             {
                 state.state = SocketState::OutgoingState::repeating_untill_ack;
             } else {
-                socket->pop(true);
+                state.state = SocketState::OutgoingState::repeating_untill_expired_no_ack;
             }
+            continue;
         }
 
-/*
-        // case A: socket sent data and has already been waiting for ack
-        if (state.state == SocketState::OutgoingState::repeating)
+        if (!m_time_planner.has_task(state.segment_id))
         {
-            if (options.need_acknoledgement)
+            // Socket task is expired
+            if (state.state == SocketState::OutgoingState::repeating_untill_ack)
             {
-                // If sending attempts limit is out
-                if (time_ms - state.last_send_time > options.timeout_ms)
-                {
-                    // Delivery failed
-                    subscriber->pop(false);
-                    state.clear();
-                    continue;
-                }
-                if (state.repeats_count > options.repeats_limit || time_ms - state.last_send_time < options.repeat_interval_ms)
-                {
-                    // No need to repeat
-                    continue;
-                }
-            } else {
-                if (state.repeats_count > options.repeats_limit)
-                {
-                    // No-ack package was sent enough times
-                    subscriber->pop(true);
-                    state.clear();
-                    continue;
-                }
-                if (time_ms - state.last_send_time < options.repeat_interval_ms)
-                {
-                    // No need to repeat
-                    continue;
-                }
+                // But socket was waiting for an ack
+                socket->pop(false);
+                state.clear();
+            } else if (state.state == SocketState::OutgoingState::repeating_untill_expired_no_ack)
+            {
+                // But socket was waiting for timeout or cycles count is over, it does not need an ack
+                socket->pop(true);
+                state.clear();
             }
-        } else {
-            // We had not tried to send actual data from this socket
-            if (!subscriber->has_outgoing_data())
-                continue; // No data
-
-            state.state = SocketState::OutgoingState::repeating;
-            state.segment_id = m_rand_gen();
         }
-
-        state.last_send_time = time_ms;
-        state.repeats_count++;
-        send_data(subscriber->front(), options.network_options.sender, options.network_options.receiver, options.port, options.network_options.ttl, options.need_acknoledgement, state.segment_id);
-        */
     }
 }
 
@@ -362,7 +337,8 @@ void NetSevice::serve_time_planner(uint32_t time_ms)
     std::map <NetworkOptions, SegmentBuffer> package_by_addr;
     for (auto socket : batch.tasks)
     {
-        SegmentBuffer sb(socket->front());
+        PBuffer front = socket->front();
+        SegmentBuffer sb(front);
         const NetworkOptions& opts = socket->get_options().network_options;
         m_transport->encode(
                     sb,

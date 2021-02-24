@@ -1,17 +1,10 @@
 #include "host-communication.hpp"
 #include "module.hpp"
 #include "usbd_cdc_if.h"
-#include "serialization-json/ring-buffer-json.hpp"
-
-#include "rapidjson-config.h"
-#include "rapidjson/document.h"
-#include "rapidjson/stringbuffer.h"
-#include "rapidjson/writer.h"
-
 
 #include <string.h>
 #include <mutex>
-
+/*
 using namespace rapidjson;
 
 static const char core_str[] = "core";
@@ -145,3 +138,4 @@ bool HostCommunicator::clear_by_timeout()
     }
     return false;
 }
+*/
