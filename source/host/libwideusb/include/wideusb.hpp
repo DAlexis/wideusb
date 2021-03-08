@@ -18,7 +18,7 @@
 class WideUSBDevice
 {
 public:
-    WideUSBDevice(const std::string& port, int baudrate = 921600);
+    WideUSBDevice(Address device_addr, Address host_address, const std::string& port, int baudrate = 921600);
     void run_io_service();
     void test_socket();
 
@@ -27,6 +27,9 @@ private:
     void test_monitor();
 
     uint32_t time_ms();
+
+    Address m_device_addr;
+    Address m_host_address;
 
     boost::asio::io_service m_io_service;
     std::shared_ptr<SerialPortPhysicalLayer> m_physical_layer;

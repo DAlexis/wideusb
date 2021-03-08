@@ -5,7 +5,7 @@
 
 int main()
 {
-    WideUSBDevice dev("/dev/ttyACM0");
+    WideUSBDevice dev(0x12345678, 0x87654321, "/dev/ttyACM0");
     std::cout << "wideusb cli app stub" << std::endl;
     dev.test_socket();
     dev.run_io_service();

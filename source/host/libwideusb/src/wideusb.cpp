@@ -9,7 +9,9 @@
 using namespace boost::asio;
 
 
-WideUSBDevice::WideUSBDevice(const std::string& port, int baudrate) :
+WideUSBDevice::WideUSBDevice(Address device_addr, Address host_address, const std::string& port, int baudrate) :
+    m_device_addr(device_addr),
+    m_host_address(host_address),
     m_physical_layer(std::make_shared<SerialPortPhysicalLayer>(
         m_io_service,
         port,
@@ -22,7 +24,7 @@ WideUSBDevice::WideUSBDevice(const std::string& port, int baudrate) :
         std::make_shared<TransportLayerBinary>()
     ),
     m_creation(std::chrono::steady_clock::now()),
-    m_monitor(m_net_srv, 0x87654321, 0x12345678, 1)
+    m_monitor(m_net_srv, m_device_addr, m_host_address, 1)
 {
 
 }
@@ -37,7 +39,7 @@ void WideUSBDevice::run_io_service()
 
 void WideUSBDevice::test_socket()
 {
-    m_sock.reset(new Socket(m_net_srv, 0x87654321, 0x12345678, 10));
+    m_sock.reset(new Socket(m_net_srv, m_device_addr, 10));
     m_interval.reset(new boost::posix_time::seconds(1));
     m_timer.reset(new boost::asio::deadline_timer(m_io_service, *m_interval));
     m_timer->async_wait([this](const boost::system::error_code&){ test_monitor(); });
@@ -46,6 +48,7 @@ void WideUSBDevice::test_socket()
 void WideUSBDevice::test_monitor()
 {
     auto status = m_monitor.get_status();
+    m_monitor.request_status();
 
     if (status)
     {
@@ -58,7 +61,7 @@ void WideUSBDevice::test_monitor()
     if (m_sock->has_data())
     {
         std::cout << "Socket has data:" << std::endl;
-        PBuffer data = m_sock->get();
+        PBuffer data = m_sock->get()->data;
         std::cout << data->data() << std::endl;
     }
 

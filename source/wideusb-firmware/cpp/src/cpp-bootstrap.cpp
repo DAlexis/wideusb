@@ -52,7 +52,7 @@ void cpp_bootstrap()
     );
     printf("net_srv created\r\n");
 
-    MonitorModule monitor(net_srv, 0x12345678, 0x87654321, 1);
+    MonitorModule monitor(net_srv, 0x12345678, 1);
 /*
     Socket sock(net_srv, 0x12345678, 0x87654321, 10);
     sock.options().retransmitting_options.cycles_count = 0;

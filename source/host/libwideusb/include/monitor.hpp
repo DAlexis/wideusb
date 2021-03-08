@@ -9,12 +9,13 @@
 class Monitor
 {
 public:
-    Monitor(NetSevice& net_service, Address monitor_address, Address destination_address, Port port);
+    Monitor(NetSevice& net_service, Address device_addr, Address host_address, Port port);
 
     std::optional<std::string> get_status();
+    void request_status();
 
 private:
-
+    Address m_device_addr;
     Socket m_sock;
 };
 

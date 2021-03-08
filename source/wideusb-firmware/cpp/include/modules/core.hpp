@@ -1,11 +1,26 @@
 #ifndef MODULES_CORE_HPP_INCLUDED
 #define MODULES_CORE_HPP_INCLUDED
 
-class CoreModule
+#include "module-base.hpp"
+#include "communication/networking.hpp"
+
+#include <vector>
+#include <memory>
+
+class Core
 {
 public:
+    Core();
+    void create_module(ModuleID id);
+
 private:
+    Address m_device_address = 0x12345678;
+    std::shared_ptr<NetSevice> m_service;
+
+    std::shared_ptr<Socket> m_core_socket;
+    std::vector<IModule> m_modules;
 };
+
 /*
 #include "os/cpp-freertos.hpp"
 #include "module.hpp"

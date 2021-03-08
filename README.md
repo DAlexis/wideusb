@@ -14,6 +14,7 @@ Nearest roadmap
     - [ ] Internal transmission without network
     - [ ] Struct-based layers parameters
     - [ ] Socket queue limiting
+    - [ ] Forward sender address to client side
     
 1. [ ] Add monitor module
     - [x] Run new stack on board

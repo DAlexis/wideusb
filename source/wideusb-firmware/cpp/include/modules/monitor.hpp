@@ -6,7 +6,7 @@
 class MonitorModule
 {
 public:
-    MonitorModule(NetSevice& net_service, Address monitor_address, Address destination_address, Port port);
+    MonitorModule(NetSevice& net_service, Address monitor_address, Port port);
 
     void make_report();
 

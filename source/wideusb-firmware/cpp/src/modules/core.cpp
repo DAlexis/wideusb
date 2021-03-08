@@ -1,5 +1,26 @@
 #include "modules/core.hpp"
 #include "host-communication-interface.hpp"
+
+#include "host-communication/usb-physical-layer.hpp"
+#include "communication/binary/channel.hpp"
+#include "communication/binary/network.hpp"
+#include "communication/binary/transport.hpp"
+
+Core::Core()
+{
+    m_service = std::make_shared<NetSevice>(
+        std::make_shared<USBPhysicalLayer>(),
+        std::make_shared<ChannelLayerBinary>(),
+        std::make_shared<NetworkLayerBinary>(),
+        std::make_shared<TransportLayerBinary>()
+    );
+    m_core_socket = std::make_shared<Socket>(*m_service, m_device_address, 2);
+}
+
+void Core::create_module(ModuleID id)
+{
+}
+
 /*
 #include "rapidjson-config.h"
 #include "rapidjson/document.h"

@@ -1,8 +1,6 @@
 #ifndef BUFFER_HPP
 #define BUFFER_HPP
 
-#include "buffer-c.h"
-
 #include <vector>
 #include <cstdint>
 #include <memory>
@@ -176,8 +174,6 @@ public:
 
     uint8_t operator[](size_t pos) const override;
     uint8_t& operator[](size_t pos);
-
-    RingBufferHandle handle();
 
 private:
     std::vector<uint8_t> m_contents;

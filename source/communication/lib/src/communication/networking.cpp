@@ -23,16 +23,15 @@ bool AddressFilter::is_acceptable(const Address& addr) const
 
 Socket::Socket(NetSevice& net_service,
                Address my_address,
-               Address destination_address,
                uint32_t port,
                OnDataReceivedCallback callback) :
     m_net_service(net_service),
-    m_options(NetworkOptions(my_address, destination_address)),
+    m_options(my_address),
     m_callback(callback)
 {
     m_options.port = port;
     m_net_service.add_socket(*this);
-    m_filter.listen_address(m_options.network_options.sender, 0xFFFFFFFF);
+    m_filter.listen_address(m_options.address, 0xFFFFFFFF);
 }
 
 Socket::~Socket()
@@ -41,10 +40,11 @@ Socket::~Socket()
 }
 
 // ISocketUserSide
-uint32_t Socket::send(PBuffer data)
+uint32_t Socket::send(Address destination, PBuffer data)
 {
-    SocketData item;
+    OutgoingMessage item;
     item.data = data->clone();
+    item.receiver = destination;
     item.id = m_net_service.generate_segment_id();
     if (
             m_options.output_queue_limit != 0
@@ -59,12 +59,12 @@ uint32_t Socket::send(PBuffer data)
     return item.id;
 }
 
-PBuffer Socket::get()
+std::optional<ISocketUserSide::IncomingMessage> Socket::get()
 {
     if (m_incoming.empty())
-        return nullptr;
+        return std::nullopt;
 
-    PBuffer data = m_incoming.front();
+    IncomingMessage data = m_incoming.front();
     m_incoming.pop_front();
     return data;
 }
@@ -90,9 +90,9 @@ void Socket::drop_currently_sending()
 }
 
 // ISocketSystemSide
-PBuffer Socket::front()
+ISocketSystemSide::OutgoingMessage Socket::front()
 {
-    return m_outgoing.front().data;
+    return m_outgoing.front();
 }
 
 bool Socket::has_outgoing_data()
@@ -108,13 +108,16 @@ void Socket::pop(bool success)
     m_outgoing.pop_front();
 }
 
-void Socket::push(PBuffer data)
+void Socket::push(Address sender, PBuffer data)
 {
     if (m_options.input_queue_limit != 0 && m_incoming.size() >= m_options.input_queue_limit)
     {
         m_incoming.pop_front();
     }
-    m_incoming.push_back(data);
+    IncomingMessage msg;
+    msg.sender = sender;
+    msg.data = data;
+    m_incoming.push_back(msg);
 }
 
 const SocketOptions& Socket::get_options()
@@ -297,7 +300,7 @@ void NetSevice::serve_sockets_input()
 
                     if (segment.flags & DecodedSegment::Flags::need_ack)
                     {
-                        send_ack(options.network_options.sender, packet.options.sender, options.port, options.network_options.ttl, segment.segment_id, segment.segment_id + 1);
+                        send_ack(options.address, packet.options.sender, options.port, options.ttl, segment.segment_id, segment.segment_id + 1);
                     }
 
                     // If we got package with acknoledgement and we are waiting for it
@@ -319,7 +322,7 @@ void NetSevice::serve_sockets_input()
                     if (!segment.segment.empty())
                     {
                         BufferAccessor accessor(segment.segment);
-                        receiver->push(Buffer::create(accessor));
+                        receiver->push(packet.options.sender, Buffer::create(accessor));
                     }
                 }
             }
@@ -337,9 +340,10 @@ void NetSevice::serve_time_planner(uint32_t time_ms)
     std::map <NetworkOptions, SegmentBuffer> package_by_addr;
     for (auto socket : batch.tasks)
     {
-        PBuffer front = socket->front();
-        SegmentBuffer sb(front);
-        const NetworkOptions& opts = socket->get_options().network_options;
+        ISocketSystemSide::OutgoingMessage front = socket->front();
+        SegmentBuffer sb(front.data);
+
+        const NetworkOptions opts(socket->get_options().address, front.receiver, socket->get_options().ttl);
         m_transport->encode(
                     sb,
                     socket->get_options().port,

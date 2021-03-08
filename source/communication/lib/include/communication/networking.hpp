@@ -39,11 +39,12 @@ private:
 
 struct SocketOptions
 {
-    SocketOptions(const NetworkOptions& net_opts) :
-        network_options(net_opts)
+    SocketOptions(Address address) :
+        address(address)
     { }
     uint32_t port = 0;
-    NetworkOptions network_options;
+    Address address;
+    uint8_t ttl = 10;
     TimePlanningOptions retransmitting_options{1000, 100, 10, 5000};
 
     uint32_t input_queue_limit = 0;
@@ -74,10 +75,17 @@ struct SocketState
 class ISocketUserSide
 {
 public:
+    struct IncomingMessage
+    {
+        Address sender;
+        PBuffer data;
+    };
+
     using OnDataReceivedCallback = std::function<void(uint32_t id, bool success)>;
+
     virtual ~ISocketUserSide() = default;
-    virtual uint32_t send(PBuffer data) = 0;
-    virtual PBuffer get() = 0;
+    virtual uint32_t send(Address destination, PBuffer data) = 0;
+    virtual std::optional<IncomingMessage> get() = 0;
     virtual SocketOptions& options() = 0;
     virtual AddressFilter& address_filter() = 0;
     virtual bool has_data() = 0;
@@ -87,17 +95,18 @@ public:
 class ISocketSystemSide
 {
 public:
-    struct SocketData
+    struct OutgoingMessage
     {
+        Address receiver;
         PBuffer data;
         uint32_t id = 0;
     };
 
     virtual ~ISocketSystemSide() = default;
-    virtual PBuffer front() = 0;
+    virtual OutgoingMessage front() = 0;
     virtual bool has_outgoing_data() = 0;
     virtual void pop(bool success) = 0;
-    virtual void push(PBuffer data) = 0;
+    virtual void push(Address sender, PBuffer data) = 0;
     virtual const SocketOptions& get_options() = 0;
     virtual const AddressFilter& get_address_filter() = 0;
     virtual SocketState& state() = 0;
@@ -108,25 +117,26 @@ class Socket : public ISocketUserSide, public ISocketSystemSide
 public:
     Socket(NetSevice& net_service,
            Address my_address,
-           Address destination_address,
            uint32_t port,
            OnDataReceivedCallback callback = nullptr);
     ~Socket();
 
     // ISocketUserSide
-    uint32_t send(PBuffer data) override;
-    PBuffer get() override;
+    uint32_t send(Address destination, PBuffer data) override;
+    std::optional<IncomingMessage> get() override;
     SocketOptions& options() override;
     AddressFilter& address_filter() override;
     bool has_data() override;
     void drop_currently_sending() override;
 
 private:
+
+
     // ISocketSystemSide
-    PBuffer front() override;
+    OutgoingMessage front() override;
     bool has_outgoing_data() override;
     void pop(bool success) override;
-    void push(PBuffer data) override;
+    void push(Address sender, PBuffer data) override;
     const SocketOptions& get_options() override;
     const AddressFilter& get_address_filter() override;
     SocketState& state() override;
@@ -135,8 +145,8 @@ private:
     SocketOptions m_options;
     uint32_t m_port;
     AddressFilter m_filter;
-    std::list<PBuffer> m_incoming;
-    std::list<SocketData> m_outgoing;
+    std::list<IncomingMessage> m_incoming;
+    std::list<OutgoingMessage> m_outgoing;
 
     SocketState m_state;
 

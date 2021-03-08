@@ -344,13 +344,6 @@ uint8_t& RingBuffer::operator[](size_t pos)
     return m_contents[target_pos];
 }
 
-RingBufferHandle RingBuffer::handle()
-{
-    RingBufferHandle h;
-    h.p_ring_buffer = this;
-    return h;
-}
-
 SegmentBuffer::SegmentBuffer(PBuffer buf)
 {
     if (buf)
