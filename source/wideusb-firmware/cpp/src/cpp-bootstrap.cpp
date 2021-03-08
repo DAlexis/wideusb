@@ -4,6 +4,7 @@
 #include "modules/gps.hpp"
 #include "modules/monitor.hpp"
 #include "modules/gps/nmea-receiver.hpp"
+#include "modules/core.hpp"
 #include "macro.hpp"
 
 #include "communication/networking.hpp"
@@ -44,7 +45,8 @@ void cpp_bootstrap()
     */
 
     printf("Starting\r\n");
-    NetSevice net_srv(
+    Core core;
+    /*NetSevice net_srv(
         std::make_shared<USBPhysicalLayer>(),
         std::make_shared<ChannelLayerBinary>(),
         std::make_shared<NetworkLayerBinary>(),
@@ -52,7 +54,7 @@ void cpp_bootstrap()
     );
     printf("net_srv created\r\n");
 
-    MonitorModule monitor(net_srv, 0x12345678, 1);
+    MonitorModule monitor(net_srv, 0x12345678, 1);*/
 /*
     Socket sock(net_srv, 0x12345678, 0x87654321, 10);
     sock.options().retransmitting_options.cycles_count = 0;
@@ -64,12 +66,12 @@ void cpp_bootstrap()
     int c = 0;
     for (;;)
     {
-        net_srv.serve_sockets(os::get_os_time());
+        core.tick();
+        /*t_srv.serve_sockets(os::get_os_time());*/
         os::delay(10);
         if (c == 10)
         {
-            printf("Report\r\n");
-            monitor.make_report();
+            printf("Alive\r\n");
             c = 0;
         }
         c++;

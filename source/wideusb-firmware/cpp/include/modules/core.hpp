@@ -13,12 +13,18 @@ public:
     Core();
     void create_module(ModuleID id);
 
+    void tick();
+
 private:
+    void serve_device_discovery();
+
     Address m_device_address = 0x12345678;
-    std::shared_ptr<NetSevice> m_service;
+    NetSevice m_net_srv;
 
     std::shared_ptr<Socket> m_core_socket;
     std::vector<IModule> m_modules;
+    Socket m_device_discovery_sock;
+
 };
 
 /*

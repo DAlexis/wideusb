@@ -6,19 +6,51 @@
 #include "communication/binary/network.hpp"
 #include "communication/binary/transport.hpp"
 
-Core::Core()
-{
-    m_service = std::make_shared<NetSevice>(
+#include "communication/modules/ports.hpp"
+#include "communication/modules/core.hpp"
+
+#include "os/cpp-freertos.hpp"
+
+#include <stdio.h>
+
+Core::Core() :
+    m_net_srv(
         std::make_shared<USBPhysicalLayer>(),
         std::make_shared<ChannelLayerBinary>(),
         std::make_shared<NetworkLayerBinary>(),
         std::make_shared<TransportLayerBinary>()
-    );
-    m_core_socket = std::make_shared<Socket>(*m_service, m_device_address, 2);
+    ),
+    m_device_discovery_sock(m_net_srv, m_device_address, ports::core::address_discovery)
+{
+    m_device_discovery_sock.options().output_queue_limit = 5;
+    m_device_discovery_sock.options().input_queue_limit = 5;
+    m_device_discovery_sock.options().need_acknoledgement = false;
+    m_device_discovery_sock.options().retransmitting_options.cycles_count = 1;
+    m_device_discovery_sock.options().retransmitting_options.timeout = 0;
+    m_device_discovery_sock.address_filter().listen_address(0x00000000, 0x00000000); // Any
 }
 
 void Core::create_module(ModuleID id)
 {
+}
+
+void Core::tick()
+{
+    m_net_srv.serve_sockets(os::get_os_time());
+    serve_device_discovery();
+}
+
+void Core::serve_device_discovery()
+{
+    while (m_device_discovery_sock.has_data())
+    {
+        printf("Discovery address data!!\n");
+        const Socket::IncomingMessage inc = *m_device_discovery_sock.get();
+
+        DeviceDiscoveryResponse response;
+        PBuffer body = Buffer::create(sizeof(response), &response);
+        m_device_discovery_sock.send(inc.sender, body);
+    }
 }
 
 /*

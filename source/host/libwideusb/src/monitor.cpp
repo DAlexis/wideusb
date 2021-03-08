@@ -1,8 +1,11 @@
 #include "monitor.hpp"
 
-Monitor::Monitor(NetSevice& net_service, Address device_addr, Address host_address, Port port) :
+#include "wideusb.hpp"
+
+Monitor::Monitor(WideUSBDevice& host_connection_service, Address device_addr, Address host_address, Port port) :
+    m_host_connection_service(host_connection_service),
     m_device_addr(device_addr),
-    m_sock(net_service, host_address, port)
+    m_sock(m_host_connection_service.net_service(), host_address, port)
 {
     m_sock.options().input_queue_limit = 1; // We need only last status message
     m_sock.options().need_acknoledgement = false;

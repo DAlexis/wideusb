@@ -15,6 +15,8 @@ set(SOURCES
     ./include/communication/binary/network.hpp
     ./include/communication/binary/transport.hpp
     ./include/communication/modules/monitor.hpp
+    ./include/communication/modules/core.hpp
+    ./include/communication/modules/ports.hpp
 
     ./include/buffer.hpp
 

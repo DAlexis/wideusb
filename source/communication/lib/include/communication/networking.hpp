@@ -47,8 +47,8 @@ struct SocketOptions
     uint8_t ttl = 10;
     TimePlanningOptions retransmitting_options{1000, 100, 10, 5000};
 
-    uint32_t input_queue_limit = 0;
-    uint32_t output_queue_limit = 0;
+    uint32_t input_queue_limit = 20;
+    uint32_t output_queue_limit = 20;
 
 
     bool need_acknoledgement = true;

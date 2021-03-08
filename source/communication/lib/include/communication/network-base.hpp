@@ -6,6 +6,6 @@
 #include <cstdint>
 
 using Address = uint64_t;
-using Port = uint64_t;
+using Port = uint32_t;
 
 #endif // NETWORKBASE_HPP
