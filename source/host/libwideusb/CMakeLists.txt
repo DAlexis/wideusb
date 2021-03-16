@@ -7,14 +7,18 @@ find_package(Threads)
 
 set(LIB_SOURCES
     ${PROJECT_SOURCE_DIR}/src/serial-port-physical-layer.cpp
-    ${PROJECT_SOURCE_DIR}/src/monitor.cpp
     ${PROJECT_SOURCE_DIR}/src/wideusb.cpp
+    ${PROJECT_SOURCE_DIR}/src/asio-utils.cpp
+    ${PROJECT_SOURCE_DIR}/src/host-modules/host-module.cpp
+    ${PROJECT_SOURCE_DIR}/src/host-modules/monitor.cpp
 )
 
 set(LIB_INCLUDES
     ${PROJECT_SOURCE_DIR}/include/serial-port-physical-layer.hpp
-    ${PROJECT_SOURCE_DIR}/include/monitor.hpp
     ${PROJECT_SOURCE_DIR}/include/wideusb.hpp
+    ${PROJECT_SOURCE_DIR}/include/asio-utils.hpp
+    ${PROJECT_SOURCE_DIR}/include/host-modules/host-module.hpp
+    ${PROJECT_SOURCE_DIR}/include/host-modules/monitor.hpp
 )
 
 add_library(${PROJECT_NAME} ${LIB_SOURCES} ${LIB_INCLUDES})

@@ -2,15 +2,17 @@
 #define MONITOR_HPP
 
 #include "communication/networking.hpp"
+#include "module-base.hpp"
 
-class MonitorModule
+class MonitorModule : public IModule
 {
 public:
-    MonitorModule(NetSevice& net_service, Address monitor_address, Port port);
+    MonitorModule(NetSevice& net_service, Address monitor_address);
 
-    void make_report();
+    void tick();
 
 private:
+    void socket_listener();
 
     Socket m_sock;
 

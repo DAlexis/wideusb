@@ -8,6 +8,7 @@ using ModuleID = uint32_t;
 class IModule
 {
 public:
+    virtual void tick() = 0;
     virtual ~IModule() = default;
 };
 

@@ -11,20 +11,20 @@ class Core
 {
 public:
     Core();
-    void create_module(ModuleID id);
-
     void tick();
 
 private:
-    void serve_device_discovery();
+    bool create_module(ModuleID id);
+    void poll_device_discovery();
+    void poll_create_module();
 
     Address m_device_address = 0x12345678;
     NetSevice m_net_srv;
 
     std::shared_ptr<Socket> m_core_socket;
-    std::vector<IModule> m_modules;
+    std::map<ModuleID, std::shared_ptr<IModule>> m_modules;
     Socket m_device_discovery_sock;
-
+    Socket m_create_module_sock;
 };
 
 /*

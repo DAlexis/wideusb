@@ -1,7 +1,7 @@
 #ifndef INETWORKLAYER_HPP
 #define INETWORKLAYER_HPP
 
-#include "communication/network-base.hpp"
+#include "communication/network-types.hpp"
 #include "buffer.hpp"
 
 #include <vector>

@@ -47,7 +47,7 @@ TEST_F(NetworkingTest, BasicOperatingWithAck)
 {
     bool data_delivered = false;
 
-    Socket sock1(*service, 0x12345678, 10, [&data_delivered](uint32_t, bool success) { data_delivered = success; });
+    Socket sock1(*service, 0x12345678, 10, nullptr, [&data_delivered](uint32_t, bool success) { data_delivered = success; });
     Socket sock2(*service, 0x87654321, 10);
 
     Socket sock3(*service, 0x87654321, 11);
@@ -90,7 +90,7 @@ TEST_F(NetworkingTest, BasicOperatingNoAck)
 {
     bool data_delivered = false;
 
-    Socket sock1(*service, 0x12345678, 10, [&data_delivered](uint32_t, bool success) { data_delivered = success; });
+    Socket sock1(*service, 0x12345678, 10, nullptr, [&data_delivered](uint32_t, bool success) { data_delivered = success; });
     Socket sock2(*service, 0x87654321, 10);
 
     sock1.options().need_acknoledgement = false;
@@ -135,8 +135,8 @@ TEST_F(NetworkingTest, DataCorruption)
 
     TimePlanningOptions timings(1000, 100, 10);
 
-    Socket sock1(*service, 0x12345678, 10, [&data_delivered_1_to_2](uint32_t, bool success) { data_delivered_1_to_2 = success; });
-    Socket sock2(*service, 0x87654321, 10, [&data_delivered_2_to_1](uint32_t, bool success) { data_delivered_2_to_1 = success; });
+    Socket sock1(*service, 0x12345678, 10, nullptr, [&data_delivered_1_to_2](uint32_t, bool success) { data_delivered_1_to_2 = success; });
+    Socket sock2(*service, 0x87654321, 10, nullptr, [&data_delivered_2_to_1](uint32_t, bool success) { data_delivered_2_to_1 = success; });
 
     sock1.options().retransmitting_options = timings;
     sock2.options().retransmitting_options = timings;

@@ -8,8 +8,13 @@ namespace ports
 namespace core
 {
     constexpr static uint32_t address_discovery = 2;
+    constexpr static uint32_t create_module = 3;
 }
 
+namespace monitor
+{
+    constexpr static uint32_t status_update = 4;
+}
 };
 
 #endif // PORTS_HPP

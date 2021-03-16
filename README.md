@@ -14,12 +14,20 @@ Nearest roadmap
     - [ ] Internal transmission without network
     - [ ] Struct-based layers parameters
     - [ ] Socket queue limiting
-    - [ ] Forward sender address to client side
+    - [x] Forward sender address to client side
+    - [x] Add callbacks when package received
+    - [ ] Send ack second time if already sended ?
+    - [ ] Add package inspection functions
     
-1. [ ] Add monitor module
+1. [x] Add monitor module
     - [x] Run new stack on board
-    - [ ] Merge to master: remove old code and files
+    - [x] Merge to master: remove old code and files
     
+1. [x] Clear serve_sockets host calls logic for outgoing messages
+    - "Alive!!"s trigger serving now!
+    
+1. [ ] Device initialization logic, waiting for initialization
+1. [ ] io_service in thread?
     
 1. [ ] Running GPS functionality with hardcoded requests with python
     

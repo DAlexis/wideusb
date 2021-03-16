@@ -28,7 +28,7 @@ void SerialPortPhysicalLayer::async_read()
             {
                 size_t data_size = std::min(m_input_ring_buffer.free_space(), bytes_transferred);
                 m_input_buffer[bytes_transferred] = '\0';
-                //std::cout << "receiverd bytes: " << bytes_transferred << ": " << m_input_buffer.data() << std::endl;
+                std::cout << "receiverd bytes: " << bytes_transferred << ": " << m_input_buffer.data() << std::endl;
                 m_input_ring_buffer.put(m_input_buffer.data(), data_size);
 
 

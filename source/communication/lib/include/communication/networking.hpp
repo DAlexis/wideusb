@@ -1,7 +1,7 @@
 #ifndef NETWORKING_HPP
 #define NETWORKING_HPP
 
-#include "communication/network-base.hpp"
+#include "communication/network-types.hpp"
 #include "communication/i-physical-layer.hpp"
 #include "communication/i-channel-layer.hpp"
 #include "communication/i-network-layer.hpp"
@@ -42,14 +42,13 @@ struct SocketOptions
     SocketOptions(Address address) :
         address(address)
     { }
-    uint32_t port = 0;
+    Port port = 0;
     Address address;
     uint8_t ttl = 10;
     TimePlanningOptions retransmitting_options{1000, 100, 10, 5000};
 
     uint32_t input_queue_limit = 20;
     uint32_t output_queue_limit = 20;
-
 
     bool need_acknoledgement = true;
 };
@@ -68,7 +67,7 @@ struct SocketState
         repeating_untill_expired_no_ack
     };
 
-    uint32_t segment_id = 0;
+    SegmentID segment_id = 0;
     OutgoingState state = OutgoingState::clear;
 };
 
@@ -81,10 +80,11 @@ public:
         PBuffer data;
     };
 
+    using OnIncomingDataCallback = std::function<void(ISocketUserSide& socket)>;
     using OnDataReceivedCallback = std::function<void(uint32_t id, bool success)>;
 
     virtual ~ISocketUserSide() = default;
-    virtual uint32_t send(Address destination, PBuffer data) = 0;
+    virtual SegmentID send(Address destination, PBuffer data) = 0;
     virtual std::optional<IncomingMessage> get() = 0;
     virtual SocketOptions& options() = 0;
     virtual AddressFilter& address_filter() = 0;
@@ -117,12 +117,13 @@ class Socket : public ISocketUserSide, public ISocketSystemSide
 public:
     Socket(NetSevice& net_service,
            Address my_address,
-           uint32_t port,
-           OnDataReceivedCallback callback = nullptr);
+           Port port,
+           OnIncomingDataCallback incoming_cb = nullptr,
+           OnDataReceivedCallback received_cb = nullptr);
     ~Socket();
 
     // ISocketUserSide
-    uint32_t send(Address destination, PBuffer data) override;
+    SegmentID send(Address destination, PBuffer data) override;
     std::optional<IncomingMessage> get() override;
     SocketOptions& options() override;
     AddressFilter& address_filter() override;
@@ -130,8 +131,6 @@ public:
     void drop_currently_sending() override;
 
 private:
-
-
     // ISocketSystemSide
     OutgoingMessage front() override;
     bool has_outgoing_data() override;
@@ -143,7 +142,7 @@ private:
 
     NetSevice& m_net_service;
     SocketOptions m_options;
-    uint32_t m_port;
+    Port m_port;
     AddressFilter m_filter;
     std::list<IncomingMessage> m_incoming;
     std::list<OutgoingMessage> m_outgoing;
@@ -151,19 +150,23 @@ private:
     SocketState m_state;
 
     uint32_t m_id_counter = 0;
-    OnDataReceivedCallback m_callback;
+    OnIncomingDataCallback m_incoming_cb;
+    OnDataReceivedCallback m_received_cb;
 };
 
 class NetSevice
 {
 public:
     using RandomGenerator = std::function<uint32_t(void)>;
+    using OnAnySocketSendCallback = std::function<void(void)>;
+
     NetSevice(
             std::shared_ptr<IPhysicalLayer> physical,
             std::shared_ptr<IChannelLayer> channel,
             std::shared_ptr<INetworkLayer> network,
             std::shared_ptr<ITransportLayer> transport,
             std::shared_ptr<IPhysicalLayer> default_transit_physical = nullptr,
+            OnAnySocketSendCallback on_any_socket_send = nullptr,
             RandomGenerator rand_gen = nullptr);
 
     void serve_sockets(uint32_t time_ms);
@@ -171,7 +174,9 @@ public:
     void add_socket(Socket& socket);
     void remove_socket(Socket& socket);
 
-    uint32_t generate_segment_id();
+    SegmentID generate_segment_id();
+
+    void on_socket_send();
 
 private:
 
@@ -179,9 +184,9 @@ private:
     void serve_sockets_input();
     void serve_time_planner(uint32_t time_ms);
 
-    void send_ack(Address src, Address dst, uint32_t port, uint32_t ttl, uint32_t ack_id, uint32_t seg_id);
+    void send_ack(Address src, Address dst, Port port, uint32_t ttl, uint32_t ack_id, SegmentID seg_id);
 
-    bool is_already_received(uint32_t segment_id);
+    bool is_already_received(SegmentID segment_id);
 
     std::vector<ISocketSystemSide*> receivers_of_addr(Address addr);
 
@@ -194,9 +199,10 @@ private:
 
     std::vector<ISocketSystemSide*> m_sockets;
     RandomGenerator m_rand_gen;
+    OnAnySocketSendCallback m_on_any_socket_send_callback;
 
     const size_t m_already_received_capacity = 100;
-    std::list<uint32_t> m_already_received;
+    std::list<SegmentID> m_already_received;
 
     TimePlanner<ISocketSystemSide*> m_time_planner; // TODO
 };

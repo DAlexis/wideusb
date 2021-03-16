@@ -24,10 +24,12 @@ bool AddressFilter::is_acceptable(const Address& addr) const
 Socket::Socket(NetSevice& net_service,
                Address my_address,
                uint32_t port,
-               OnDataReceivedCallback callback) :
+               OnIncomingDataCallback incoming_cb,
+               OnDataReceivedCallback received_cb) :
     m_net_service(net_service),
     m_options(my_address),
-    m_callback(callback)
+    m_incoming_cb(incoming_cb),
+    m_received_cb(received_cb)
 {
     m_options.port = port;
     m_net_service.add_socket(*this);
@@ -40,7 +42,7 @@ Socket::~Socket()
 }
 
 // ISocketUserSide
-uint32_t Socket::send(Address destination, PBuffer data)
+SegmentID Socket::send(Address destination, PBuffer data)
 {
     OutgoingMessage item;
     item.data = data->clone();
@@ -55,7 +57,7 @@ uint32_t Socket::send(Address destination, PBuffer data)
         m_outgoing.erase(std::next(m_outgoing.begin()));
     }
     m_outgoing.push_back(item);
-
+    m_net_service.on_socket_send();
     return item.id;
 }
 
@@ -103,8 +105,8 @@ bool Socket::has_outgoing_data()
 void Socket::pop(bool success)
 {
     uint32_t id = m_outgoing.front().id;
-    if (m_callback)
-        m_callback(id, success);
+    if (m_received_cb)
+        m_received_cb(id, success);
     m_outgoing.pop_front();
 }
 
@@ -118,6 +120,8 @@ void Socket::push(Address sender, PBuffer data)
     msg.sender = sender;
     msg.data = data;
     m_incoming.push_back(msg);
+    if (m_incoming_cb)
+        m_incoming_cb(*this);
 }
 
 const SocketOptions& Socket::get_options()
@@ -154,8 +158,14 @@ NetSevice::NetSevice(
         std::shared_ptr<INetworkLayer> network,
         std::shared_ptr<ITransportLayer> transport,
         std::shared_ptr<IPhysicalLayer> default_transit_physical,
+        OnAnySocketSendCallback on_any_socket_send,
         RandomGenerator rand_gen) :
-    m_physical(physical), m_channel(channel), m_network(network), m_transport(transport)
+    m_physical(physical),
+    m_channel(channel),
+    m_network(network),
+    m_transport(transport),
+    m_default_transit_physical(default_transit_physical),
+    m_on_any_socket_send_callback(on_any_socket_send)
 {
     if (rand_gen != nullptr)
         m_rand_gen = rand_gen;
@@ -186,6 +196,12 @@ uint32_t NetSevice::generate_segment_id()
     return m_rand_gen();
 }
 
+void NetSevice::on_socket_send()
+{
+    if (m_on_any_socket_send_callback)
+        m_on_any_socket_send_callback();
+}
+
 void NetSevice::serve_sockets(uint32_t time_ms)
 {
     serve_sockets_input();
@@ -193,7 +209,7 @@ void NetSevice::serve_sockets(uint32_t time_ms)
     serve_time_planner(time_ms);
 }
 
-void NetSevice::send_ack(Address src, Address dst, uint32_t port, uint32_t ttl, uint32_t ack_id, uint32_t seg_id)
+void NetSevice::send_ack(Address src, Address dst, Port port, uint32_t ttl, uint32_t ack_id, SegmentID seg_id)
 {
     SegmentBuffer sb;
     m_transport->encode(sb, port, seg_id, false, true, ack_id);

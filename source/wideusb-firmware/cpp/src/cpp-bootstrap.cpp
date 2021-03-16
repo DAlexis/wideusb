@@ -63,18 +63,18 @@ void cpp_bootstrap()
     const char text[] = "hello, networking!! Im alive and sending you this data!";
     sock.send(Buffer::create(sizeof(text), text));
     printf("send\r\n");*/
-    int c = 0;
+    //int c = 0;
     for (;;)
     {
         core.tick();
         /*t_srv.serve_sockets(os::get_os_time());*/
-        os::delay(10);
+        /*os::delay(10);
         if (c == 10)
         {
             printf("Alive\r\n");
             c = 0;
         }
-        c++;
+        c++;*/
     }
 
     /*gps.reset(new GPSModule);

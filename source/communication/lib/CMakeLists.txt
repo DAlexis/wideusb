@@ -7,6 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(SOURCES
     ./include/communication/utils.hpp
     ./include/communication/networking.hpp
+    ./include/communication/network-types.hpp
     ./include/communication/i-channel-layer.hpp
     ./include/communication/i-network-layer.hpp
     ./include/communication/i-physical-layer.hpp
@@ -17,6 +18,7 @@ set(SOURCES
     ./include/communication/modules/monitor.hpp
     ./include/communication/modules/core.hpp
     ./include/communication/modules/ports.hpp
+    ./include/communication/modules/ids.hpp
 
     ./include/buffer.hpp
 
