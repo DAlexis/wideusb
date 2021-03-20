@@ -50,7 +50,6 @@ int main()
 {
     using namespace std::chrono_literals;
     srand(time(NULL));
-    auto start = std::chrono::high_resolution_clock::now();
 
     std::unique_ptr<Monitor> monitor;
     device.reset(new Device(0x87654321, "/dev/ttyACM0", on_device_created));
@@ -59,6 +58,9 @@ int main()
 
     DeferredTask::run(device->io_service(), 2000, [](){ std::cout << "Deferred task 2" << std::endl; });
 
-    device->run_io_service();
+    AsioServiceRunner runner(device->io_service());
+    runner.run_thread();
+    std::this_thread::sleep_for(10s);
+    //device->run_io_service();
     return 0;
 }

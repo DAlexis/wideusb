@@ -75,23 +75,9 @@ void Device::create_module_socket_listener()
 
 void Device::run_io_service()
 {
-    for(;;)
-    {
-        m_io_service.run();
-    }
+    boost::asio::io_service::work work(m_io_service);
+    m_io_service.run();
 }
-/*
-void WideUSBDevice::connect_module(IModuleOnHost& module)
-{    
-    m_host_modules.insert(&module);
-    if (m_device_addr != 0)
-        module.on_device_ready();
-}
-
-void WideUSBDevice::remove_module(IModuleOnHost& module)
-{
-    m_host_modules.erase(&module);
-}*/
 
 void Device::run_single(SingleTask task, size_t milliseconds)
 {

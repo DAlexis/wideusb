@@ -23,9 +23,8 @@ public:
 
     void get_status_async(StatusReceivedCallback callback);
 
-    void request_status();
-
 private:
+    void request_status();
     void on_incoming_data_callback();
 
     Socket m_status_socket;

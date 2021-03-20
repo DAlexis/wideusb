@@ -22,6 +22,7 @@ void SerialPortPhysicalLayer::async_read()
         {
             if (error == boost::asio::error::operation_aborted)
             {
+                std::cout << "ASIO Operation aborted!" << std::endl;
                 return;
             }
             if (bytes_transferred != 0)

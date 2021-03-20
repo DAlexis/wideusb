@@ -21,6 +21,8 @@ set(LIB_INCLUDES
     ${PROJECT_SOURCE_DIR}/include/host-modules/monitor.hpp
 )
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 add_library(${PROJECT_NAME} ${LIB_SOURCES} ${LIB_INCLUDES})
 
 target_include_directories(${PROJECT_NAME} PUBLIC ${PROJECT_SOURCE_DIR}/include)

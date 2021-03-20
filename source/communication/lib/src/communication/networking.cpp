@@ -314,6 +314,7 @@ void NetSevice::serve_sockets_input()
                     if (options.port != segment.port)
                         continue;
 
+                    // TODO change this code to send ack many times
                     if (segment.flags & DecodedSegment::Flags::need_ack)
                     {
                         send_ack(options.address, packet.options.sender, options.port, options.ttl, segment.segment_id, segment.segment_id + 1);
@@ -323,7 +324,7 @@ void NetSevice::serve_sockets_input()
                     if (segment.flags & DecodedSegment::Flags::is_ack)
                     {
                         m_time_planner.remove(segment.ack_for_segment_id);
-                        // TODO ^last added
+
                         if (state.state == SocketState::OutgoingState::repeating_untill_ack)
                         {
                             if (segment.ack_for_segment_id == state.segment_id)
