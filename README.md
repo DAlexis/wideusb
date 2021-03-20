@@ -18,6 +18,7 @@ Nearest roadmap
     - [x] Add callbacks when package received
     - [ ] Send ack second time if already sended ?
     - [ ] Add package inspection functions
+    - [ ] Move base64 to communication
     
 1. [x] Add monitor module
     - [x] Run new stack on board

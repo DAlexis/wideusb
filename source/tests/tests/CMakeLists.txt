@@ -28,4 +28,4 @@ target_include_directories(${PROJECT_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/c-tools/include
 )
 
-add_test(NAME stmod-testing COMMAND ${PROJECT_NAME})
+add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})

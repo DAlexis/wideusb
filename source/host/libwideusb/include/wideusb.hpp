@@ -18,12 +18,15 @@
 #include <string>
 #include <memory>
 
-class WideUSBDevice
+namespace WideUSBHost
+{
+
+class Device
 {
 public:
     using SingleTask = std::function<void(void)>;
     using OnDeviceDiscoveredCallback = std::function<void(void)>;
-    WideUSBDevice(Address host_address, const std::string& port, OnDeviceDiscoveredCallback on_discovered = nullptr, int baudrate = 921600);
+    Device(Address host_address, const std::string& port, OnDeviceDiscoveredCallback on_discovered = nullptr, int baudrate = 921600);
 
     void run_io_service();
 
@@ -34,10 +37,6 @@ public:
     Address host_address();
 
     bool device_connected();
-/*
-    void connect_module(IModuleOnHost& module);
-    void remove_module(IModuleOnHost& module);
-*/
     void run_single(SingleTask task, size_t milliseconds = 0);
 
 private:
@@ -74,5 +73,7 @@ private:
     //std::set<IModuleOnHost*> m_host_modules;
 
 };
+
+}
 
 #endif // WIDEUSB_HPP_INCLUDED

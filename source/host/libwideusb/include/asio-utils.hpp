@@ -44,4 +44,75 @@ private:
     boost::asio::deadline_timer m_timer;
 };
 
+class WaiterBase
+{
+protected:
+    void wait_for_notification()
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        if (!m_task_done) m_cv.wait(lock);
+    }
+
+    void notify()
+    {
+        m_task_done = true;
+        m_cv.notify_all();
+    }
+
+    bool m_task_done = false;
+    std::mutex m_mutex;
+    std::condition_variable m_cv;
+};
+
+template<typename CallbackArgType>
+class Waiter : public WaiterBase
+{
+public:
+    std::function<void(CallbackArgType)> get_waiter_callback()
+    {
+        return [this](CallbackArgType arg){ m_callback_arg = arg; notify(); };
+    }
+
+    CallbackArgType wait()
+    {
+        wait_for_notification();
+        return m_callback_arg;
+    }
+
+private:
+
+    CallbackArgType m_callback_arg;
+};
+
+template<>
+class Waiter<void> : public WaiterBase
+{
+public:
+    std::function<void(void)> get_waiter_callback()
+    {
+        return [this](){ notify(); };
+    }
+
+    void wait()
+    {
+        wait_for_notification();
+    }
+};
+
+class AsioServiceRunner
+{
+public:
+    AsioServiceRunner(boost::asio::io_service& io_service);
+    ~AsioServiceRunner();
+
+    void run_thread();
+    void stop_thread();
+
+private:
+    void thread_body();
+    boost::asio::io_service& m_io_service;
+    std::unique_ptr<std::thread> m_thread;
+    bool m_stop_thread = false;
+};
+
 #endif // ASIO_TASK_HPP

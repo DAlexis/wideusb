@@ -9,7 +9,10 @@
 #include <thread>
 #include <chrono>
 
-std::unique_ptr<WideUSBDevice> device;
+using namespace WideUSBHost;
+using namespace WideUSBHost::modules;
+
+std::unique_ptr<Device> device;
 std::unique_ptr<Monitor> monitor;
 
 void on_device_created();
@@ -38,6 +41,11 @@ void on_status_received(const std::string& status)
     DeferredTask::run(device->io_service(), 1000, [](){ monitor->get_status_async(on_status_received); });
 }
 
+void test_synchronizer()
+{
+    boost::asio::io_service io_service;
+};
+
 int main()
 {
     using namespace std::chrono_literals;
@@ -45,7 +53,7 @@ int main()
     auto start = std::chrono::high_resolution_clock::now();
 
     std::unique_ptr<Monitor> monitor;
-    device.reset(new WideUSBDevice(0x87654321, "/dev/ttyACM0", on_device_created));
+    device.reset(new Device(0x87654321, "/dev/ttyACM0", on_device_created));
 
     DeferredTask::run(device->io_service(), 1000, [](){ std::cout << "Deferred task 1" << std::endl; });
 

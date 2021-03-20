@@ -7,15 +7,19 @@
 #include <string>
 #include <optional>
 
-class WideUSBDevice;
+namespace WideUSBHost
+{
 
-class Monitor : public ModuleOnHostBase
+class Device;
+
+namespace modules
+{
+
+class Monitor : public ModuleBase
 {
 public:
     using StatusReceivedCallback = std::function<void(const std::string&)>;
-    Monitor(WideUSBDevice& host_connection_service, OnModuleCreatedCallback on_created, Address custom_host_address = 0, Address custom_device_address = 0);
-
-    void on_device_ready() override;
+    Monitor(Device& host_connection_service, OnModuleCreatedCallback on_created, Address custom_host_address = 0, Address custom_device_address = 0);
 
     void get_status_async(StatusReceivedCallback callback);
 
@@ -27,5 +31,9 @@ private:
     Socket m_status_socket;
     StatusReceivedCallback m_on_status_updated;
 };
+
+}
+
+}
 
 #endif // MONITOR_HPP

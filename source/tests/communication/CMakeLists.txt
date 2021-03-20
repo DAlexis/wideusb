@@ -23,4 +23,4 @@ target_include_directories(${PROJECT_NAME} PRIVATE
 
 )
 
-add_test(NAME stmod-testing COMMAND ${PROJECT_NAME})
+add_test(NAME ${PROJECT_NAME} COMMAND ${PROJECT_NAME})

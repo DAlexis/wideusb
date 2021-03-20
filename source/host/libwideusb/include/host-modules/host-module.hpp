@@ -6,27 +6,31 @@
 #include <memory>
 #include <functional>
 
-class WideUSBDevice;
+namespace WideUSBHost
+{
 
-class IModuleOnHost
+class Device;
+
+namespace modules
+{
+
+class IModule
 {
 public:
-    virtual void on_device_ready() = 0;
-    virtual ~IModuleOnHost() = default;
+    virtual ~IModule() = default;
 };
 
-class ModuleOnHostBase : public IModuleOnHost
+class ModuleBase : public IModule
 {
 public:
     using OnModuleCreatedCallback = std::function<void(bool)>;
-    ModuleOnHostBase(WideUSBDevice& host_connection_service, uint32_t module_id, Address device_address, Address host_address, OnModuleCreatedCallback on_created);
-    ~ModuleOnHostBase();
+    ModuleBase(Device& host_connection_service, uint32_t module_id, Address device_address, Address host_address, OnModuleCreatedCallback on_created);
+    ~ModuleBase();
 
 protected:
-    void assert_device_ready();
     void create_module();
 
-    WideUSBDevice& m_host_connection_service;
+    Device& m_host_connection_service;
     Address m_device_address;
     Address m_host_address;
 
@@ -37,5 +41,9 @@ private:
     void create_module_socket_listener();
     std::unique_ptr<Socket> m_create_module_socket;
 };
+
+}
+
+}
 
 #endif // HOSTMODULE_HPP

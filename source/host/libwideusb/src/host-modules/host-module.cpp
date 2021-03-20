@@ -7,7 +7,9 @@
 #include <iostream>
 #include <stdexcept>
 
-ModuleOnHostBase::ModuleOnHostBase(WideUSBDevice& host_connection_service, uint32_t module_id, Address device_address, Address host_address, OnModuleCreatedCallback on_created) :
+using namespace WideUSBHost::modules;
+
+ModuleBase::ModuleBase(Device& host_connection_service, uint32_t module_id, Address device_address, Address host_address, OnModuleCreatedCallback on_created) :
     m_host_connection_service(host_connection_service),
     m_device_address(device_address), m_host_address(host_address),
     m_module_id(module_id), m_on_created(on_created)
@@ -16,18 +18,12 @@ ModuleOnHostBase::ModuleOnHostBase(WideUSBDevice& host_connection_service, uint3
     //m_host_connection_service.connect_module(*this);
 }
 
-ModuleOnHostBase::~ModuleOnHostBase()
+ModuleBase::~ModuleBase()
 {
     //m_host_connection_service.remove_module(*this);
 }
 
-void ModuleOnHostBase::assert_device_ready()
-{
-/*    if (!m_device_ready)
-        throw std::runtime_error("Device is not ready to operate");*/
-}
-
-void ModuleOnHostBase::create_module()
+void ModuleBase::create_module()
 {
     m_create_module_socket.reset(
         new Socket(
@@ -45,7 +41,7 @@ void ModuleOnHostBase::create_module()
     std::cout << "Sending create module request..." << std::endl;
 }
 
-void ModuleOnHostBase::create_module_socket_listener()
+void ModuleBase::create_module_socket_listener()
 {
     Socket::IncomingMessage incoming = *m_create_module_socket->get();
     std::cout << "Create module response received from " << incoming.sender << std::endl;

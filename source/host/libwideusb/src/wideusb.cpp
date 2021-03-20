@@ -8,10 +8,11 @@
 #include <iostream>
 #include <limits>
 
+using namespace WideUSBHost;
+
 using namespace boost::asio;
 
-
-WideUSBDevice::WideUSBDevice(Address host_address, const std::string& port, OnDeviceDiscoveredCallback on_discovered, int baudrate) :
+Device::Device(Address host_address, const std::string& port, OnDeviceDiscoveredCallback on_discovered, int baudrate) :
 
     m_physical_layer(std::make_shared<SerialPortPhysicalLayer>(
         m_io_service,
@@ -35,11 +36,10 @@ WideUSBDevice::WideUSBDevice(Address host_address, const std::string& port, OnDe
     m_on_discovered(on_discovered),
     m_creation(std::chrono::steady_clock::now())
 {
-    //m_device_discovery_task.reset(new DeviceDiscoveryTask(m_host_address, m_io_service, m_net_srv, [this](Address addr) { on_device_discovered(addr); } ));
     run_device_discovery();
 }
 
-void WideUSBDevice::run_device_discovery()
+void Device::run_device_discovery()
 {
     m_device_discovery_socket.reset(
         new Socket(
@@ -59,7 +59,7 @@ void WideUSBDevice::run_device_discovery()
     std::cout << "Sending address request..." << std::endl;
 }
 
-void WideUSBDevice::discovery_socket_listener()
+void Device::discovery_socket_listener()
 {
     Socket::IncomingMessage incoming = *m_device_discovery_socket->get();
     std::cout << "Device discovered!! " << incoming.sender << std::endl;
@@ -69,11 +69,11 @@ void WideUSBDevice::discovery_socket_listener()
         m_on_discovered();
 }
 
-void WideUSBDevice::create_module_socket_listener()
+void Device::create_module_socket_listener()
 {
 }
 
-void WideUSBDevice::run_io_service()
+void Device::run_io_service()
 {
     for(;;)
     {
@@ -93,7 +93,7 @@ void WideUSBDevice::remove_module(IModuleOnHost& module)
     m_host_modules.erase(&module);
 }*/
 
-void WideUSBDevice::run_single(SingleTask task, size_t milliseconds)
+void Device::run_single(SingleTask task, size_t milliseconds)
 {
     if (milliseconds == 0)
         boost::asio::post(m_io_service, [task]() { task(); });
@@ -101,38 +101,38 @@ void WideUSBDevice::run_single(SingleTask task, size_t milliseconds)
 }
 
 
-void WideUSBDevice::post_serve_sockets()
+void Device::post_serve_sockets()
 {
     boost::asio::post(m_io_service, [this]() { m_net_srv.serve_sockets(time_ms()); });
 }
 
-uint32_t WideUSBDevice::time_ms()
+uint32_t Device::time_ms()
 {
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_creation).count();
     return duration % std::numeric_limits<uint32_t>::max();
 }
 
-NetSevice& WideUSBDevice::net_service()
+NetSevice& Device::net_service()
 {
     return m_net_srv;
 }
 
-boost::asio::io_service& WideUSBDevice::io_service()
+boost::asio::io_service& Device::io_service()
 {
     return m_io_service;
 }
 
-Address WideUSBDevice::device_address()
+Address Device::device_address()
 {
     return m_device_addr;
 }
 
-Address WideUSBDevice::host_address()
+Address Device::host_address()
 {
     return m_host_address;
 }
 
-bool WideUSBDevice::device_connected()
+bool Device::device_connected()
 {
     return m_device_addr != 0;
 }

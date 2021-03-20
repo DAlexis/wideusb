@@ -61,3 +61,35 @@ void DeferredTask::run(boost::asio::io_service& io_service, size_t milliseconds,
     auto obj = std::shared_ptr<DeferredTask>(new DeferredTask(io_service, milliseconds, callabck));
     obj->set_self_shared_ptr(obj);
 }
+
+AsioServiceRunner::AsioServiceRunner(boost::asio::io_service& io_service) :
+    m_io_service(io_service)
+{
+}
+
+AsioServiceRunner::~AsioServiceRunner()
+{
+    stop_thread();
+}
+
+void AsioServiceRunner::run_thread()
+{
+    m_thread.reset(
+        new std::thread(
+            [this](){ thread_body(); }
+        )
+    );
+}
+
+void AsioServiceRunner::stop_thread()
+{
+    m_stop_thread = true;
+    m_io_service.stop();
+    m_thread->join();
+}
+
+void AsioServiceRunner::thread_body()
+{
+    boost::asio::io_service::work work(m_io_service);
+    m_io_service.run();
+}
