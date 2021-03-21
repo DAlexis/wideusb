@@ -9,6 +9,8 @@ SET(MODULE_SOURCES
     py-wideusb-device.hpp
     py-monitor.cpp
     py-monitor.hpp
+    py-gps.cpp
+    py-gps.hpp
 )
 
 add_library(${PROJECT_NAME} MODULE ${MODULE_SOURCES})

@@ -22,7 +22,7 @@ Monitor::Monitor(Device& host_connection_service, OnModuleCreatedCallback on_cre
         m_host_connection_service.net_service(),
         custom_host_address != 0 ? custom_host_address : m_host_connection_service.host_address(),
         ports::monitor::status_update,
-        [this](ISocketUserSide&) { on_incoming_data_callback(); }
+        [this](ISocketUserSide&) { socket_listener(); }
     )
 {
     m_status_socket.options().input_queue_limit = 1; // We need only last status message
@@ -37,7 +37,7 @@ void Monitor::get_status_async(StatusReceivedCallback callback)
     request_status();
 }
 
-void Monitor::on_incoming_data_callback()
+void Monitor::socket_listener()
 {
     ISocketUserSide::IncomingMessage incoming = *m_status_socket.get();
 

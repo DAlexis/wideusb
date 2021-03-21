@@ -108,7 +108,7 @@ public:
 
     std::vector<uint8_t>& contents();
 
-    PBuffer clone();
+    PBuffer clone() const;
 
     size_t size() const;
     uint8_t* data();

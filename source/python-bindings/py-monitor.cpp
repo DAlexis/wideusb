@@ -8,7 +8,6 @@ namespace py = pybind11;
 
 PyMonitor::PyMonitor(PyWideUSBDevice& device, Address custom_host_address, Address custom_device_address)
 {
-    std::cout << "custom_device_address " << custom_device_address << " custom_host_address " << custom_host_address << std::endl;
     Waiter<bool> waiter;
     m_monitor.reset(new WideUSBHost::modules::Monitor(device.device(), waiter.get_waiter_callback(), custom_host_address, custom_device_address));
     bool success = waiter.wait();

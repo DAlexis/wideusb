@@ -30,6 +30,8 @@ namespace discovery {
 
 namespace create_module {
 
+    constexpr static uint32_t port = ports::core::create_module;
+
     #pragma pack(push, 1)
     struct Request
     {

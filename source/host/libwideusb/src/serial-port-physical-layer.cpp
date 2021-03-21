@@ -29,7 +29,12 @@ void SerialPortPhysicalLayer::async_read()
             {
                 size_t data_size = std::min(m_input_ring_buffer.free_space(), bytes_transferred);
                 m_input_buffer[bytes_transferred] = '\0';
-                std::cout << "receiverd bytes: " << bytes_transferred << ": " << m_input_buffer.data() << std::endl;
+
+#ifdef INSPECT_PACKAGES
+                std::cout << " => Incoming data:" << bytes_transferred << " bytes" << std::endl;
+                std::cout << m_inspector.inspect_package(Buffer::create(m_input_buffer.size(), m_input_buffer.data())) << std::endl;
+#endif
+
                 m_input_ring_buffer.put(m_input_buffer.data(), data_size);
 
 
@@ -61,7 +66,7 @@ void SerialPortPhysicalLayer::async_send()
                 {
                     return;
                 }
-                std::cout << bytes_transferred << " bytes sent to device" << std::endl;
+                //std::cout << bytes_transferred << " bytes sent to device" << std::endl;
                 async_send();
             }
         )
@@ -75,6 +80,10 @@ SerialReadAccessor& SerialPortPhysicalLayer::incoming()
 
 void SerialPortPhysicalLayer::send(PBuffer data)
 {
+#ifdef INSPECT_PACKAGES
+    std::cout << " <= Outgoing data:" << data->size() << " bytes" << std::endl;
+    std::cout << m_inspector.inspect_package(data) << std::endl;
+#endif
     m_output_ring_buffer.put(data->data(), std::min(data->size(), m_output_ring_buffer.free_space()));
     boost::asio::post(m_write_strand, [this]() { async_send(); });
 }

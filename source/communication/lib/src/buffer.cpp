@@ -89,7 +89,7 @@ void Buffer::extend(size_t size)
     m_contents.resize(m_contents.size() + size);
 }
 
-PBuffer Buffer::clone()
+PBuffer Buffer::clone() const
 {
     PBuffer copy = create(size(), data());
     return copy;

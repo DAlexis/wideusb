@@ -19,6 +19,7 @@ set(SOURCES
     ./include/communication/modules/core.hpp
     ./include/communication/modules/ports.hpp
     ./include/communication/modules/ids.hpp
+    ./include/communication/utils/package-inspector.hpp
 
     ./include/buffer.hpp
 
@@ -30,6 +31,7 @@ set(SOURCES
     ./src/communication/binary/network.cpp
     ./src/communication/binary/transport.cpp
     ./src/communication/utils/time-group-maker.cpp
+    ./src/communication/utils/package-inspector.cpp
     ./src/buffer.cpp
 )
 

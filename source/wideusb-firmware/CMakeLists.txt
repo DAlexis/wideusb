@@ -23,7 +23,6 @@ set(H_HEADERS
     ${PROJECT_SOURCE_DIR}/cpp/include/host-communication.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/host-communication-interface.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/macro.hpp
-    ${PROJECT_SOURCE_DIR}/cpp/include/module.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/data-saver.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/utilities.hpp
     ${PROJECT_SOURCE_DIR}/cpp/include/modules/core.hpp
@@ -169,7 +168,6 @@ set(C_SOURCES
 set(CPP_SOURCES
     ${PROJECT_SOURCE_DIR}/cpp/src/utilities.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/cpp-bootstrap.cpp
-    ${PROJECT_SOURCE_DIR}/cpp/src/module.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/data-saver.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/modules/core.cpp
     ${PROJECT_SOURCE_DIR}/cpp/src/modules/gps/minmea.cpp

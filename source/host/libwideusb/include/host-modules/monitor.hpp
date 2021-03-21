@@ -25,7 +25,7 @@ public:
 
 private:
     void request_status();
-    void on_incoming_data_callback();
+    void socket_listener();
 
     Socket m_status_socket;
     StatusReceivedCallback m_on_status_updated;

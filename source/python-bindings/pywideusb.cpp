@@ -3,6 +3,7 @@
 
 #include "py-wideusb-device.hpp"
 #include "py-monitor.hpp"
+#include "py-gps.hpp"
 
 #include <iostream>
 
@@ -25,4 +26,11 @@ PYBIND11_MODULE(pywideusb, m) {
              py::arg("custom_host_address") = 0,
              py::arg("custom_device_address") = 0)
         .def("status", &PyMonitor::status);
+
+    py::class_<PyGPS>(m, "GPS")
+        .def(py::init<PyWideUSBDevice&, Address, Address>(),
+             py::arg("device"),
+             py::arg("custom_host_address") = 0,
+             py::arg("custom_device_address") = 0)
+        .def("position", &PyGPS::position);
 }

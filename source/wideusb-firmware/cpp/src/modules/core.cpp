@@ -1,5 +1,6 @@
 #include "modules/core.hpp"
 #include "modules/monitor.hpp"
+#include "modules/gps.hpp"
 
 #include "host-communication/usb-physical-layer.hpp"
 #include "communication/binary/channel.hpp"
@@ -44,6 +45,9 @@ bool Core::create_module(ModuleID id)
     case ids::monitor:
         m_modules[id] = std::make_shared<MonitorModule>(m_net_srv, m_device_address);
     break;
+    case ids::gps:
+        m_modules[id] = std::make_shared<GPSModule>(m_net_srv, m_device_address);
+    break;
     default:
         return false;
     }
@@ -55,7 +59,7 @@ void Core::tick()
     m_net_srv.serve_sockets(os::get_os_time());
     poll_device_discovery();
     poll_create_module();
-    for (auto it : m_modules)
+    for (auto &it : m_modules)
     {
         it.second->tick();
     }

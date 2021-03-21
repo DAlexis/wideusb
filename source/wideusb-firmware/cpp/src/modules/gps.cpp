@@ -3,20 +3,14 @@
 
 #include "modules/gps/precision-timer.hpp"
 #include "modules/gps/nmea-receiver.hpp"
+#include "communication/modules/gps.hpp"
 
 #include "usart.h"
 
-GPSModule::GPSModule()
+GPSModule::GPSModule(NetSevice& net_service, Address monitor_address) :
+    m_sock(net_service, monitor_address, ports::gps::position_update, [this](ISocketUserSide&) { socket_listener(); })
 {
-    /*
-    m_action_filter.add(
-        "get_point",
-        [this](const rapidjson::Value&) -> ErrorCode
-        {
-            send_point();
-            return std::nullopt;
-        }
-    );*/
+    enable();
 }
 
 GPSModule::~GPSModule() = default;
@@ -31,14 +25,13 @@ void GPSModule::enable()
             {
                 on_precision_timer_signal(has_timing, last_second_duration, ticks_since_pps);
             },
-            [this](uint32_t /*last_second_duration*/)
+            [this](uint32_t)
             {
                 m_nmea_receiver->interrupt_pps();
             }
         )
     );
     m_check_pps_thread.run();
-    m_send_timings_thread.run();
 }
 
 Point GPSModule::point()
@@ -51,6 +44,11 @@ Point GPSModule::point()
         p.has_pps = true;
     }
     return p;
+}
+
+void GPSModule::tick()
+{
+
 }
 
 void GPSModule::on_precision_timer_signal(bool has_timing, uint32_t last_second_duration, uint32_t ticks_since_pps)
@@ -71,24 +69,29 @@ void GPSModule::check_pps_thread()
     }
 }
 
-void GPSModule::send_signal_timings_thread()
-{/*
-    Point p;
-    for (;;)
-    {
-        m_points_queue.pop_front(p);
-        auto doc = point_to_msg(p);
-        add_module_field(*doc);
-        m_communicator->send_data(std::move(doc));
-    }*/
-}
-
-void GPSModule::send_point()
-{/*
+void GPSModule::socket_listener()
+{
     Point p = point();
-    auto doc = point_to_msg(p);
-    add_module_field(*doc);
-    m_communicator->send_data(std::move(doc));*/
+    //tm time_data = p.get_tm();
+    gps::positioning::Response resp;
+    resp.latitude = p.latitude;
+    resp.longitude = p.longitude;
+    resp.has_pps = p.has_pps;
+
+    PBuffer resp_buffer = Buffer::create(sizeof(resp), &resp);
+
+    while (m_sock.has_data())
+    {
+        Socket::IncomingMessage incoming = *m_sock.get();
+
+        gps::positioning::Request request;
+        if (incoming.data->size() != sizeof(request))
+            continue;
+
+        BufferAccessor(incoming.data) >> request;
+
+        m_sock.send(incoming.sender, resp_buffer);
+    }
 }
 /*
 std::unique_ptr<rapidjson::Document> GPSModule::point_to_msg(const Point& p)

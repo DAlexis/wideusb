@@ -5,6 +5,12 @@
 #include <boost/asio/serial_port.hpp>
 #include "communication/i-physical-layer.hpp"
 
+#define INSPECT_PACKAGES
+
+#ifdef INSPECT_PACKAGES
+#include "communication/utils/package-inspector.hpp"
+#endif
+
 class SerialPortPhysicalLayer : public IPhysicalLayer
 {
 public:
@@ -29,6 +35,9 @@ private:
     RingBuffer m_input_ring_buffer;
     RingBuffer m_output_ring_buffer;
     PBuffer m_data_to_send_now;
+#ifdef INSPECT_PACKAGES
+    PackageInspector m_inspector;
+#endif
 };
 
 

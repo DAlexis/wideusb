@@ -15,6 +15,10 @@ namespace monitor
 {
     constexpr static uint32_t status_update = 4;
 }
+
+namespace gps {
+    constexpr static uint32_t position_update = 5;
+}
 };
 
 #endif // PORTS_HPP
