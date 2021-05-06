@@ -82,18 +82,14 @@ void Core::poll_create_module()
     while (m_create_module_sock.has_data())
     {
         const Socket::IncomingMessage inc = *m_create_module_sock.get();
-        core::create_module::Request request;
-        if (inc.data->size() != sizeof(request))
-            continue;
+        auto request = try_interpret_buffer_no_magic<core::create_module::Request>(inc.data);
 
-        BufferAccessor(inc.data) >> request;
-
-        create_module(request.module_id);
+        create_module(request->module_id);
 
         core::create_module::Response response;
-        response.module_id = request.module_id;
+        response.module_id = request->module_id;
         response.success = 1;
-        PBuffer body = Buffer::create(sizeof(response), &response);
+        PBuffer body = Buffer::serialize(response);
         m_create_module_sock.send(inc.sender, body);
     }
 }

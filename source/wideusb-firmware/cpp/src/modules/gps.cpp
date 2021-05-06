@@ -7,8 +7,9 @@
 
 #include "usart.h"
 
-GPSModule::GPSModule(NetSevice& net_service, Address monitor_address) :
-    m_sock(net_service, monitor_address, ports::gps::position_update, [this](ISocketUserSide&) { socket_listener(); })
+GPSModule::GPSModule(NetSevice& net_service, Address module_address) :
+    m_sock_positioning(net_service, module_address, ports::gps::positioning, [this](ISocketUserSide&) { socket_listener_positioning(); }),
+    m_sock_timestamping(net_service, module_address, ports::gps::timestamping, [this](ISocketUserSide&) { socket_listener_timestamping(); })
 {
     enable();
 }
@@ -48,7 +49,17 @@ Point GPSModule::point()
 
 void GPSModule::tick()
 {
-
+    if (!m_points_queue.empty())
+    {
+        Point p;
+        m_points_queue.pop_front(p);
+        gps::timestamping::TimestampingData data;
+        data.has_pps = p.has_pps;
+        for (Address addr : m_subscribers)
+        {
+            m_sock_timestamping.send(addr, Buffer::serialize(data));
+        }
+    }
 }
 
 void GPSModule::on_precision_timer_signal(bool has_timing, uint32_t last_second_duration, uint32_t ticks_since_pps)
@@ -69,7 +80,7 @@ void GPSModule::check_pps_thread()
     }
 }
 
-void GPSModule::socket_listener()
+void GPSModule::socket_listener_positioning()
 {
     Point p = point();
     //tm time_data = p.get_tm();
@@ -80,9 +91,9 @@ void GPSModule::socket_listener()
 
     PBuffer resp_buffer = Buffer::create(sizeof(resp), &resp);
 
-    while (m_sock.has_data())
+    while (m_sock_positioning.has_data())
     {
-        Socket::IncomingMessage incoming = *m_sock.get();
+        Socket::IncomingMessage incoming = *m_sock_positioning.get();
 
         gps::positioning::Request request;
         if (incoming.data->size() != sizeof(request))
@@ -90,9 +101,48 @@ void GPSModule::socket_listener()
 
         BufferAccessor(incoming.data) >> request;
 
-        m_sock.send(incoming.sender, resp_buffer);
+        m_sock_positioning.send(incoming.sender, resp_buffer);
     }
 }
+
+void GPSModule::socket_listener_timestamping()
+{
+    while (m_sock_timestamping.has_data())
+    {
+        Socket::IncomingMessage incoming = *m_sock_timestamping.get();
+
+        auto request = try_interpret_buffer_magic<gps::timestamping::SubscribeRequest>(incoming.data);
+        if (request.has_value())
+        {
+
+            char success = 0;
+
+            if (request->action == gps::timestamping::SubscribeRequest::add)
+            {
+
+                if (m_subscribers.size() < 20)
+                {
+                    success = 1;
+                    m_subscribers.insert(Address(request->subscriber));
+                }
+            } else if (request->action == gps::timestamping::SubscribeRequest::remove)
+            {
+                auto it = m_subscribers.find(Address(request->subscriber));
+                if (it != m_subscribers.end())
+                {
+                    m_subscribers.erase(it);
+                    success = 1;
+                }
+            }
+
+            gps::timestamping::SubscribeResponse response;
+            response.subscriber = request->subscriber;
+            response.success = success;
+            m_sock_timestamping.send(incoming.sender, Buffer::serialize(response));
+        }
+    }
+}
+
 /*
 std::unique_ptr<rapidjson::Document> GPSModule::point_to_msg(const Point& p)
 {

@@ -4,6 +4,7 @@
 #include "communication/binary/transport.hpp"
 
 #include <sstream>
+#include <iomanip>
 
 using namespace std;
 
@@ -17,7 +18,7 @@ PackageInspector::PackageInspector(std::shared_ptr<IChannelLayer> channel,
 
 }
 
-std::string PackageInspector::inspect_package(const PBuffer data)
+std::string PackageInspector::inspect_package(const PBuffer data, size_t max_buffer_len_to_print)
 {
     ostringstream oss;
 
@@ -49,6 +50,18 @@ std::string PackageInspector::inspect_package(const PBuffer data)
                 oss << "    | | need_ack           " << ((segments[j].flags & DecodedSegment::Flags::need_ack) != 0) << endl;
                 oss << "    | | is_ack             " << ((segments[j].flags & DecodedSegment::Flags::is_ack) != 0) << endl;
                 oss << "    | | data size          " << segments[j].segment.size() << endl;
+                oss << "    | | contents           ";
+                size_t len = std::min(max_buffer_len_to_print, segments[j].segment.size());
+                for (size_t k = 0; k < len; k++)
+                {
+                    oss << std::hex << std::setfill('0') << std::setw(2) << int(segments[j].segment[k]) << " ";
+                }
+                if (segments[j].segment.size() > max_buffer_len_to_print)
+                {
+                    oss << "...";
+                }
+                oss << std::dec << std::endl;
+
                 oss << "    | =====================" << endl;
             }
             oss << "    ===================" << packets[i].options.ttl << endl;

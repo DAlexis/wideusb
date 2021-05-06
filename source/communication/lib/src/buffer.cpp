@@ -105,7 +105,7 @@ uint8_t* Buffer::data()
     return m_contents.data();
 }
 
-const  uint8_t* Buffer::data() const
+const uint8_t* Buffer::data() const
 {
     return m_contents.data();
 }

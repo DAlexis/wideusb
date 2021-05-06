@@ -4,38 +4,47 @@ Board based on STM32F4 to connect various perepherial over USB. May be useful wi
 
 Nearest roadmap
 =====
-0. [ ] Rework again network components
+- Networking
+    - [ ] Retransmitting to another network devices
+    - [ ] Internal transmission without network
+    - [ ] Struct-based layers parameters
+    - [ ] Send ack second time if already sended ?
+    - [ ] Move base64 to communication
     - [x] Implement FragmentBuffer
     - [x] Implement sub-BufferAccessor 
     - [x] Channel binary layer
     - [x] Network binary layer
     - [x] Transport binary layer
     - [x] Socket state knowledge
-    - [ ] Internal transmission without network
-    - [ ] Struct-based layers parameters
     - [x] Socket queue limiting
     - [x] Forward sender address to client side
     - [x] Add callbacks when package received
-    - [ ] Send ack second time if already sended ?
     - [x] Add package inspection functions
-    - [ ] Move base64 to communication
     
-1. [x] Add monitor module
+    
+- Monitor module
     - [x] Run new stack on board
     - [x] Merge to master: remove old code and files
-    
-1. [x] Clear serve_sockets host calls logic for outgoing messages
-    - "Alive!!"s trigger serving now!
-    
-1. [x] Device initialization logic, waiting for initialization
-1. [x] io_service in thread?
-    
-1. [x] Running basic GPS functionality with python
-    
-2. [x] Running this over C++ cli app with wideusb lib
-3. [x] Make python wrapper of C++ lib
-4. [ ] Add streaming hardware functionality: DAC, ADC
-5. [ ] Connect radio, nfr24 and LoRa
-6. [ ] Setup forwarding
-    - [ ] Implement binary serialization for forwarding 
-7. [ ] Add state saving options
+
+- GPS module
+    - [ ] Fill thimestamp structs with content
+        
+- Asynchronous C++ API
+    - [ ] Add timeout for operations
+
+- Synchronous python API
+    ...
+
+- [ ] DAC module
+
+- [ ] ADC module
+
+- [ ] GPIO module
+
+- [ ] DAC module
+
+- [ ] nfr24l01 module
+
+- [ ] LoRa module
+
+- [ ] State saving in EEPROM

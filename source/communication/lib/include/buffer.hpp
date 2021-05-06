@@ -6,6 +6,8 @@
 #include <memory>
 #include <list>
 #include <limits>
+#include <optional>
+#include <cstring>
 
 class Buffer;
 class RingBuffer;
@@ -101,6 +103,11 @@ public:
     static PBuffer create(size_t size = 0, const void* init_data = nullptr);
     static PBuffer create(SerialReadAccessor& data, size_t size);
     static PBuffer create(SerialReadAccessor& data);
+    template<typename T>
+    static PBuffer serialize(const T& data)
+    {
+        return create(sizeof(data), &data);
+    }
 
     bool put(const void* data, size_t size) override;
     bool put(SerialReadAccessor& accessor, size_t size) override;
@@ -201,5 +208,40 @@ private:
 
     std::list<PBuffer> m_segments;
 };
+
+template<typename T>
+bool buffer_size_compatible(const PBuffer buf)
+{
+    return sizeof(T) == buf->size();
+}
+
+template<typename T>
+std::optional<T> try_interpret_buffer_no_magic(const PBuffer buf)
+{
+    if (!buffer_size_compatible<T>(buf))
+        return std::nullopt;
+
+    uint8_t try_magic = *reinterpret_cast<const uint8_t*>(buf->data());
+
+    T result;
+    memcpy(&result, buf->data(), sizeof(T));
+    return result;
+}
+
+
+template<typename T>
+std::optional<T> try_interpret_buffer_magic(const PBuffer buf)
+{
+    if (!buffer_size_compatible<T>(buf))
+        return std::nullopt;
+
+    uint8_t try_magic = *reinterpret_cast<const uint8_t*>(buf->data());
+    if (try_magic != T::magic)
+        return std::nullopt;
+
+    T result;
+    memcpy(&result, buf->data(), sizeof(T));
+    return result;
+}
 
 #endif // BUFFER_HPP

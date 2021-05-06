@@ -17,7 +17,8 @@ namespace monitor
 }
 
 namespace gps {
-    constexpr static uint32_t position_update = 5;
+    constexpr static uint32_t positioning = 5;
+    constexpr static uint32_t timestamping = 6;
 }
 };
 

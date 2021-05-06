@@ -32,5 +32,7 @@ PYBIND11_MODULE(pywideusb, m) {
              py::arg("device"),
              py::arg("custom_host_address") = 0,
              py::arg("custom_device_address") = 0)
-        .def("position", &PyGPS::position);
+        .def("position", &PyGPS::position)
+        .def("subscribe_to_timestamping", &PyGPS::subscribe_to_timestamping)
+        .def("timestamps", &PyGPS::timestamps);
 }
