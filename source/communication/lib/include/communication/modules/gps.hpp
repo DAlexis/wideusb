@@ -12,6 +12,16 @@ namespace gps {
 
     constexpr static ModuleID id = ids::gps;
 
+    struct PosTime
+    {
+        float latitude = 0;
+        float longitude = 0;
+        float altitude = 0;
+
+        uint64_t seconds = 0;
+        uint32_t nanoseconds = 0;
+    };
+
     namespace positioning {
 
         struct Request
@@ -21,9 +31,7 @@ namespace gps {
 
         struct Response
         {
-            float latitude = 0;
-            float longitude = 0;
-            uint8_t has_pps = 0;
+            PosTime pos_time;
         };
     }
 
@@ -58,8 +66,7 @@ namespace gps {
             constexpr static uint8_t magic = 2;
             const uint8_t magic_value = magic;
 
-            // @TODO Add position and timestamp data here
-            bool has_pps = false;
+            PosTime pos_time;
         };
 
     }

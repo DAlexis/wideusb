@@ -1,5 +1,6 @@
 #include "wideusb.hpp"
 #include "host-modules/monitor.hpp"
+#include "host-modules/gps.hpp"
 
 #include <iostream>
 #include <ctime>
@@ -61,6 +62,8 @@ int main()
     AsioServiceRunner runner(device->io_service());
     runner.run_thread();
     std::this_thread::sleep_for(10s);
+
+    GPS gps(*device, nullptr);
     //device->run_io_service();
     return 0;
 }

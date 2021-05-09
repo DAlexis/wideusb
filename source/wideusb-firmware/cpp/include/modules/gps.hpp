@@ -12,6 +12,8 @@
 class PrecisionTimer;
 class NMEAReceiver;
 
+namespace gps { struct PosTime; }
+
 class GPSModule : public IModule
 {
 public:
@@ -30,6 +32,8 @@ private:
 
     void socket_listener_positioning();
     void socket_listener_timestamping();
+
+    void timestamping_data_from_point(gps::PosTime& pos_time, const Point& p);
 
     //static std::unique_ptr<rapidjson::Document> point_to_msg(const Point& p);
 

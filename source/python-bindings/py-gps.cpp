@@ -45,6 +45,7 @@ std::map<std::string, std::string> PyGPS::pos_to_map(const WideUSBHost::modules:
     std::map<std::string, std::string> result;
     result["latitude"] = std::to_string(pos.latitude);
     result["longitude"] = std::to_string(pos.longitude);
-    result["has_pps"] = std::to_string(pos.has_pps);
+    result["altitude"] = std::to_string(pos.altitude);
+    result["seconds"] = std::to_string(double(pos.nanoseconds) * 1e-9 + double(pos.seconds));
     return result;
 }

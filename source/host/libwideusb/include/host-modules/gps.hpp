@@ -8,6 +8,8 @@
 #include <string>
 #include <optional>
 
+namespace gps { struct PosTime; }
+
 namespace WideUSBHost
 {
 
@@ -23,10 +25,10 @@ public:
     {
         float latitude = 0;
         float longitude = 0;
-        bool has_pps = false;
+        float altitude = 0;
 
-        // @TODO Add timestamp-related fields
-        float seconds_partial;
+        uint64_t seconds = 0;
+        uint32_t nanoseconds = 0;
     };
 
 
@@ -43,6 +45,8 @@ private:
     void request_status();
     void socket_listener_positioning();
     void socket_listener_timestamp();
+
+    static void position_from_postime(Position& position, const gps::PosTime& postime);
 
     Socket m_sock_position;
     Socket m_sock_timestamping;

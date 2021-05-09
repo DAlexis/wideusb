@@ -221,8 +221,6 @@ std::optional<T> try_interpret_buffer_no_magic(const PBuffer buf)
     if (!buffer_size_compatible<T>(buf))
         return std::nullopt;
 
-    uint8_t try_magic = *reinterpret_cast<const uint8_t*>(buf->data());
-
     T result;
     memcpy(&result, buf->data(), sizeof(T));
     return result;

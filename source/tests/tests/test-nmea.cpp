@@ -47,7 +47,7 @@ TEST(GPS, NmeaParseTypical)
     Point p = gps.point();
     ASSERT_NEAR(p.latitude, 54.53665 , 1e-5);
     ASSERT_NEAR(p.longitude, 12.573748 , 1e-5);
-    auto t = p.get_tm();
+    tm t = *localtime(&p.time.tv_sec);
     ASSERT_EQ(t.tm_hour, 14);
     ASSERT_EQ(t.tm_min, 25);
     ASSERT_EQ(t.tm_sec, 01);
@@ -61,6 +61,6 @@ TEST(GPS, NmeaParseTypical)
     gps.fit_to_pps(5900);
     p = gps.point();
     ASSERT_EQ(p.last_update_ticks, 5900);
-    t = p.get_tm();
+    t = *localtime(&p.time.tv_sec);
     ASSERT_EQ(t.tm_sec, 02);
 }

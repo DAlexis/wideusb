@@ -62,17 +62,14 @@ void GPS::socket_listener_positioning()
 {
     ISocketUserSide::IncomingMessage incoming = *m_sock_position.get();
 
-    gps::positioning::Response response;
+    auto response = try_interpret_buffer_no_magic<gps::positioning::Response>(incoming.data);
 
-    if (incoming.data->size() != sizeof(response))
+    if (!response.has_value())
         return;
 
-    BufferAccessor(incoming.data) >> response;
-
     Position result;
-    result.latitude = response.latitude;
-    result.longitude = response.longitude;
-    result.has_pps = response.has_pps;
+
+    position_from_postime(result, response->pos_time);
 
     if (m_on_status_updated)
         m_on_status_updated(result);
@@ -82,28 +79,36 @@ void GPS::socket_listener_timestamp()
 {    
     ISocketUserSide::IncomingMessage incoming = *m_sock_timestamping.get();
     // Parsing if SubscribeResponse
+
+    std::optional<gps::timestamping::SubscribeResponse> resp_subscribe = try_interpret_buffer_magic<gps::timestamping::SubscribeResponse>(incoming.data);
+    if (resp_subscribe)
     {
-        std::optional<gps::timestamping::SubscribeResponse> resp_subscribe = try_interpret_buffer_magic<gps::timestamping::SubscribeResponse>(incoming.data);
-        if (resp_subscribe)
-        {
-            if (m_on_subscribed)
-                m_on_subscribed(resp_subscribe->success);
-            return;
-        }
+        if (m_on_subscribed)
+            m_on_subscribed(resp_subscribe->success);
+        return;
     }
 
+    // Parsing if TimestampingData
+    std::optional<gps::timestamping::TimestampingData> timestamping = try_interpret_buffer_magic<gps::timestamping::TimestampingData>(incoming.data);
+    if (timestamping)
     {
-        // Parsing if TimestampingData
-        std::optional<gps::timestamping::TimestampingData> timestamping = try_interpret_buffer_magic<gps::timestamping::TimestampingData>(incoming.data);
-        if (timestamping)
-        {
-            if (!m_on_timestamping)
-                return;
-            // @TODO Fill the position structure
-            Position pos;
-            pos.has_pps = true;
-            m_on_timestamping(pos);
+        if (!m_on_timestamping)
             return;
-        }
+
+        Position pos;
+        position_from_postime(pos, timestamping->pos_time);
+        m_on_timestamping(pos);
+        return;
     }
+
+}
+
+void GPS::position_from_postime(GPS::Position& position, const gps::PosTime& postime)
+{
+    position.latitude = postime.latitude;
+    position.longitude = postime.longitude;
+    position.altitude = postime.altitude;
+
+    position.seconds = postime.seconds;
+    position.nanoseconds = postime.nanoseconds;
 }
