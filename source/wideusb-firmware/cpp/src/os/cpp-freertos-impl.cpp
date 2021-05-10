@@ -11,6 +11,7 @@
 #include "cmsis_os.h"
 
 #include <stdio.h>
+#include <cstring>
 
 namespace os {
 
@@ -43,7 +44,10 @@ Handle Thread::handle()
 
 void Thread::run()
 {
+    /*const osThreadDef_t os_thread_def_##name = \
+    { #name, (thread), (priority), (instances), (stacksz), NULL, NULL }*/
     os_thread_def threadDef;
+    memset(&threadDef, 0, sizeof(threadDef));
     threadDef.name = const_cast<char*>(m_name);
     threadDef.pthread = thread_body_bootstrap;
     threadDef.tpriority = (osPriority) m_priority;
@@ -66,7 +70,7 @@ void Thread::notify_give_form_ISR()
         return;
 
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    vTaskNotifyGiveFromISR(m_task_handle, &xHigherPriorityTaskWoken);
+    vTaskNotifyGiveFromISR((TaskHandle_t) m_task_handle, &xHigherPriorityTaskWoken);
 
     /* If xHigherPriorityTaskWoken is now set to pdTRUE then a context switch
     should be performed to ensure the interrupt returns directly to the highest
@@ -77,7 +81,7 @@ void Thread::notify_give_form_ISR()
 
 void Thread::notify_give()
 {
-    xTaskNotifyGive(m_task_handle);
+    xTaskNotifyGive((TaskHandle_t) m_task_handle);
 }
 
 void Thread::yeld()
@@ -292,7 +296,7 @@ QueueBase::QueueBase(unsigned int queue_size, size_t object_size) :
 
 QueueBase::~QueueBase()
 {
-    vQueueDelete(m_handle);
+    vQueueDelete((QueueHandle_t) m_handle);
 }
 
 void QueueBase::push_back(const void* obj, Ticks timeToWait)
@@ -405,7 +409,8 @@ void * operator new(std::size_t n)
 {
     return pvPortMalloc(n);
 }
-void operator delete(void * p)
+
+void operator delete(void * p) noexcept
 {
     vPortFree(p);
 }

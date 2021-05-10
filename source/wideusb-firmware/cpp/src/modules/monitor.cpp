@@ -30,11 +30,9 @@ void MonitorModule::socket_listener()
     {
         Socket::IncomingMessage incoming = *m_sock.get();
 
-        monitor::status::Request request;
-        if (incoming.data->size() != sizeof(request))
+        auto request = try_interpret_buffer_no_magic<monitor::status::Request>(incoming.data);
+        if (!request)
             continue;
-
-        BufferAccessor(incoming.data) >> request;
 
         m_sock.send(incoming.sender, resp_buffer);
     }
