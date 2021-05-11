@@ -40,6 +40,7 @@ extern TIM_HandleTypeDef htim4;
 
 void MX_TIM2_Init(void);
 void MX_TIM4_Init(void);
+void MX_TIM4_Init_Parametric(uint32_t prescaler, uint32_t period);
 
 /* USER CODE BEGIN Prototypes */
 

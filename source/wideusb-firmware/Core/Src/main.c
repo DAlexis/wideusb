@@ -83,55 +83,6 @@ void MX_FREERTOS_Init(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
-uint16_t test_buffer[100];
-
-void fill_dac_buffer()
-{
-
-    for (size_t i = 0; i < 100; i++)
-    {
-
-        test_buffer[i] = 0xFFFF / 150 * i + 0x0FFF;
-
-    }
-/*
-    memset(test_buffer, 0, sizeof(test_buffer));
-    test_buffer[0] = 0xFFFF;
-    test_buffer[1] = 0xFFFF;
-    test_buffer[2] = 0xFFFF;
-    test_buffer[3] = 0xFFFF;
-    test_buffer[4] = 0xFFFF;
-    test_buffer[5] = 0xFFFF;
-    test_buffer[6] = 0xFFFF;
-    test_buffer[7] = 0xFFFF;
-    test_buffer[8] = 0xFFFF;
-    test_buffer[9] = 0xFFFF;
-    test_buffer[10] = 0xFFFF;
-    test_buffer[11] = 0xFFFF;
-
-    test_buffer[96] = 0xFFFF;
-    test_buffer[97] = 0xFFFF;
-    test_buffer[98] = 0xFFFF;
-    //test_buffer[99] = 0x8888;
-*/
-}
-
-void run_dac()
-{
-    //HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_SET);
-
-    HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*) test_buffer, 100, DAC_ALIGN_12B_L);
-}
-
-char ready = 0;
-
-void HAL_DAC_ConvCpltCallbackCh1(DAC_HandleTypeDef* hdac)
-{
-    ready = 1;
-    //HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
-    run_dac();
-}
-
 /* USER CODE END 0 */
 
 /**

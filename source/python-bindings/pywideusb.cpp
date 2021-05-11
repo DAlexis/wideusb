@@ -4,6 +4,7 @@
 #include "py-wideusb-device.hpp"
 #include "py-monitor.hpp"
 #include "py-gps.hpp"
+#include "py-dac.hpp"
 
 #include <iostream>
 
@@ -35,4 +36,11 @@ PYBIND11_MODULE(pywideusb, m) {
         .def("position", &PyGPS::position)
         .def("subscribe_to_timestamping", &PyGPS::subscribe_to_timestamping)
         .def("timestamps", &PyGPS::timestamps);
+
+    py::class_<PyDAC>(m, "DAC")
+        .def(py::init<PyWideUSBDevice&, Address, Address>(),
+             py::arg("device"),
+             py::arg("custom_host_address") = 0,
+             py::arg("custom_device_address") = 0)
+        .def("init", &PyDAC::init);
 }

@@ -14,6 +14,12 @@ class RingBuffer;
 
 using PBuffer = std::shared_ptr<Buffer>;
 
+struct MemBlock
+{
+    const uint8_t* data = nullptr;
+    size_t size = 0;
+};
+
 class SerialReadAccessor
 {
 public:
@@ -73,7 +79,7 @@ public:
 
     /**
      * @brief Create raw data accessor to trivially serialize anything by copying it
-     * @return
+     * @return temporary object that redirect data to current SerialWriteAccessor
      */
     RawStream raw();
 
@@ -175,6 +181,13 @@ public:
     void get(uint8_t* buf, size_t size) const override;
     void extract(uint8_t* buf, size_t size) override;
     void skip(size_t size) override;
+
+    /**
+     * @brief Get largest avaliable continious data block with its size
+     * @param buf   OUT: Pointer to block
+     * @param size  OUT: Block size
+     */
+    MemBlock get_continious_block(size_t size) const;
 
     bool empty() const override;
     void clear();

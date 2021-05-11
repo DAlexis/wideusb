@@ -44,8 +44,6 @@ Handle Thread::handle()
 
 void Thread::run()
 {
-    /*const osThreadDef_t os_thread_def_##name = \
-    { #name, (thread), (priority), (instances), (stacksz), NULL, NULL }*/
     os_thread_def threadDef;
     memset(&threadDef, 0, sizeof(threadDef));
     threadDef.name = const_cast<char*>(m_name);

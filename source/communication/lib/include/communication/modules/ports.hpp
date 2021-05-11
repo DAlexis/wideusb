@@ -1,24 +1,29 @@
 #ifndef PORTS_HPP
 #define PORTS_HPP
 
-#include <cstdint>
+#include "communication/network-types.hpp"
 
 namespace ports
 {
 namespace core
 {
-    constexpr static uint32_t address_discovery = 2;
-    constexpr static uint32_t create_module = 3;
+    constexpr static Port address_discovery = 2;
+    constexpr static Port create_module = 3;
 }
 
 namespace monitor
 {
-    constexpr static uint32_t status_update = 4;
+    constexpr static Port status_update = 4;
 }
 
 namespace gps {
-    constexpr static uint32_t positioning = 5;
-    constexpr static uint32_t timestamping = 6;
+    constexpr static Port positioning = 5;
+    constexpr static Port timestamping = 6;
+}
+
+namespace dac {
+    constexpr static Port setup = 10;
+    constexpr static Port data = 11;
 }
 };
 

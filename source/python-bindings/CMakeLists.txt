@@ -11,6 +11,8 @@ SET(MODULE_SOURCES
     py-monitor.hpp
     py-gps.cpp
     py-gps.hpp
+    py-dac.cpp
+    py-dac.hpp
 )
 
 add_library(${PROJECT_NAME} MODULE ${MODULE_SOURCES})

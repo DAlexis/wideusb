@@ -12,6 +12,7 @@ set(LIB_SOURCES
     ${PROJECT_SOURCE_DIR}/src/host-modules/host-module.cpp
     ${PROJECT_SOURCE_DIR}/src/host-modules/monitor.cpp
     ${PROJECT_SOURCE_DIR}/src/host-modules/gps.cpp
+    ${PROJECT_SOURCE_DIR}/src/host-modules/dac.cpp
 )
 
 set(LIB_INCLUDES
@@ -21,6 +22,7 @@ set(LIB_INCLUDES
     ${PROJECT_SOURCE_DIR}/include/host-modules/host-module.hpp
     ${PROJECT_SOURCE_DIR}/include/host-modules/monitor.hpp
     ${PROJECT_SOURCE_DIR}/include/host-modules/gps.hpp
+    ${PROJECT_SOURCE_DIR}/include/host-modules/dac.hpp
 )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)

@@ -1,6 +1,7 @@
 #include "modules/core.hpp"
 #include "modules/monitor.hpp"
 #include "modules/gps.hpp"
+#include "modules/dac.hpp"
 
 #include "host-communication/usb-physical-layer.hpp"
 #include "communication/binary/channel.hpp"
@@ -47,6 +48,9 @@ bool Core::create_module(ModuleID id)
     break;
     case ids::gps:
         m_modules[id] = std::make_shared<GPSModule>(m_net_srv, m_device_address);
+    break;
+    case ids::dac:
+        m_modules[id] = std::make_shared<DACModule>(m_net_srv, m_device_address);
     break;
     default:
         return false;

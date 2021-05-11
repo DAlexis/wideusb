@@ -319,6 +319,18 @@ void RingBuffer::skip(size_t size)
         m_p_read -= m_contents.size();
 }
 
+MemBlock RingBuffer::get_continious_block(size_t size) const
+{
+    MemBlock result;
+    result.data = &m_contents[m_p_read];
+    if (m_p_read <= m_p_write)
+    {
+        result.size = std::min(uint32_t(size), m_p_write - m_p_read);
+    } else {
+        result.size = std::min(uint32_t(size), uint32_t(m_contents.size()) - m_p_read);
+    }
+}
+
 bool RingBuffer::empty() const
 {
     return m_p_read == m_p_write;
