@@ -15,19 +15,31 @@ namespace dac {
     namespace setup {
         constexpr static uint32_t port = ports::dac::setup;
 
-        struct InitRequest
+        struct Timings
         {
-            constexpr static uint8_t magic = 1;
-            const uint8_t magic_value = magic;
-
-            constexpr static uint8_t single = 0;
-            constexpr static uint8_t repeat = 1;
-            constexpr static uint8_t continious = 2;
-
             uint32_t prescaler = 20;
             uint32_t period = 50;
+        };
+
+        struct InitContinious
+        {
+            constexpr static uint8_t magic = 100;
+            const uint8_t magic_value = magic;
+
+            Timings timings;
             uint16_t buffer_size = 1000;
-            uint8_t mode = single;
+            uint16_t chunk_size = 100;
+            uint32_t notify_when_left = 300;
+        };
+
+        struct InitSample
+        {
+            constexpr static uint8_t magic = 101;
+            const uint8_t magic_value = magic;
+
+            Timings timings;
+            uint16_t buffer_size = 1000;
+            uint8_t autorepeat = 0;
         };
 
         struct InitResponse
@@ -35,8 +47,7 @@ namespace dac {
             constexpr static uint8_t magic = 2;
             const uint8_t magic_value = magic;
 
-            uint8_t success = 0;
-            uint16_t actual_buffer_size = 0;
+            uint8_t error_code = 0;
         };
 
         struct RunRequest
@@ -48,7 +59,6 @@ namespace dac {
             const uint8_t magic_value = magic;
 
             uint8_t run_stop;
-            uint16_t size_limit_notify = 100;
             Address status_reports_receiver;
         };
     }

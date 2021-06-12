@@ -21,7 +21,9 @@ Nearest roadmap
     - [x] Add callbacks when package received
     - [x] Add package inspection functions
     
-    
+- Modules interface
+    - [ ] For each module make 'module back' and 'module front'. Front should be avaliable from MCU too.
+
 - Monitor module
     - [x] Run new stack on board
     - [x] Merge to master: remove old code and files

@@ -42,5 +42,7 @@ PYBIND11_MODULE(pywideusb, m) {
              py::arg("device"),
              py::arg("custom_host_address") = 0,
              py::arg("custom_device_address") = 0)
-        .def("init", &PyDAC::init);
+        .def("init_sample", &PyDAC::init_sample, py::arg("buffer_size"), py::arg("prescaler"), py::arg("period"), py::arg("repeat"))
+        .def("run", &PyDAC::run)
+        .def("send_data", &PyDAC::send_data, py::arg("data"));
 }

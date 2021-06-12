@@ -42,11 +42,11 @@ void GPS::subscribe_to_timestamping(SubscribedCallback on_subscribe, Timestampin
     subscribe_req.action = gps::timestamping::SubscribeRequest::add;
     subscribe_req.subscriber = m_host_address;
 
-    std::cout << "Sizeof(subscribe_req) = " << sizeof(subscribe_req) << std::endl;
+//    std::cout << "Sizeof(subscribe_req) = " << sizeof(subscribe_req) << std::endl;
 
     PBuffer pb = Buffer::serialize(subscribe_req);
     auto inter = try_interpret_buffer_magic<gps::timestamping::SubscribeRequest>(pb);
-    std::cout << " - - - has_value: " << inter.has_value() << std::endl;
+//    std::cout << " - - - has_value: " << inter.has_value() << std::endl;
 
     m_sock_timestamping.send(m_device_address, pb);
 }

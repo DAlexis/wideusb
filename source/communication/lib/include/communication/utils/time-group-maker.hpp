@@ -70,7 +70,7 @@ public:
         return it != m_active_tasks.end();
     }
 
-    Batch get_batch(uint32_t time, size_t task_limit = 0)
+    Batch get_batch(uint32_t time, std::size_t task_limit = 0)
     {
         TimePlanner::Batch result;
 
