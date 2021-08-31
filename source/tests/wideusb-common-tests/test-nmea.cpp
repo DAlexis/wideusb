@@ -1,4 +1,4 @@
-#include "modules/gps/nmea-parser.hpp"
+#include "wideusb-common/utils/gps/nmea-parser.hpp"
 
 #include "gtest/gtest.h"
 
@@ -41,7 +41,7 @@ TEST(GPS, NmeaParseTypical)
     while (std::getline(f, line)) {
         add_checksum(line);
         success = success && gps.parse_line(line.c_str(), 5000);
-        std::cout << line << std::endl;
+//        std::cout << line << std::endl;
     }
 
     Point p = gps.point();

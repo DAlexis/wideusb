@@ -1,19 +1,9 @@
-#ifndef HOST_MODULE_DAC_GPP
-#define HOST_MODULE_DAC_GPP
+#ifndef DAC_FRONT_HPP
+#define DAC_FRONT_HPP
 
-#include "communication/networking.hpp"
-#include "host-module.hpp"
+#include "wideusb-common/front/base.hpp"
 
-
-namespace WideUSBHost
-{
-
-class Device;
-
-namespace modules
-{
-
-class DAC : public ModuleBase
+class DACFront : public ModuleFrontBase
 {
 public:
     enum class Mode
@@ -27,7 +17,7 @@ public:
     using OnDataSampleSet = std::function<void(size_t)>;
     using OnRun = std::function<void(bool)>;
 
-    DAC(Device& host_connection_service, OnModuleCreatedCallback on_created, Address custom_host_address = 0, Address custom_device_address = 0);
+    DACFront(NetSevice& host_connection_service, OnModuleCreatedCallback on_created, Address my_address = 0, Address device_address = 0);
 
     void init_continious(uint16_t buffer_size, uint32_t prescaler, uint32_t period, uint16_t dma_chunk_size, uint16_t notify_when_left, OnInitDoneCallback on_init_done);
     void init_sample(uint16_t buffer_size, uint32_t prescaler, uint32_t period, bool repeat, OnInitDoneCallback on_init_done);
@@ -67,7 +57,4 @@ private:
 
 };
 
-}
-}
-
-#endif // HOST_MODULE_DAC_GPP
+#endif // DAC_FRONT_HPP

@@ -1,86 +1,13 @@
-#include "modules/gps.hpp"
-#include "host-communication-interface.hpp"
-
-#include "modules/gps/precision-timer.hpp"
-#include "modules/gps/nmea-receiver.hpp"
+#include "wideusb-common/back/gps-back.hpp"
 #include "communication/modules/gps.hpp"
 
-#include "usart.h"
-
-GPSModule::GPSModule(NetSevice& net_service, Address module_address) :
+GPSModuleBack::GPSModuleBack(NetSevice& net_service, Address module_address) :
     m_sock_positioning(net_service, module_address, ports::gps::positioning, [this](ISocketUserSide&) { socket_listener_positioning(); }),
     m_sock_timestamping(net_service, module_address, ports::gps::timestamping, [this](ISocketUserSide&) { socket_listener_timestamping(); })
 {
-    enable();
 }
 
-GPSModule::~GPSModule() = default;
-
-void GPSModule::enable()
-{
-    m_nmea_receiver.reset(new NMEAReceiver(&huart3));
-    m_precision_timer.reset(
-        new PrecisionTimer(
-            &htim2,
-            [this](bool has_timing, uint32_t last_second_duration, uint32_t ticks_since_pps)
-            {
-                on_precision_timer_signal(has_timing, last_second_duration, ticks_since_pps);
-            },
-            [this](uint32_t)
-            {
-                m_nmea_receiver->interrupt_pps();
-            }
-        )
-    );
-    m_check_pps_thread.run();
-}
-
-Point GPSModule::point()
-{
-    Point p = m_nmea_receiver->gps().point();
-    auto t = m_precision_timer->fract_time();
-    if (t.has_value())
-    {
-        p.time.tv_nsec = *t * 1e9;
-        p.has_pps = true;
-    }
-    return p;
-}
-
-void GPSModule::tick()
-{
-    if (!m_points_queue.empty())
-    {
-        Point p;
-        m_points_queue.pop_front(p);
-        gps::timestamping::TimestampingData data;
-        timestamping_data_from_point(data.pos_time, p);
-        for (Address addr : m_subscribers)
-        {
-            m_sock_timestamping.send(addr, Buffer::serialize(data));
-        }
-    }
-}
-
-void GPSModule::on_precision_timer_signal(bool has_timing, uint32_t last_second_duration, uint32_t ticks_since_pps)
-{
-    auto p = m_nmea_receiver->gps().point();
-    p.time.tv_nsec = float(ticks_since_pps) / last_second_duration * 1e9;
-    p.has_pps = has_timing;
-    m_points_queue.push_back_from_ISR(p);
-}
-
-void GPSModule::check_pps_thread()
-{
-    for (;;)
-    {
-        os::delay(100);
-        if (m_precision_timer)
-            m_precision_timer->check_for_pps_loss();
-    }
-}
-
-void GPSModule::socket_listener_positioning()
+void GPSModuleBack::socket_listener_positioning()
 {
     Point p = point();
     //tm time_data = p.get_tm();
@@ -103,7 +30,7 @@ void GPSModule::socket_listener_positioning()
     }
 }
 
-void GPSModule::socket_listener_timestamping()
+void GPSModuleBack::socket_listener_timestamping()
 {
     while (m_sock_timestamping.has_data())
     {
@@ -141,7 +68,8 @@ void GPSModule::socket_listener_timestamping()
     }
 }
 
-void GPSModule::timestamping_data_from_point(gps::PosTime& pos_time, const Point& p)
+
+void GPSModuleBack::timestamping_data_from_point(gps::PosTime& pos_time, const Point& p)
 {
     pos_time.latitude = p.latitude;
     pos_time.longitude = p.longitude;
@@ -149,6 +77,16 @@ void GPSModule::timestamping_data_from_point(gps::PosTime& pos_time, const Point
     if (p.has_pps)
     {
         pos_time.seconds = p.time.tv_sec;
-        pos_time.seconds = p.time.tv_nsec;
+        pos_time.nanoseconds = p.time.tv_nsec;
+    }
+}
+
+void GPSModuleBack::send_point_to_subscribers(const Point& p)
+{
+    gps::timestamping::TimestampingData data;
+    timestamping_data_from_point(data.pos_time, p);
+    for (Address addr : m_subscribers)
+    {
+        m_sock_timestamping.send(addr, Buffer::serialize(data));
     }
 }

@@ -1,24 +1,15 @@
-#ifndef GPS_HPP
-#define GPS_HPP
+#ifndef GPSFRONT_HPP
+#define GPSFRONT_HPP
 
-
+#include "wideusb-common/front/base.hpp"
 #include "communication/networking.hpp"
-#include "host-module.hpp"
 
 #include <string>
 #include <optional>
 
 namespace gps { struct PosTime; }
 
-namespace WideUSBHost
-{
-
-class Device;
-
-namespace modules
-{
-
-class GPS : public ModuleBase
+class GPSFront : public ModuleFrontBase
 {
 public:
     struct Position
@@ -36,7 +27,7 @@ public:
     using SubscribedCallback = std::function<void(bool)>;
     using TimestampingCallback = std::function<void(Position)>;
 
-    GPS(Device& host_connection_service, OnModuleCreatedCallback on_created, Address custom_host_address = 0, Address custom_device_address = 0);
+    GPSFront(NetSevice& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address);
 
     void get_position_async(PositionReceivedCallback callback);
     void subscribe_to_timestamping(SubscribedCallback on_subscribe, TimestampingCallback on_timestamp);
@@ -57,8 +48,4 @@ private:
     TimestampingCallback m_on_timestamping;
 };
 
-}
-
-}
-
-#endif // GPS_HPP
+#endif // GPSFRONT_HPP

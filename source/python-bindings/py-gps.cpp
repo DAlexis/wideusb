@@ -3,7 +3,13 @@
 PyGPS::PyGPS(PyWideUSBDevice& device, Address custom_host_address, Address custom_device_address)
 {
     Waiter<bool> waiter;
-    m_gps.reset(new WideUSBHost::modules::GPS(device.device(), waiter.get_waiter_callback(), custom_host_address, custom_device_address));
+    m_gps.reset(
+                new GPSFront(
+                    device.device().net_service(), waiter.get_waiter_callback(),
+                    custom_host_address ? custom_host_address : device.device().host_address(),
+                    custom_device_address ? custom_device_address : device.device().device_address()
+                    )
+                );
     bool success = waiter.wait();
     if (!success)
         throw std::runtime_error("GPS module creation failed");
@@ -12,7 +18,7 @@ PyGPS::PyGPS(PyWideUSBDevice& device, Address custom_host_address, Address custo
 std::map<std::string, std::string> PyGPS::position()
 {
     std::map<std::string, std::string> result;
-    Waiter<WideUSBHost::modules::GPS::Position> waiter;
+    Waiter<GPSFront::Position> waiter;
     m_gps->get_position_async(waiter.get_waiter_callback());
     return pos_to_map(waiter.wait());
 }
@@ -20,7 +26,7 @@ std::map<std::string, std::string> PyGPS::position()
 bool PyGPS::subscribe_to_timestamping()
 {
     Waiter<bool> waiter;
-    m_gps->subscribe_to_timestamping(waiter.get_waiter_callback(), [this](WideUSBHost::modules::GPS::Position pos) { on_timestamping(pos); });
+    m_gps->subscribe_to_timestamping(waiter.get_waiter_callback(), [this](GPSFront::Position pos) { on_timestamping(pos); });
     return waiter.wait();
 }
 
@@ -35,12 +41,12 @@ std::vector<std::map<std::string, std::string>> PyGPS::timestamps()
     return result;
 }
 
-void PyGPS::on_timestamping(WideUSBHost::modules::GPS::Position pos)
+void PyGPS::on_timestamping(GPSFront::Position pos)
 {
     m_positions.push_back(pos);
 }
 
-std::map<std::string, std::string> PyGPS::pos_to_map(const WideUSBHost::modules::GPS::Position& pos)
+std::map<std::string, std::string> PyGPS::pos_to_map(const GPSFront::Position& pos)
 {
     std::map<std::string, std::string> result;
     result["latitude"] = std::to_string(pos.latitude);

@@ -1,8 +1,8 @@
 project("wideusb-firmware-unit-tests")
 
 set(EXE_SOURCES
-    ${PROJECT_SOURCE_DIR}/test-base64.cpp
-    ${PROJECT_SOURCE_DIR}/test-nmea.cpp
+    test-base64.cpp
+    test-nmea.cpp
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/src/modules/gps/nmea-parser.cpp
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/src/modules/gps/minmea.cpp
     ${PROJECT_SOURCE_DIR}/../../wideusb-firmware/cpp/src/modules/gps/point.cpp

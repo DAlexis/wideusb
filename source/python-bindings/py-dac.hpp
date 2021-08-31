@@ -1,8 +1,8 @@
 #ifndef PYDAC_HPP
 #define PYDAC_HPP
 
-#include "host-modules/dac.hpp"
 #include "py-wideusb-device.hpp"
+#include "wideusb-common/front/dac-front.hpp"
 
 class PyDAC
 {
@@ -16,7 +16,7 @@ public:
     void send_data(const std::vector<float>& data);
 
 private:
-    std::unique_ptr<WideUSBHost::modules::DAC> m_dac;
+    std::unique_ptr<DACFront> m_dac;
     std::vector<float>* m_data;
 };
 

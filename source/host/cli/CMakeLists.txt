@@ -10,3 +10,4 @@ set(EXE_SOURCES
 add_executable(${PROJECT_NAME} ${EXE_SOURCES})
 
 target_link_libraries (${PROJECT_NAME} wideusb)
+target_link_libraries (${PROJECT_NAME} wideusb-modules)

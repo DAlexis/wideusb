@@ -1,7 +1,7 @@
 #ifndef PYGPS_HPP
 #define PYGPS_HPP
 
-#include "host-modules/gps.hpp"
+#include "wideusb-common/front/gps-front.hpp"
 #include "py-wideusb-device.hpp"
 
 class PyGPS
@@ -15,13 +15,13 @@ public:
 
 private:
 
-    static std::map<std::string, std::string> pos_to_map(const WideUSBHost::modules::GPS::Position& pos);
+    static std::map<std::string, std::string> pos_to_map(const GPSFront::Position& pos);
 
-    void on_timestamping(WideUSBHost::modules::GPS::Position pos);
+    void on_timestamping(GPSFront::Position pos);
 
-    std::unique_ptr<WideUSBHost::modules::GPS> m_gps;
+    std::unique_ptr<GPSFront> m_gps;
 
-    std::vector<WideUSBHost::modules::GPS::Position> m_positions;
+    std::vector<GPSFront::Position> m_positions;
 };
 
 #endif // PYGPS_HPP

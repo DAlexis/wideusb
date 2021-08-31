@@ -1,8 +1,10 @@
 #ifndef PYMONITOR_HPP
 #define PYMONITOR_HPP
 
-#include "host-modules/monitor.hpp"
+#include "wideusb-common/front/monitor-front.hpp"
 #include "py-wideusb-device.hpp"
+
+class MonitorFront;
 
 class PyMonitor
 {
@@ -13,7 +15,7 @@ public:
 
 private:
 
-    std::unique_ptr<WideUSBHost::modules::Monitor> m_monitor;
+    std::unique_ptr<MonitorFront> m_monitor;
 };
 
 #endif // PYMONITOR_HPP

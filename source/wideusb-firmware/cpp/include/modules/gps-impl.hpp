@@ -2,9 +2,10 @@
 #define GPS_HPP_UNCLUDED
 
 #include "module-base.hpp"
-#include "gps/nmea-parser.hpp"
+#include "wideusb-common/utils/gps/nmea-parser.hpp"
 #include "os/cpp-freertos.hpp"
 #include "communication/networking.hpp"
+#include "wideusb-common/back/gps-back.hpp"
 
 #include <memory>
 #include <set>
@@ -14,36 +15,25 @@ class NMEAReceiver;
 
 namespace gps { struct PosTime; }
 
-class GPSModule : public IModule
+class GPSImpl : public GPSModuleBack, public IModule
 {
 public:
-    GPSModule(NetSevice& net_service, Address module_address);
-    ~GPSModule();
+    GPSImpl(NetSevice& net_service, Address module_address);
+    ~GPSImpl();
 
     void enable();
-    Point point();
+    Point point() override;
 
     void tick() override;
 
 private:
-
     void on_precision_timer_signal(bool has_timing, uint32_t last_second_duration, uint32_t ticks_since_pps);
     void check_pps_thread();
-
-    void socket_listener_positioning();
-    void socket_listener_timestamping();
-
-    void timestamping_data_from_point(gps::PosTime& pos_time, const Point& p);
-
-    //static std::unique_ptr<rapidjson::Document> point_to_msg(const Point& p);
 
     std::unique_ptr<PrecisionTimer> m_precision_timer;
     std::unique_ptr<NMEAReceiver> m_nmea_receiver;
     os::Thread m_check_pps_thread {[this](){ check_pps_thread(); }, "PPS_check", 128};
     os::Queue<Point> m_points_queue;
-
-    Socket m_sock_positioning;
-    Socket m_sock_timestamping;
 
     std::set<Address> m_subscribers;
 };

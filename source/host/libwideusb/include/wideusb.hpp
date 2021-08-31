@@ -5,7 +5,6 @@
 
 #include "communication/networking.hpp"
 #include "asio-utils.hpp"
-#include "host-modules/host-module.hpp"
 
 #include <boost/asio.hpp>
 #include <boost/asio/serial_port.hpp>

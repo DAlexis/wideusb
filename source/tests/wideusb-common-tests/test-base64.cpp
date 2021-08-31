@@ -1,4 +1,5 @@
-#include "tools/base64.hpp"
+
+#include "wideusb-common/utils/base64.hpp"
 
 #include "gtest/gtest.h"
 

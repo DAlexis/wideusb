@@ -1,19 +1,11 @@
-/*#include "host-modules/monitor.hpp"
-
-#include "wideusb.hpp"
-#include "communication/modules/ports.hpp"
-#include "communication/modules/ids.hpp"
+#include "wideusb-common/front/monitor-front.hpp"
 #include "communication/modules/monitor.hpp"
 
-#include <stdexcept>
-#include <iostream>
+#include <string>
 
-using namespace WideUSBHost;
-using namespace WideUSBHost::modules;
-
-Monitor::Monitor(NetSevice& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address) :
+MonitorFront::MonitorFront(NetSevice& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address) :
     ModuleFrontBase(
-        host_connection_service, ids::monitor,
+        host_connection_service, monitor::id,
         device_address,
         my_address,
         on_created
@@ -25,19 +17,15 @@ Monitor::Monitor(NetSevice& host_connection_service, OnModuleCreatedCallback on_
         [this](ISocketUserSide&) { socket_listener(); }
     )
 {
-    m_status_socket.options().input_queue_limit = 1; // We need only last status message
-    m_status_socket.options().need_acknoledgement = false;
-    m_status_socket.options().retransmitting_options.cycles_count = 1;
-    m_status_socket.options().retransmitting_options.timeout = 0;
 }
 
-void Monitor::get_status_async(StatusReceivedCallback callback)
+void MonitorFront::get_status_async(StatusReceivedCallback callback)
 {
     m_on_status_updated = callback;
     request_status();
 }
 
-void Monitor::socket_listener()
+void MonitorFront::socket_listener()
 {
     ISocketUserSide::IncomingMessage incoming = *m_status_socket.get();
 
@@ -55,10 +43,9 @@ void Monitor::socket_listener()
         m_on_status_updated(result);
 }
 
-void Monitor::request_status()
+void MonitorFront::request_status()
 {
     monitor::status::Request request;
     PBuffer body = Buffer::create(sizeof(request), &request);
     m_status_socket.send(m_device_address, body);
 }
-*/

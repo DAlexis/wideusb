@@ -1,4 +1,4 @@
-#include "modules/monitor.hpp"
+#include "modules/monitor-impl.hpp"
 #include "communication/modules/monitor.hpp"
 #include "communication/modules/ports.hpp"
 
@@ -6,34 +6,25 @@
 
 #include <string>
 
-MonitorModule::MonitorModule(NetSevice& net_service, Address monitor_address) :
-    m_sock(net_service, monitor_address, ports::monitor::status_update, [this](ISocketUserSide&) { socket_listener(); })
+MonitorImpl::MonitorImpl(NetSevice& net_service, Address monitor_address) :
+    MonitorBack(net_service, monitor_address)
 {
     m_sock.options().need_acknoledgement = false;
     m_sock.options().retransmitting_options.cycles_count = 1;
     m_sock.options().retransmitting_options.timeout = 0;
 }
 
-void MonitorModule::tick()
+void MonitorImpl::tick()
 {
 
 }
 
-void MonitorModule::socket_listener()
+uint32_t MonitorImpl::get_heap_used()
 {
-    monitor::status::Response response;
-    response.heap_total = heap_total;
-    response.heap_used = heap_used;
-    PBuffer resp_buffer = Buffer::create(sizeof(response), &response);
+    return heap_used;
+}
 
-    while (m_sock.has_data())
-    {
-        Socket::IncomingMessage incoming = *m_sock.get();
-
-        auto request = try_interpret_buffer_no_magic<monitor::status::Request>(incoming.data);
-        if (!request)
-            continue;
-
-        m_sock.send(incoming.sender, resp_buffer);
-    }
+uint32_t MonitorImpl::get_heap_total()
+{
+    return heap_total;
 }

@@ -62,7 +62,6 @@ set(H_HEADERS
     ./Drivers/CMSIS/Device/ST/STM32F4xx/Include/system_stm32f4xx.h
     ./Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f407xx.h
     ./Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
-    ./cpp/include/modules/gps/minmea.h
     ./cpp/include/cpp-bootstrap.h
     ./Middlewares/Third_Party/FreeRTOS/Source/include/FreeRTOS.h
     ./Middlewares/Third_Party/FreeRTOS/Source/include/event_groups.h
@@ -102,19 +101,14 @@ set(H_HEADERS
 
     ./cpp/include/host-communication/usb-physical-layer.hpp
     ./cpp/include/host-communication.hpp
-    ./cpp/include/utilities.hpp
-    ./cpp/include/modules/gps.hpp
-    ./cpp/include/modules/dac.hpp
+    ./cpp/include/modules/gps-impl.hpp
+    ./cpp/include/modules/dac-impl.hpp
     ./cpp/include/modules/module-base.hpp
     ./cpp/include/modules/core.hpp
     ./cpp/include/modules/gps/nmea-receiver.hpp
-    ./cpp/include/modules/gps/point.hpp
-    ./cpp/include/modules/gps/nmea-parser.hpp
     ./cpp/include/modules/gps/precision-timer.hpp
-    ./cpp/include/modules/monitor.hpp
+    ./cpp/include/modules/monitor-impl.hpp
     ./cpp/include/os/cpp-freertos.hpp
-    ./cpp/include/tools/base64.hpp
-    ./cpp/include/tools/buffer.hpp
     ./cpp/include/data-saver.hpp
     ./cpp/include/macro.hpp
     ./cpp/include/host-communication-interface.hpp
@@ -182,17 +176,11 @@ set(CPP_SOURCES
     ./cpp/src/modules/core.cpp
     ./cpp/src/modules/gps/nmea-receiver.cpp
     ./cpp/src/modules/gps/precision-timer.cpp
-    ./cpp/src/modules/gps/nmea-parser.cpp
-    ./cpp/src/modules/gps/minmea.cpp
-    ./cpp/src/modules/gps/point.cpp
     ./cpp/src/modules/monitor.cpp
-    ./cpp/src/modules/dac.cpp
-    ./cpp/src/modules/gps.cpp
+    ./cpp/src/modules/dac-impl.cpp
+    ./cpp/src/modules/gps-impl.cpp
     ./cpp/src/os/cpp-freertos-impl.cpp
-    ./cpp/src/tools/base64.cpp
-    ./cpp/src/tools/buffer.cpp
     ./cpp/src/cpp-bootstrap.cpp
-    ./cpp/src/utilities.cpp
 )
 
 set(ASM_SOURCES
@@ -220,7 +208,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --specs=nano.specs -Xlinke
 
 add_executable(${ELF_NAME} ${EXE_SOURCES})
 
-target_link_libraries(${ELF_NAME} wideusb-communication)
+target_link_libraries(${ELF_NAME} wideusb-communication wideusb-modules)
 
 target_include_directories(${ELF_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/newlib

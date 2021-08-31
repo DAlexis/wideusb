@@ -1,6 +1,6 @@
 #include "wideusb.hpp"
-#include "host-modules/monitor.hpp"
-#include "host-modules/gps.hpp"
+#include "wideusb-common/front/gps-front.hpp"
+#include "wideusb-common/front/monitor-front.hpp"
 
 #include <iostream>
 #include <ctime>
@@ -11,10 +11,9 @@
 #include <chrono>
 
 using namespace WideUSBHost;
-using namespace WideUSBHost::modules;
 
 std::unique_ptr<Device> device;
-std::unique_ptr<Monitor> monitor;
+std::unique_ptr<MonitorFront> monitor;
 
 void on_device_created();
 void on_monitor_created(bool success);
@@ -24,7 +23,7 @@ void on_device_created()
 {
     std::cout << "Device discovered, addr = " << device->device_address() << std::endl;
     std::cout << "Creating monitor" << std::endl;
-    monitor.reset(new Monitor(*device, on_monitor_created));
+    monitor.reset(new MonitorFront(device->net_service(), on_monitor_created, device->host_address(), device->device_address()));
 }
 
 void on_monitor_created(bool success)
@@ -52,7 +51,6 @@ int main()
     using namespace std::chrono_literals;
     srand(time(NULL));
 
-    std::unique_ptr<Monitor> monitor;
     device.reset(new Device(0x87654321, "/dev/ttyACM0", on_device_created));
 
     DeferredTask::run(device->io_service(), 1000, [](){ std::cout << "Deferred task 1" << std::endl; });
@@ -63,7 +61,7 @@ int main()
     runner.run_thread();
     std::this_thread::sleep_for(10s);
 
-    GPS gps(*device, nullptr);
+    GPSFront gps(device->net_service(), nullptr, device->host_address(), device->device_address());
     //device->run_io_service();
     return 0;
 }

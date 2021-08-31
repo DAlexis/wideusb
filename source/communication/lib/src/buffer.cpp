@@ -329,6 +329,7 @@ MemBlock RingBuffer::get_continious_block(size_t size) const
     } else {
         result.size = std::min(uint32_t(size), uint32_t(m_contents.size()) - m_p_read);
     }
+    return result;
 }
 
 bool RingBuffer::empty() const

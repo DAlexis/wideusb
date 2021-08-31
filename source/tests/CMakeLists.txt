@@ -15,7 +15,7 @@ set(CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -O3 -g -DNDEBUG")
 # To enable ctest usage
 enable_testing()
 add_subdirectory(communication)
-add_subdirectory(tests)
+add_subdirectory(wideusb-common-tests)
 add_subdirectory(libwideusb-tests)
 
 

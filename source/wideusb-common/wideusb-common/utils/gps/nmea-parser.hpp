@@ -1,8 +1,8 @@
 #ifndef NMEA_PARSER_HPP_INCLUDED
 #define NMEA_PARSER_HPP_INCLUDED
 
-#include "modules/gps/point.hpp"
-#include "modules/gps/minmea.h"
+#include "wideusb-common/utils/point.hpp"
+#include "wideusb-common/utils/gps/minmea.h"
 #include <string>
 #include <ctime>
 

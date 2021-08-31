@@ -1,7 +1,7 @@
 #include "modules/core.hpp"
-#include "modules/monitor.hpp"
-#include "modules/gps.hpp"
-#include "modules/dac.hpp"
+#include "modules/monitor-impl.hpp"
+#include "modules/gps-impl.hpp"
+#include "modules/dac-impl.hpp"
 
 #include "host-communication/usb-physical-layer.hpp"
 #include "communication/binary/channel.hpp"
@@ -44,13 +44,13 @@ bool Core::create_module(ModuleID id)
     switch (id)
     {
     case ids::monitor:
-        m_modules[id] = std::make_shared<MonitorModule>(m_net_srv, m_device_address);
+        m_modules[id] = std::make_shared<MonitorImpl>(m_net_srv, m_device_address);
     break;
     case ids::gps:
-        m_modules[id] = std::make_shared<GPSModule>(m_net_srv, m_device_address);
+        m_modules[id] = std::make_shared<GPSImpl>(m_net_srv, m_device_address);
     break;
     case ids::dac:
-        m_modules[id] = std::make_shared<DACModule>(m_net_srv, m_device_address);
+        m_modules[id] = std::make_shared<DACImpl>(m_net_srv, m_device_address);
     break;
     default:
         return false;

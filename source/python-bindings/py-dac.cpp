@@ -1,12 +1,16 @@
 #include "py-dac.hpp"
 #include <iostream>
 
-using namespace WideUSBHost::modules;
-
 PyDAC::PyDAC(PyWideUSBDevice& device, Address custom_host_address, Address custom_device_address)
 {
     Waiter<bool> waiter;
-    m_dac.reset(new DAC(device.device(), waiter.get_waiter_callback(), custom_host_address, custom_device_address));
+    m_dac.reset(
+                new DACFront(
+                    device.device().net_service(), waiter.get_waiter_callback(),
+                    custom_host_address ? custom_host_address : device.device().host_address(),
+                    custom_device_address ? custom_device_address : device.device().device_address()
+                    )
+                );
     bool success = waiter.wait();
     if (!success)
         throw std::runtime_error("DAC module creation failed");
