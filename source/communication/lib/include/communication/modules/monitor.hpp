@@ -7,7 +7,7 @@
 
 namespace monitor {
 
-    constexpr static ModuleID id = ids::core;
+    constexpr static ModuleID id = ids::monitor;
 
     namespace status {
 

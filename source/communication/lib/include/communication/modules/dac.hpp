@@ -58,8 +58,8 @@ namespace dac {
             constexpr static uint8_t magic = 3;
             const uint8_t magic_value = magic;
 
-            uint8_t run_stop;
-            Address status_reports_receiver;
+            uint8_t run_stop = stop;
+            Address status_reports_receiver = 0;
         };
     }
     namespace data {

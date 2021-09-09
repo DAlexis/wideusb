@@ -1,4 +1,4 @@
-#include "modules/dac-impl.hpp"
+﻿#include "modules/dac-impl.hpp"
 #include "dac.h"
 #include "tim.h"
 
@@ -77,23 +77,14 @@ void DACImpl::play_next_block()
 {
     /*HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)test_buffer, 100, DAC_ALIGN_12B_L);
     return;*/
-    if (m_stop_now)
+    /*if (m_stop_now)
     {
         m_running = false;
         return;
-    }
+    }*/
     switch (m_run_mode) {
     case RunMode::continious:
-        {
-            // Check if we have some new data in the buffer. Else previous fragment will be replayed
-            if (m_ring_buffer->size() > m_currently_being_played.size)
-            {
-                m_ring_buffer->skip(m_currently_being_played.size);
-            }
-            m_currently_being_played = m_ring_buffer->get_continious_block(max_dma_chunk_size);
-            HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*) m_currently_being_played.data, m_currently_being_played.size / 2, DAC_ALIGN_12B_L);
-            m_already_notified = false;
-        }
+        play_next_continious_block();
         break;
     case RunMode::repeat:
         HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*) m_linear_buffer->data(), m_linear_buffer->size() / 2, DAC_ALIGN_12B_L);
@@ -102,6 +93,18 @@ void DACImpl::play_next_block()
         m_running = false;
         break;
     }
+}
+
+void DACImpl::play_next_continious_block()
+{
+    // Check if we have some new data in the buffer. Else previous fragment will be replayed
+    if (m_ring_buffer->size() > m_currently_being_played.size)
+    {
+        m_ring_buffer->skip(m_currently_being_played.size);
+    }
+    m_currently_being_played = m_ring_buffer->get_continious_block(max_dma_chunk_size);
+    HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*) m_currently_being_played.data, m_currently_being_played.size / 2, DAC_ALIGN_12B_L);
+    m_already_notified = false;
 }
 
 void DACImpl::run()
@@ -111,7 +114,8 @@ void DACImpl::run()
     m_stop_now = false;
     switch (m_run_mode) {
     case RunMode::continious:
-        play_next_block();
+        m_currently_being_played.size = 0; // To prevent any data skip at first time
+        play_next_continious_block();
         break;
     case RunMode::repeat:
     case RunMode::single:
@@ -121,8 +125,9 @@ void DACImpl::run()
 
 void DACImpl::stop()
 {
-    m_stop_now = true;
+    //m_stop_now = true;
     HAL_DAC_Stop_DMA(&hdac, DAC_CHANNEL_1);
+    m_running = false;
 }
 
 void DACImpl::receive_data(PBuffer data)

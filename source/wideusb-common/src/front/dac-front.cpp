@@ -19,19 +19,19 @@ DACFront::DACFront(NetSevice& host_connection_service, OnModuleCreatedCallback o
         my_address,
         dac::setup::port,
         [this](ISocketUserSide&) { sock_setup_listener(); },
-        [this](uint32_t id, bool success) { sock_setup_on_received_by_device(id, success); }
+        [this](uint32_t id, bool success) { sock_setup_on_received(id, success); }
     ),
     m_sock_data(
         m_host_connection_service,
         my_address,
         dac::data::port,
-        [this](ISocketUserSide&) { sock_data_lestener(); },
+        [this](ISocketUserSide&) { sock_data_listener(); },
         [this](uint32_t id, bool success) { sock_data_on_received(id, success); }
     )
 {
 }
 
-void DACFront::init_continious(uint16_t buffer_size, uint32_t prescaler, uint32_t period, uint16_t dma_chunk_size, uint16_t notify_when_left, OnInitDoneCallback on_init_done)
+void DACFront::init_continious(uint16_t buffer_size, uint32_t prescaler, uint32_t period, uint16_t dma_chunk_size, uint16_t notify_when_left, OnInitDoneCallback on_init_done, OnBufferIsShort on_buffer_short)
 {
     dac::setup::InitContinious request;
     request.timings.period = period;
@@ -41,6 +41,7 @@ void DACFront::init_continious(uint16_t buffer_size, uint32_t prescaler, uint32_
     request.notify_when_left = notify_when_left;
 
     m_on_init_done = on_init_done;
+    m_on_buffer_short = on_buffer_short;
     m_buffer_size = buffer_size;
 
     m_sock_setup.send(m_device_address, Buffer::serialize(request));
@@ -83,19 +84,24 @@ void DACFront::add_continious_data_chunk(const std::vector<float>& data)
 }
 
 
-void DACFront::run(OnRun callback)
+void DACFront::run(OnRun on_run)
 {
     dac::setup::RunRequest request;
     request.run_stop = dac::setup::RunRequest::run;
     request.status_reports_receiver = m_host_address;
 
-    m_on_run_callback = callback;
+    m_on_run = on_run;
     m_run_segment_id = m_sock_setup.send(m_device_address, Buffer::serialize(request));
 }
 
-void DACFront::stop()
+void DACFront::stop(OnStop on_stop)
 {
+    dac::setup::RunRequest request;
+    request.run_stop = dac::setup::RunRequest::stop;
+    request.status_reports_receiver = m_host_address;
 
+    m_on_stop = on_stop;
+    m_stop_segment_id = m_sock_setup.send(m_device_address, Buffer::serialize(request));
 }
 
 void DACFront::sock_setup_listener()
@@ -113,19 +119,37 @@ void DACFront::sock_setup_listener()
     }
 }
 
-void DACFront::sock_data_lestener()
+void DACFront::sock_data_listener()
 {
+    // @todo TODO May be drop all notification except last?
+    while (m_sock_setup.has_data())
+    {
+        ISocketUserSide::IncomingMessage incoming = *m_sock_setup.get();
+        auto buffer_is_short = try_interpret_buffer_magic<dac::data::BufferIsShortNotification>(incoming.data);
+        if (buffer_is_short)
+        {
+            if (m_on_buffer_short)
+                m_on_buffer_short(buffer_is_short->buffer_size);
+        }
+    }
 }
 
-void DACFront::sock_setup_on_received_by_device(uint32_t id, bool success)
+void DACFront::sock_setup_on_received(uint32_t id, bool success)
 {
     //std::cout << "Received by device" << std::endl;
     if (id == m_run_segment_id)
     {
-        if (m_on_run_callback)
-            m_on_run_callback(success);
+        if (m_on_run)
+            m_on_run(success);
         m_run_segment_id = 0;
-        m_on_run_callback = nullptr;
+        m_on_run = nullptr;
+    }
+    else if (id == m_stop_segment_id)
+    {
+        if (m_on_stop)
+            m_on_stop(success);
+        m_stop_segment_id = 0;
+        m_on_stop = nullptr;
     }
 }
 

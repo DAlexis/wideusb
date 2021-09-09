@@ -4,6 +4,9 @@
 MonitorBack::MonitorBack(NetSevice& net_service, Address module_address) :
     m_sock(net_service, module_address, ports::monitor::status_update, [this](ISocketUserSide&) { socket_listener(); })
 {
+    m_sock.options().need_acknoledgement = false;
+    m_sock.options().retransmitting_options.cycles_count = 1;
+    m_sock.options().retransmitting_options.timeout = 0;
 }
 
 

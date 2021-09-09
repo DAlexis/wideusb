@@ -38,6 +38,7 @@ set(H_HEADERS
     ./Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_rcc_ex.h
     ./Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_pwr_ex.h
     ./Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_tim.h
+    ./Drivers/STM32F4xx_HAL_Driver/Inc/stm32f4xx_hal_spi.h
     ./Drivers/CMSIS/Include/core_cm0plus.h
     ./Drivers/CMSIS/Include/cmsis_version.h
     ./Drivers/CMSIS/Include/core_armv8mbl.h
@@ -97,6 +98,7 @@ set(H_HEADERS
     ./Core/Inc/gpio.h
     ./Core/Inc/usart.h
     ./Core/Inc/dma.h
+    ./Core/Inc/spi.h
     ./c-tools/include/usbd-input-handle.h
 
     ./cpp/include/host-communication/usb-physical-layer.hpp
@@ -142,6 +144,7 @@ set(C_SOURCES
     ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_tim.c
     ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dac_ex.c
     ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c
+    ./Drivers/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_spi.c
     ./Middlewares/Third_Party/FreeRTOS/Source/croutine.c
     ./Middlewares/Third_Party/FreeRTOS/Source/CMSIS_RTOS/cmsis_os.c
     ./Middlewares/Third_Party/FreeRTOS/Source/tasks.c
@@ -167,6 +170,7 @@ set(C_SOURCES
     ./Core/Src/main.c
     ./Core/Src/usart.c
     ./Core/Src/freertos.c
+    ./Core/Src/spi.c
     ./c-tools/src/usbd-input-handle.c
 )
 
@@ -176,7 +180,7 @@ set(CPP_SOURCES
     ./cpp/src/modules/core.cpp
     ./cpp/src/modules/gps/nmea-receiver.cpp
     ./cpp/src/modules/gps/precision-timer.cpp
-    ./cpp/src/modules/monitor.cpp
+    ./cpp/src/modules/monitor-impl.cpp
     ./cpp/src/modules/dac-impl.cpp
     ./cpp/src/modules/gps-impl.cpp
     ./cpp/src/os/cpp-freertos-impl.cpp

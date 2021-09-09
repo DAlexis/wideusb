@@ -33,6 +33,7 @@ private:
     void receive_data(PBuffer data) override;
 
     void notify_data_sender();
+    void play_next_continious_block();
 
     RunMode m_run_mode = RunMode::repeat;
 

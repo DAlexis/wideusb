@@ -86,6 +86,12 @@ void Error_Handler(void);
 #define DAC_OUT_CH_1_GPIO_Port GPIOA
 #define MY_LED1_Pin GPIO_PIN_12
 #define MY_LED1_GPIO_Port GPIOD
+#define NRF24L01_IRQ_Pin GPIO_PIN_6
+#define NRF24L01_IRQ_GPIO_Port GPIOB
+#define NRF24L01_CSN_Pin GPIO_PIN_7
+#define NRF24L01_CSN_GPIO_Port GPIOB
+#define NRF24L01_CE_Pin GPIO_PIN_0
+#define NRF24L01_CE_GPIO_Port GPIOE
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

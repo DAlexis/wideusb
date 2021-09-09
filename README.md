@@ -4,6 +4,8 @@ Board based on STM32F4 to connect various perepherial over USB. May be useful wi
 
 Nearest roadmap
 =====
+- Bugs
+    - [X] Monitor does not work with new front/back interface
 - Networking
     - [ ] Retransmitting to another network devices
     - [ ] Internal transmission without network
@@ -35,6 +37,7 @@ Nearest roadmap
     - [ ] Add timeout for operations
 
 - Synchronous python API
+    - [ ] Replace condition variable with promise/future and wait_for (No! Timeout shoud be made in another way!)
     ...
 
 - [ ] DAC module
