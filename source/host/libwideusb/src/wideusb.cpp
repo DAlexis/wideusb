@@ -1,9 +1,9 @@
-#include "wideusb.hpp"
-#include "communication/binary/channel.hpp"
-#include "communication/binary/network.hpp"
-#include "communication/binary/transport.hpp"
-#include "communication/modules/ports.hpp"
-#include "communication/modules/core.hpp"
+#include "wideusb/wideusb.hpp"
+#include "wideusb-common/communication/binary/channel.hpp"
+#include "wideusb-common/communication/binary/network.hpp"
+#include "wideusb-common/communication/binary/transport.hpp"
+#include "wideusb-common/communication/modules/ports.hpp"
+#include "wideusb-common/communication/modules/core.hpp"
 
 #include <iostream>
 #include <limits>
@@ -13,11 +13,9 @@ using namespace WideUSBHost;
 using namespace boost::asio;
 
 Device::Device(Address host_address, const std::string& port, OnDeviceDiscoveredCallback on_discovered, int baudrate) :
-
-    m_physical_layer(std::make_shared<SerialPortPhysicalLayer>(
+    m_physical_layer(std::make_shared<PhysicalLayerSerialPort>(
         m_io_service,
         port,
-        [this]() { post_serve_sockets(); },
         baudrate)),
     m_net_srv(
         m_physical_layer,
@@ -98,7 +96,7 @@ uint32_t Device::time_ms()
     return duration % std::numeric_limits<uint32_t>::max();
 }
 
-NetSevice& Device::net_service()
+NetService& Device::net_service()
 {
     return m_net_srv;
 }

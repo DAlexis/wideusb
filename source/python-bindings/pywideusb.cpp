@@ -1,6 +1,7 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 
+#include "py-physical-layer.hpp"
 #include "py-wideusb-device.hpp"
 #include "py-monitor.hpp"
 #include "py-gps.hpp"
@@ -12,6 +13,12 @@ namespace py = pybind11;
 
 PYBIND11_MODULE(pywideusb, m) {
     m.doc() = "Python bindings for wideusb device";
+
+    add_io_service(m);
+
+    add_i_physical_layer(m);
+    add_usb_physical_layer(m);
+    add_tcp_physical_layer(m);
 
     py::class_<PyWideUSBDevice>(m, "Device")
         .def(py::init<uint64_t, std::string, int>(),

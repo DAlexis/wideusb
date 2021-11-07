@@ -2,7 +2,7 @@
 #define GPSBACK_HPP
 
 
-#include "communication/networking.hpp"
+#include "wideusb-common/communication/networking.hpp"
 #include "wideusb-common/utils/point.hpp"
 
 namespace gps { struct PosTime; }
@@ -10,7 +10,7 @@ namespace gps { struct PosTime; }
 class GPSModuleBack
 {
 public:
-    GPSModuleBack(NetSevice& net_service, Address module_address);
+    GPSModuleBack(NetService& net_service, Address module_address);
 
     virtual Point point() = 0;
 

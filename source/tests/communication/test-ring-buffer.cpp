@@ -1,4 +1,4 @@
-#include "buffer.hpp"
+#include "wideusb-common/buffer.hpp"
 
 #include "gtest/gtest.h"
 

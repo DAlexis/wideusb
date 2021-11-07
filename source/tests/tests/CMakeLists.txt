@@ -18,7 +18,6 @@ set(EXE_HPP
 
 add_executable(${PROJECT_NAME} ${EXE_SOURCES} ${EXE_HPP})
 
-target_link_libraries(${PROJECT_NAME} wideusb-communication)
 target_link_libraries(${PROJECT_NAME} gtest_main)
 
 target_include_directories(${PROJECT_NAME} PRIVATE

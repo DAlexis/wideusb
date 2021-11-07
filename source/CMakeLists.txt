@@ -4,7 +4,6 @@ project("wideusb-all")
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_subdirectory(communication/lib)
 add_subdirectory(wideusb-common)
 
 IF(ARM_NONE_EABI_GCC_TOOLCHAIN)

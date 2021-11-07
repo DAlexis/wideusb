@@ -19,7 +19,7 @@ public:
     using OnStop = std::function<void(bool)>;
     using OnBufferIsShort = std::function<void(size_t)>;
 
-    DACFront(NetSevice& host_connection_service, OnModuleCreatedCallback on_created, Address my_address = 0, Address device_address = 0);
+    DACFront(NetService& host_connection_service, OnModuleCreatedCallback on_created, Address my_address = 0, Address device_address = 0);
 
     void init_continious(uint16_t buffer_size, uint32_t prescaler, uint32_t period, uint16_t dma_chunk_size, uint16_t notify_when_left, OnInitDoneCallback on_init_done, OnBufferIsShort on_buffer_short);
     void init_sample(uint16_t buffer_size, uint32_t prescaler, uint32_t period, bool repeat, OnInitDoneCallback on_init_done);

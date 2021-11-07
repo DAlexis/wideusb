@@ -1,27 +1,22 @@
 #include "cpp-bootstrap.h"
 #include "os/cpp-freertos.hpp"
-#include "host-communication.hpp"
 #include "modules/gps-impl.hpp"
 #include "modules/monitor-impl.hpp"
 #include "modules/gps/nmea-receiver.hpp"
 #include "modules/core.hpp"
 #include "macro.hpp"
 
-#include "communication/networking.hpp"
+#include "wideusb-common/communication/networking.hpp"
 #include "host-communication/usb-physical-layer.hpp"
-#include "communication/binary/channel.hpp"
-#include "communication/binary/network.hpp"
-#include "communication/binary/transport.hpp"
+#include "wideusb-common/communication/binary/channel.hpp"
+#include "wideusb-common/communication/binary/network.hpp"
+#include "wideusb-common/communication/binary/transport.hpp"
+
+#include "wideusb-device.hpp"
 
 #include "usart.h"
 #include <usbd_cdc_if.h>
 #include <stdio.h>
-
-//HostCommunicator communicator;
-
-/*class CoreModule;
-std::unique_ptr<CoreModule> core;
-std::unique_ptr<GPSModule> gps;*/
 
 #include "dac.h"
 #include "dma.h"
@@ -45,53 +40,7 @@ void cpp_bootstrap()
     */
 
     printf("Starting\r\n");
-    Core core;
-    /*NetSevice net_srv(
-        std::make_shared<USBPhysicalLayer>(),
-        std::make_shared<ChannelLayerBinary>(),
-        std::make_shared<NetworkLayerBinary>(),
-        std::make_shared<TransportLayerBinary>()
-    );
-    printf("net_srv created\r\n");
-
-    MonitorModule monitor(net_srv, 0x12345678, 1);*/
-/*
-    Socket sock(net_srv, 0x12345678, 0x87654321, 10);
-    sock.options().retransmitting_options.cycles_count = 0;
-    sock.options().retransmitting_options.timeout = 0;
-
-    const char text[] = "hello, networking!! Im alive and sending you this data!";
-    sock.send(Buffer::create(sizeof(text), text));
-    printf("send\r\n");*/
-    //int c = 0;
-    for (;;)
-    {
-        core.tick();
-        /*t_srv.serve_sockets(os::get_os_time());*/
-        /*os::delay(10);
-        if (c == 10)
-        {
-            printf("Alive\r\n");
-            c = 0;
-        }
-        c++;*/
-    }
-
-    /*gps.reset(new GPSModule);
-    core.reset(new CoreModule);*/
-/*
-    communicator.add_module(core.get());
-    communicator.set_core_module(core.get());
-
-    communicator.add_module(gps.get());
-    communicator.run_thread();
-    //NMEAReceiver *r = new NMEAReceiver(&huart3);
-    gps->enable();
-    for (;;)
-    {
-        os::delay(1000);
-        //printf("Alive 2\r\n");
-        core->assert_text("cpp_bootstrap() main cycle alive");
-    }*/
+    WideusbDevice dev;
+    dev.run();
 
 }

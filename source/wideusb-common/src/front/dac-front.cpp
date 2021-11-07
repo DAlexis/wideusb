@@ -1,13 +1,13 @@
 #include "wideusb-common/front/dac-front.hpp"
 
-#include "communication/modules/dac.hpp"
+#include "wideusb-common/communication/modules/dac.hpp"
 //#include "wideusb.hpp"
 
 //#include <iostream>
 
 #include <cmath>
 
-DACFront::DACFront(NetSevice& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address) :
+DACFront::DACFront(NetService& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address) :
     ModuleFrontBase(
         host_connection_service, dac::id,
         device_address,

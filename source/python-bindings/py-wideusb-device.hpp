@@ -1,8 +1,8 @@
 #ifndef PYWIDEUSBDEVICE_HPP
 #define PYWIDEUSBDEVICE_HPP
 
-#include "wideusb.hpp"
-#include "asio-utils.hpp"
+#include "wideusb/wideusb.hpp"
+#include "wideusb/asio-utils.hpp"
 
 #include <memory>
 

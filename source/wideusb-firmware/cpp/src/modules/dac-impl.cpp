@@ -6,7 +6,7 @@ static DACImpl* active_dac_module = nullptr;
 
 extern uint16_t test_buffer[];
 
-DACImpl::DACImpl(NetSevice& net_service, Address module_address) :
+DACImpl::DACImpl(NetService& net_service, Address module_address) :
     DACModuleBackend(net_service, module_address)
 
 {

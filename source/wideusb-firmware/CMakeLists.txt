@@ -102,10 +102,8 @@ set(H_HEADERS
     ./c-tools/include/usbd-input-handle.h
 
     ./cpp/include/host-communication/usb-physical-layer.hpp
-    ./cpp/include/host-communication.hpp
     ./cpp/include/modules/gps-impl.hpp
     ./cpp/include/modules/dac-impl.hpp
-    ./cpp/include/modules/module-base.hpp
     ./cpp/include/modules/core.hpp
     ./cpp/include/modules/gps/nmea-receiver.hpp
     ./cpp/include/modules/gps/precision-timer.hpp
@@ -113,7 +111,7 @@ set(H_HEADERS
     ./cpp/include/os/cpp-freertos.hpp
     ./cpp/include/data-saver.hpp
     ./cpp/include/macro.hpp
-    ./cpp/include/host-communication-interface.hpp
+    ./cpp/include/wideusb-device.hpp
 )
 
 
@@ -185,6 +183,7 @@ set(CPP_SOURCES
     ./cpp/src/modules/gps-impl.cpp
     ./cpp/src/os/cpp-freertos-impl.cpp
     ./cpp/src/cpp-bootstrap.cpp
+    ./cpp/src/wideusb-device.cpp
 )
 
 set(ASM_SOURCES
@@ -212,7 +211,7 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --specs=nano.specs -Xlinke
 
 add_executable(${ELF_NAME} ${EXE_SOURCES})
 
-target_link_libraries(${ELF_NAME} wideusb-communication wideusb-modules)
+target_link_libraries(${ELF_NAME} wideusb-common)
 
 target_include_directories(${ELF_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/newlib

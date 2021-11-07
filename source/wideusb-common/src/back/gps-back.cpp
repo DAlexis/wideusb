@@ -1,7 +1,7 @@
 #include "wideusb-common/back/gps-back.hpp"
-#include "communication/modules/gps.hpp"
+#include "wideusb-common/communication/modules/gps.hpp"
 
-GPSModuleBack::GPSModuleBack(NetSevice& net_service, Address module_address) :
+GPSModuleBack::GPSModuleBack(NetService& net_service, Address module_address) :
     m_sock_positioning(net_service, module_address, ports::gps::positioning, [this](ISocketUserSide&) { socket_listener_positioning(); }),
     m_sock_timestamping(net_service, module_address, ports::gps::timestamping, [this](ISocketUserSide&) { socket_listener_timestamping(); })
 {

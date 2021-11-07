@@ -2,13 +2,13 @@
 #define MONITORFRONT_HPP
 
 #include "wideusb-common/front/base.hpp"
-#include "communication/networking.hpp"
+#include "wideusb-common/communication/networking.hpp"
 
 class MonitorFront : public ModuleFrontBase
 {
 public:
     using StatusReceivedCallback = std::function<void(const std::string&)>;
-    MonitorFront(NetSevice& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address);
+    MonitorFront(NetService& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address);
     void get_status_async(StatusReceivedCallback callback);
 
 private:

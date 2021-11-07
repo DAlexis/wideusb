@@ -8,5 +8,5 @@ set(EXE_SOURCES
 
 add_executable(${PROJECT_NAME} ${EXE_SOURCES})
 
-target_link_libraries(${PROJECT_NAME} wideusb-modules)
+target_link_libraries(${PROJECT_NAME} wideusb-common)
 target_link_libraries(${PROJECT_NAME} gtest_main)

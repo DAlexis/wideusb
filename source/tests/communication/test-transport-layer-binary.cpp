@@ -1,4 +1,4 @@
-#include "communication/binary/transport.hpp"
+#include "wideusb-common/communication/binary/transport.hpp"
 
 #include "gtest/gtest.h"
 

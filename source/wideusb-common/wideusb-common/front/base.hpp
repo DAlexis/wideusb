@@ -1,7 +1,7 @@
 #ifndef FRONT_BASE_HPP
 #define FRONT_BASE_HPP
 
-#include <communication/networking.hpp>
+#include <wideusb-common/communication/networking.hpp>
 
 #include <memory>
 #include <functional>
@@ -10,13 +10,13 @@ class ModuleFrontBase
 {
 public:
     using OnModuleCreatedCallback = std::function<void(bool)>;
-    ModuleFrontBase(NetSevice& host_connection_service, uint32_t module_id, Address device_address, Address host_address, OnModuleCreatedCallback on_created);
+    ModuleFrontBase(NetService& host_connection_service, uint32_t module_id, Address device_address, Address host_address, OnModuleCreatedCallback on_created);
     ~ModuleFrontBase();
 
 protected:
     void create_module();
 
-    NetSevice& m_host_connection_service;
+    NetService& m_host_connection_service;
     Address m_device_address;
     Address m_host_address;
 

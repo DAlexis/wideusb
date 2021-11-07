@@ -2,7 +2,7 @@
 #define GPSFRONT_HPP
 
 #include "wideusb-common/front/base.hpp"
-#include "communication/networking.hpp"
+#include "wideusb-common/communication/networking.hpp"
 
 #include <string>
 #include <optional>
@@ -27,7 +27,7 @@ public:
     using SubscribedCallback = std::function<void(bool)>;
     using TimestampingCallback = std::function<void(Position)>;
 
-    GPSFront(NetSevice& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address);
+    GPSFront(NetService& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address);
 
     void get_position_async(PositionReceivedCallback callback);
     void subscribe_to_timestamping(SubscribedCallback on_subscribe, TimestampingCallback on_timestamp);

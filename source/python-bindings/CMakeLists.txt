@@ -5,8 +5,13 @@ add_subdirectory(3rdparty/pybind11)
 
 SET(MODULE_SOURCES
     pywideusb.cpp
+    py-buffer.hpp
+    py-buffer.cpp
+    py-physical-layer.hpp
+    py-physical-layer.cpp
     py-wideusb-device.cpp
     py-wideusb-device.hpp
+    py-net-service.hpp
     py-monitor.cpp
     py-monitor.hpp
     py-gps.cpp
@@ -16,7 +21,7 @@ SET(MODULE_SOURCES
 )
 
 add_library(${PROJECT_NAME} MODULE ${MODULE_SOURCES})
-target_link_libraries(${PROJECT_NAME} PUBLIC pybind11::module wideusb)
+target_link_libraries(${PROJECT_NAME} PUBLIC pybind11::module wideusb-host wideusb-common)
 
 configure_file(tests/test-dac.py test-dac.py COPYONLY)
 

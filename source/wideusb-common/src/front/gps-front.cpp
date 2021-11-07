@@ -1,9 +1,9 @@
 #include "wideusb-common/front/gps-front.hpp"
 
-#include "communication/modules/gps.hpp"
+#include "wideusb-common/communication/modules/gps.hpp"
 #include <iostream>
 
-GPSFront::GPSFront(NetSevice& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address) :
+GPSFront::GPSFront(NetService& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address) :
     ModuleFrontBase(
         host_connection_service, gps::id,
         device_address,
@@ -43,7 +43,7 @@ void GPSFront::subscribe_to_timestamping(SubscribedCallback on_subscribe, Timest
 //    std::cout << "Sizeof(subscribe_req) = " << sizeof(subscribe_req) << std::endl;
 
     PBuffer pb = Buffer::serialize(subscribe_req);
-    auto inter = try_interpret_buffer_magic<gps::timestamping::SubscribeRequest>(pb);
+//    auto inter = try_interpret_buffer_magic<gps::timestamping::SubscribeRequest>(pb);
 //    std::cout << " - - - has_value: " << inter.has_value() << std::endl;
 
     m_sock_timestamping.send(m_device_address, pb);

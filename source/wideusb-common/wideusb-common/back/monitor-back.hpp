@@ -1,12 +1,12 @@
 #ifndef MONITORBACK_HPP
 #define MONITORBACK_HPP
 
-#include "communication/networking.hpp"
+#include "wideusb-common/communication/networking.hpp"
 
 class MonitorBack
 {
 public:
-    MonitorBack(NetSevice& net_service, Address module_address);
+    MonitorBack(NetService& net_service, Address module_address);
 
 protected:
     Socket m_sock;

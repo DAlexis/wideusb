@@ -1,13 +1,12 @@
 #include "modules/gps-impl.hpp"
-#include "host-communication-interface.hpp"
 
 #include "modules/gps/precision-timer.hpp"
 #include "modules/gps/nmea-receiver.hpp"
-#include "communication/modules/gps.hpp"
+#include "wideusb-common/communication/modules/gps.hpp"
 
 #include "usart.h"
 
-GPSImpl::GPSImpl(NetSevice& net_service, Address module_address) :
+GPSImpl::GPSImpl(NetService& net_service, Address module_address) :
     GPSModuleBack(net_service, module_address)
 {
     enable();

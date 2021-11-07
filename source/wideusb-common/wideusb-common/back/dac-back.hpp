@@ -1,12 +1,12 @@
 #ifndef DAC_BACK_HPP
 #define DAC_BACK_HPP
 
-#include "communication/networking.hpp"
+#include "wideusb-common/communication/networking.hpp"
 
 class DACModuleBackend
 {
 public:
-    DACModuleBackend(NetSevice& net_service, Address module_address);
+    DACModuleBackend(NetService& net_service, Address module_address);
 
 private:
     void sock_setup_listener();

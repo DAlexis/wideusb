@@ -1,4 +1,4 @@
-#include "asio-utils.hpp"
+#include "wideusb/asio-utils.hpp"
 
 #include <iostream>
 
@@ -83,7 +83,6 @@ void AsioServiceRunner::run_thread()
 
 void AsioServiceRunner::stop_thread()
 {
-    m_stop_thread = true;
     m_io_service.stop();
     m_thread->join();
 }

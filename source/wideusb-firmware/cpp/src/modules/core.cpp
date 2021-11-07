@@ -4,13 +4,13 @@
 #include "modules/dac-impl.hpp"
 
 #include "host-communication/usb-physical-layer.hpp"
-#include "communication/binary/channel.hpp"
-#include "communication/binary/network.hpp"
-#include "communication/binary/transport.hpp"
+#include "wideusb-common/communication/binary/channel.hpp"
+#include "wideusb-common/communication/binary/network.hpp"
+#include "wideusb-common/communication/binary/transport.hpp"
 
-#include "communication/modules/ports.hpp"
-#include "communication/modules/core.hpp"
-#include "communication/modules/ids.hpp"
+#include "wideusb-common/communication/modules/ports.hpp"
+#include "wideusb-common/communication/modules/core.hpp"
+#include "wideusb-common/communication/modules/ids.hpp"
 
 #include "os/cpp-freertos.hpp"
 

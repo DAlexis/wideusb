@@ -1,4 +1,4 @@
-#include "wideusb.hpp"
+#include "wideusb/wideusb.hpp"
 #include "wideusb-common/front/gps-front.hpp"
 #include "wideusb-common/front/monitor-front.hpp"
 

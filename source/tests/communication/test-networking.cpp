@@ -1,7 +1,7 @@
-#include "communication/networking.hpp"
-#include "communication/binary/channel.hpp"
-#include "communication/binary/network.hpp"
-#include "communication/binary/transport.hpp"
+#include "wideusb-common/communication/networking.hpp"
+#include "wideusb-common/communication/binary/channel.hpp"
+#include "wideusb-common/communication/binary/network.hpp"
+#include "wideusb-common/communication/binary/transport.hpp"
 
 #include "gtest/gtest.h"
 
@@ -10,7 +10,7 @@ class NetworkingTest : public ::testing::Test
 protected:
     void SetUp() override {
         physical = std::make_shared<PhysicalLayerBuffer>(500);
-        service = std::make_shared<NetSevice>(physical,
+        service = std::make_shared<NetService>(physical,
                                               std::make_shared<ChannelLayerBinary>(),
                                               std::make_shared<NetworkLayerBinary>(),
                                               std::make_shared<TransportLayerBinary>());
@@ -18,7 +18,7 @@ protected:
     }
 
     std::shared_ptr<PhysicalLayerBuffer> physical;
-    std::shared_ptr<NetSevice> service;
+    std::shared_ptr<NetService> service;
 
     const char test_data[23] = ">Some data here again<";
 };

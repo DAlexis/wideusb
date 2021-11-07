@@ -1,14 +1,14 @@
 #ifndef MONITOR_HPP
 #define MONITOR_HPP
 
-#include "communication/networking.hpp"
-#include "module-base.hpp"
+#include "wideusb-common/communication/networking.hpp"
+#include "wideusb-common/module-base.hpp"
 #include "wideusb-common/back/monitor-back.hpp"
 
 class MonitorImpl : public MonitorBack, public IModule
 {
 public:
-    MonitorImpl(NetSevice& net_service, Address monitor_address);
+    MonitorImpl(NetService& net_service, Address monitor_address);
 
     void tick();
 

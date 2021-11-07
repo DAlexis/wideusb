@@ -1,9 +1,9 @@
 #include "wideusb-common/front/monitor-front.hpp"
-#include "communication/modules/monitor.hpp"
+#include "wideusb-common/communication/modules/monitor.hpp"
 
 #include <string>
 
-MonitorFront::MonitorFront(NetSevice& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address) :
+MonitorFront::MonitorFront(NetService& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address) :
     ModuleFrontBase(
         host_connection_service, monitor::id,
         device_address,

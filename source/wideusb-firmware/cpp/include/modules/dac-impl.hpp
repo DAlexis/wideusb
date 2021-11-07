@@ -3,7 +3,7 @@
 
 #include "wideusb-common/back/dac-back.hpp"
 
-#include "module-base.hpp"
+#include "wideusb-common/module-base.hpp"
 
 class DACImpl : public IModule, public DACModuleBackend
 {
@@ -11,7 +11,7 @@ public:
     constexpr static uint16_t max_buffer_size = 1000;
     constexpr static uint16_t max_dma_chunk_size = 100;
 
-    DACImpl(NetSevice& net_service, Address module_address);
+    DACImpl(NetService& net_service, Address module_address);
     ~DACImpl();
 
     void tick() override;

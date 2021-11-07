@@ -1,7 +1,7 @@
 #include "wideusb-common/back/monitor-back.hpp"
-#include "communication/modules/monitor.hpp"
+#include "wideusb-common/communication/modules/monitor.hpp"
 
-MonitorBack::MonitorBack(NetSevice& net_service, Address module_address) :
+MonitorBack::MonitorBack(NetService& net_service, Address module_address) :
     m_sock(net_service, module_address, ports::monitor::status_update, [this](ISocketUserSide&) { socket_listener(); })
 {
     m_sock.options().need_acknoledgement = false;

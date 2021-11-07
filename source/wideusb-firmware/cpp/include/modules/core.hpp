@@ -1,8 +1,8 @@
 #ifndef MODULES_CORE_HPP_INCLUDED
 #define MODULES_CORE_HPP_INCLUDED
 
-#include "module-base.hpp"
-#include "communication/networking.hpp"
+#include "wideusb-common/module-base.hpp"
+#include "wideusb-common/communication/networking.hpp"
 
 #include <vector>
 #include <memory>
@@ -19,7 +19,7 @@ private:
     void poll_create_module();
 
     Address m_device_address = 0x12345678;
-    NetSevice m_net_srv;
+    NetService m_net_srv;
 
     std::shared_ptr<Socket> m_core_socket;
     std::map<ModuleID, std::shared_ptr<IModule>> m_modules;
