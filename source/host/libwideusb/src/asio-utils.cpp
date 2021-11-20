@@ -92,3 +92,31 @@ void AsioServiceRunner::thread_body()
     boost::asio::io_service::work work(m_io_service);
     m_io_service.run();
 }
+
+IOServiceRunner::IOServiceRunner() :
+    m_work(std::make_shared<boost::asio::io_service::work>(m_io_service)),
+    m_service_thread([this]() { m_io_service.run(); std::cout << "Thread done." << std::endl; })
+{
+}
+
+IOServiceRunner::~IOServiceRunner()
+{
+    stop();
+}
+
+boost::asio::io_service& IOServiceRunner::io_service()
+{
+    return m_io_service;
+}
+
+void IOServiceRunner::stop()
+{
+    m_work.reset();
+    m_io_service.stop();
+    m_service_thread.join();
+}
+
+void IOServiceRunner::join()
+{
+    m_service_thread.join();
+}

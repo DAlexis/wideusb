@@ -2,7 +2,7 @@
 #include "wideusb-common/communication/modules/core.hpp"
 #include "wideusb-common/communication/modules/ids.hpp"
 
-CoreBase::CoreBase(NetService& net_service, Address device_address) :
+DeviceCore::DeviceCore(NetService& net_service, Address device_address) :
     m_device_address(device_address),
     m_net_srv(net_service),
     m_device_discovery_sock(m_net_srv, m_device_address, ports::core::address_discovery, [this](ISocketUserSide&) { sock_device_discovery_listener(); }),
@@ -17,7 +17,7 @@ CoreBase::CoreBase(NetService& net_service, Address device_address) :
 
 }
 
-bool CoreBase::create_module(ModuleID id)
+bool DeviceCore::create_module(ModuleID id)
 {
     if (m_modules.find(id) != m_modules.end())
         return true;
@@ -33,7 +33,7 @@ bool CoreBase::create_module(ModuleID id)
     return true;
 }
 
-void CoreBase::tick()
+void DeviceCore::tick()
 {
     for (auto &it : m_modules)
     {
@@ -41,12 +41,17 @@ void CoreBase::tick()
     }
 }
 
-void CoreBase::add_module_factory(ModuleID id, ModuleFactory factory)
+void DeviceCore::add_module_factory(ModuleID id, ModuleFactory factory)
 {
     m_module_factories[id] = factory;
 }
 
-void CoreBase::sock_device_discovery_listener()
+Address DeviceCore::address()
+{
+    return m_device_address;
+}
+
+void DeviceCore::sock_device_discovery_listener()
 {
     while (m_device_discovery_sock.has_data())
     {
@@ -58,7 +63,7 @@ void CoreBase::sock_device_discovery_listener()
     }
 }
 
-void CoreBase::sock_create_module_listener()
+void DeviceCore::sock_create_module_listener()
 {
     while (m_create_module_sock.has_data())
     {

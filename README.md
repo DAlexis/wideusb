@@ -24,7 +24,8 @@ Nearest roadmap
     - [x] Add package inspection functions
     
 - Modules interface
-    - [ ] For each module make 'module back' and 'module front'. Front should be avaliable from MCU too.
+    - [X] For each module make 'module back' and 'module front'. Front should be avaliable from MCU too.
+    - [ ] Derive backs from IModule
 
 - Monitor module
     - [x] Run new stack on board

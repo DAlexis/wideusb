@@ -19,6 +19,11 @@ PhysicalLayerAsio::PhysicalLayerAsio(boost::asio::io_service& io_service,
 {
 }
 
+PhysicalLayerAsio::~PhysicalLayerAsio()
+{
+    std::cout << "dest" << std::endl;
+}
+
 SerialReadAccessor& PhysicalLayerAsio::incoming()
 {
     return m_input_ring_buffer;
@@ -37,6 +42,12 @@ void PhysicalLayerAsio::send(PBuffer data)
 void PhysicalLayerAsio::on_network_service_connected(NetService& srv)
 {
     m_net_service = &srv;
+}
+
+void PhysicalLayerAsio::post_serve_sockets()
+{
+    if (m_net_service)
+        boost::asio::post(m_io_service, [this]() { m_net_service->serve_sockets(time_ms()); });
 }
 
 void PhysicalLayerAsio::on_data_read(const boost::system::error_code& error, std::size_t bytes_transferred)
@@ -58,9 +69,7 @@ void PhysicalLayerAsio::on_data_read(const boost::system::error_code& error, std
 
         m_input_ring_buffer.put(m_input_buffer.data(), data_size);
 
-        boost::asio::post(m_io_service, [this]() { m_net_service->serve_sockets(time_ms()); });
-        /*if (m_incoming_callback)
-            m_incoming_callback();*/
+        post_serve_sockets();
     }
 
     async_read();

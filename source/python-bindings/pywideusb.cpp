@@ -2,6 +2,8 @@
 #include "pybind11/stl.h"
 
 #include "py-physical-layer.hpp"
+#include "py-asio-utils.hpp"
+#include "py-net-service.hpp"
 #include "py-wideusb-device.hpp"
 #include "py-monitor.hpp"
 #include "py-gps.hpp"
@@ -15,10 +17,14 @@ PYBIND11_MODULE(pywideusb, m) {
     m.doc() = "Python bindings for wideusb device";
 
     add_io_service(m);
+    add_io_service_runner(m);
 
     add_i_physical_layer(m);
     add_usb_physical_layer(m);
     add_tcp_physical_layer(m);
+
+    add_net_service(m);
+    add_device_discovery(m);
 
     py::class_<PyWideUSBDevice>(m, "Device")
         .def(py::init<uint64_t, std::string, int>(),
@@ -28,11 +34,12 @@ PYBIND11_MODULE(pywideusb, m) {
                      )
         .def("device_address", &PyWideUSBDevice::device_address);
 
+
     py::class_<PyMonitor>(m, "Monitor")
-        .def(py::init<PyWideUSBDevice&, Address, Address>(),
-             py::arg("device"),
-             py::arg("custom_host_address") = 0,
-             py::arg("custom_device_address") = 0)
+        .def(py::init<NetService&, Address, Address>(),
+             py::arg("net_service"),
+             py::arg("local_address") = 0,
+             py::arg("remote_address") = 0)
         .def("status", &PyMonitor::status);
 
     py::class_<PyGPS>(m, "GPS")

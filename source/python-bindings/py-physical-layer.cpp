@@ -5,6 +5,9 @@
 #include "wideusb/physical-layer-tcp-client.hpp"
 #include "wideusb-common/communication/networking.hpp"
 
+#include "wideusb-common/communication/binary/channel.hpp"
+#include "wideusb-common/communication/binary/network.hpp"
+#include "wideusb-common/communication/binary/transport.hpp"
 
 namespace py = pybind11;
 
@@ -56,7 +59,7 @@ void add_usb_physical_layer(pybind11::module& m)
         .def(py::init([](boost::asio::io_service& io_service, const std::string& port, int baudrate)
              {
                  return std::make_shared<PhysicalLayerSerialPort>(io_service, port, baudrate);
-             }));
+             }), py::arg("io_service"), py::arg("port"), py::arg("baudrate"));
 }
 
 void add_tcp_physical_layer(pybind11::module& m)
@@ -66,18 +69,5 @@ void add_tcp_physical_layer(pybind11::module& m)
              {
                  /// @todo Assert port for number
                  return std::make_shared<PhysicalLayerTcpClient>(io_service, addr, port);
-             }));
-}
-
-void add_io_service(pybind11::module& m)
-{
-    py::class_<boost::asio::io_service>(m, "IOService");
-}
-
-void add_net_service(pybind11::module& m)
-{
-    /*py::class_<NetService, std::shared_ptr<NetService>>(m, "NetService")
-         .def(py::init(
-                  [](...){ return std::make_shared<NetService>(...); }
-                );*/
+             }), py::arg("io_service"), py::arg("addr"), py::arg("port"));
 }

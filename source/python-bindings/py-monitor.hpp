@@ -5,11 +5,12 @@
 #include "py-wideusb-device.hpp"
 
 class MonitorFront;
+class NetService;
 
 class PyMonitor
 {
 public:
-    PyMonitor(PyWideUSBDevice& device, Address custom_host_address = 0, Address custom_device_address = 0);
+    PyMonitor(NetService& net_service, Address local_address, Address remote_address);
 
     std::string status();
 

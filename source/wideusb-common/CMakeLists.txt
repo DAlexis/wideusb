@@ -9,6 +9,7 @@ set(SOURCES
     wideusb-common/front/dac-front.hpp
     wideusb-common/front/gps-front.hpp
     wideusb-common/front/monitor-front.hpp
+    wideusb-common/front/discovery.hpp
 
     wideusb-common/back/dac-back.hpp
     wideusb-common/back/gps-back.hpp
@@ -45,6 +46,7 @@ set(SOURCES
     src/front/dac-front.cpp
     src/front/gps-front.cpp
     src/front/monitor-front.cpp
+    src/front/discovery.cpp
 
     src/back/dac-back.cpp
     src/back/gps-back.cpp

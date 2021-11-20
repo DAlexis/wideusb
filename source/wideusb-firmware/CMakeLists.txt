@@ -104,7 +104,6 @@ set(H_HEADERS
     ./cpp/include/host-communication/usb-physical-layer.hpp
     ./cpp/include/modules/gps-impl.hpp
     ./cpp/include/modules/dac-impl.hpp
-    ./cpp/include/modules/core.hpp
     ./cpp/include/modules/gps/nmea-receiver.hpp
     ./cpp/include/modules/gps/precision-timer.hpp
     ./cpp/include/modules/monitor-impl.hpp
@@ -175,7 +174,6 @@ set(C_SOURCES
 set(CPP_SOURCES
     ./cpp/src/host-communication/usb-physical-layer.cpp
     ./cpp/src/data-saver.cpp
-    ./cpp/src/modules/core.cpp
     ./cpp/src/modules/gps/nmea-receiver.cpp
     ./cpp/src/modules/gps/precision-timer.cpp
     ./cpp/src/modules/monitor-impl.cpp

@@ -12,12 +12,15 @@ SET(MODULE_SOURCES
     py-wideusb-device.cpp
     py-wideusb-device.hpp
     py-net-service.hpp
+    py-net-service.cpp
     py-monitor.cpp
     py-monitor.hpp
     py-gps.cpp
     py-gps.hpp
     py-dac.cpp
     py-dac.hpp
+    py-asio-utils.hpp
+    py-asio-utils.cpp
 )
 
 add_library(${PROJECT_NAME} MODULE ${MODULE_SOURCES})

@@ -8,14 +8,15 @@
 #include <memory>
 #include <map>
 
-class CoreBase
+class DeviceCore
 {
 public:
     using ModuleFactory = std::function<std::shared_ptr<IModule>()>;
 
-    CoreBase(NetService& net_service, Address device_address);
+    DeviceCore(NetService& net_service, Address device_address);
     void tick();
     void add_module_factory(ModuleID id, ModuleFactory factory);
+    Address address();
 
 private:
     void sock_device_discovery_listener();
@@ -23,7 +24,7 @@ private:
 
     bool create_module(ModuleID id);
 
-    Address m_device_address = 0x12345678;
+    Address m_device_address;
     NetService& m_net_srv;
 
     std::shared_ptr<Socket> m_core_socket;

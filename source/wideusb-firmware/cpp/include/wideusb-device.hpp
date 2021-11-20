@@ -18,7 +18,7 @@ private:
     Address m_device_address;
 
     NetService m_net_srv;
-    CoreBase m_core;
+    DeviceCore m_core;
 
 };
 

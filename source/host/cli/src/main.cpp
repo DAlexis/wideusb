@@ -1,6 +1,13 @@
 #include "wideusb/wideusb.hpp"
 #include "wideusb-common/front/gps-front.hpp"
 #include "wideusb-common/front/monitor-front.hpp"
+#include "wideusb-common/front/discovery.hpp"
+#include "wideusb/asio-utils.hpp"
+
+#include "wideusb-common/communication/binary/channel.hpp"
+#include "wideusb-common/communication/binary/network.hpp"
+#include "wideusb-common/communication/binary/transport.hpp"
+
 
 #include <iostream>
 #include <ctime>
@@ -9,7 +16,7 @@
 
 #include <thread>
 #include <chrono>
-
+/*
 using namespace WideUSBHost;
 
 std::unique_ptr<Device> device;
@@ -45,10 +52,27 @@ void test_synchronizer()
 {
     boost::asio::io_service io_service;
 };
-
+*/
 int main()
 {
     using namespace std::chrono_literals;
+    srand(time(NULL));
+
+    IOServiceRunner runner;
+    std::shared_ptr<PhysicalLayerSerialPort> sp = std::make_shared<PhysicalLayerSerialPort>(runner.io_service(), "/dev/ttyACM0");
+    NetService net_srv(sp,
+                       std::make_shared<ChannelLayerBinary>(),
+                       std::make_shared<NetworkLayerBinary>(),
+                       std::make_shared<TransportLayerBinary>(),
+                       nullptr,
+                       [sp](){ sp->post_serve_sockets(); });
+
+    DeviceDiscovery discovery(net_srv, 123);
+    discovery.run();
+    std::this_thread::sleep_for(5s);
+
+    /*
+
     srand(time(NULL));
 
     device.reset(new Device(0x87654321, "/dev/ttyACM0", on_device_created));
@@ -63,5 +87,5 @@ int main()
 
     GPSFront gps(device->net_service(), nullptr, device->host_address(), device->device_address());
     //device->run_io_service();
-    return 0;
+    return 0;*/
 }

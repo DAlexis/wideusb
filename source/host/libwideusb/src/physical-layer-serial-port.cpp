@@ -16,10 +16,12 @@ PhysicalLayerSerialPort::PhysicalLayerSerialPort(
 
 void PhysicalLayerSerialPort::async_read()
 {
+    std::cout << "async read" << std::endl;
     m_serial_port.async_read_some(
         boost::asio::buffer(m_input_buffer.data(), m_input_buffer.size() - 1),
         [this](const boost::system::error_code& error, std::size_t bytes_transferred) { on_data_read(error, bytes_transferred); }
     );
+    std::cout << "async read exit" << std::endl;
 }
 
 void PhysicalLayerSerialPort::async_send()

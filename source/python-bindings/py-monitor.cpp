@@ -6,14 +6,14 @@ namespace py = pybind11;
 
 #include <stdexcept>
 
-PyMonitor::PyMonitor(PyWideUSBDevice& device, Address custom_host_address, Address custom_device_address)
+PyMonitor::PyMonitor(NetService& net_service, Address local_address, Address remote_address)
 {
     Waiter<bool> waiter;
     m_monitor.reset(
                 new MonitorFront(
-                    device.device().net_service(), waiter.get_waiter_callback(),
-                    custom_host_address ? custom_host_address : device.device().host_address(),
-                    custom_device_address ? custom_device_address : device.device().device_address()
+                    net_service, waiter.get_waiter_callback(),
+                    local_address,
+                    remote_address
                     )
                 );
     bool success = waiter.wait();

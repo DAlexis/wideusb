@@ -10,7 +10,7 @@ class MonitorImpl : public MonitorBack, public IModule
 public:
     MonitorImpl(NetService& net_service, Address monitor_address);
 
-    void tick();
+    void tick() override;
 
     uint32_t get_heap_used() override;
     uint32_t get_heap_total() override;

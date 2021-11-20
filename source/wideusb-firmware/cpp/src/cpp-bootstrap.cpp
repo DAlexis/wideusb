@@ -1,17 +1,5 @@
 #include "cpp-bootstrap.h"
 #include "os/cpp-freertos.hpp"
-#include "modules/gps-impl.hpp"
-#include "modules/monitor-impl.hpp"
-#include "modules/gps/nmea-receiver.hpp"
-#include "modules/core.hpp"
-#include "macro.hpp"
-
-#include "wideusb-common/communication/networking.hpp"
-#include "host-communication/usb-physical-layer.hpp"
-#include "wideusb-common/communication/binary/channel.hpp"
-#include "wideusb-common/communication/binary/network.hpp"
-#include "wideusb-common/communication/binary/transport.hpp"
-
 #include "wideusb-device.hpp"
 
 #include "usart.h"

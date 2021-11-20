@@ -114,4 +114,28 @@ private:
     std::unique_ptr<std::thread> m_thread;
 };
 
+class IOServiceRunner
+{
+public:
+    IOServiceRunner();
+    ~IOServiceRunner();
+
+    boost::asio::io_service& io_service();
+
+    /**
+     * @brief Release io_service::work object, stop service and join worker thread
+     */
+    void stop();
+
+    /**
+     * @brief Join the worker thread
+     */
+    void join();
+private:
+
+    boost::asio::io_service m_io_service;
+    std::shared_ptr<boost::asio::io_service::work> m_work;
+    std::thread m_service_thread;
+};
+
 #endif // ASIO_TASK_HPP

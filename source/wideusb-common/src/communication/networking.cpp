@@ -147,9 +147,6 @@ SocketState::SocketState()
 void SocketState::clear()
 {
     state = OutgoingState::clear;
-    /*last_send_time = 0;
-    repeats_count = 0;
-    state_clear = true;*/
 }
 
 NetService::NetService(
@@ -165,8 +162,8 @@ NetService::NetService(
     m_network(network),
     m_transport(transport),
     m_default_transit_physical(default_transit_physical),
-    m_on_any_socket_send_callback(on_any_socket_send),
-    m_rand_gen(rand_gen != nullptr ? rand_gen : rand) // std rand() function
+    m_rand_gen(rand_gen != nullptr ? rand_gen : rand), // std rand() function
+    m_on_any_socket_send_callback(on_any_socket_send)
 {
     m_physical->on_network_service_connected(*this);
 }

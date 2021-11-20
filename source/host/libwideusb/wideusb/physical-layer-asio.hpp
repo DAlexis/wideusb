@@ -18,9 +18,12 @@ public:
                       size_t input_ring_buffer_size = 10000,
                       size_t output_ring_buffer_size = 10000);
 
+
+    ~PhysicalLayerAsio();
     SerialReadAccessor& incoming() override;
     void send(PBuffer data) override;
     void on_network_service_connected(NetService& srv) override;
+    void post_serve_sockets();
 
 protected:
     virtual void async_read() = 0;
