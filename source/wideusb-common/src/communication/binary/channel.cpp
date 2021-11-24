@@ -1,8 +1,8 @@
 #ifndef CHANNEL_CPP
 #define CHANNEL_CPP
 
-#include "wideusb-common/communication/binary/channel.hpp"
-#include "wideusb-common/communication/utils.hpp"
+#include "wideusb/communication/binary/channel.hpp"
+#include "wideusb/communication/utils.hpp"
 
 ChannelLayerBinary::ChannelLayerBinary()
 {

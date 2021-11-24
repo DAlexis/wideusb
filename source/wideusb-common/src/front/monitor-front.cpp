@@ -1,5 +1,5 @@
-#include "wideusb-common/front/monitor-front.hpp"
-#include "wideusb-common/communication/modules/monitor.hpp"
+#include "wideusb/front/monitor-front.hpp"
+#include "wideusb/communication/modules/monitor.hpp"
 
 #include <string>
 

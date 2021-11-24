@@ -1,7 +1,7 @@
 #ifndef NMEA_RECEIVER_HPP_INCLUDED
 #define NMEA_RECEIVER_HPP_INCLUDED
 
-#include "wideusb-common/utils/gps/nmea-parser.hpp"
+#include "wideusb/utils/gps/nmea-parser.hpp"
 #include "os/cpp-freertos.hpp"
 #include "usart.h"
 #include <stdint.h>

@@ -1,4 +1,4 @@
-#include "wideusb-common/buffer.hpp"
+#include "wideusb/buffer.hpp"
 
 #include <cstring>
 #include <string>

@@ -1,5 +1,5 @@
-#include "wideusb-common/front/discovery.hpp"
-#include "wideusb-common/communication/modules/core.hpp"
+#include "wideusb/front/discovery.hpp"
+#include "wideusb/communication/modules/core.hpp"
 
 #include <iostream>
 
@@ -15,8 +15,9 @@ DeviceDiscovery::DeviceDiscovery(NetService& net_srv, Address local) :
     m_device_discovery_socket.address_filter().listen_address(0x00000000, 0x00000000); // Any
 }
 
-void DeviceDiscovery::run(OnDeviceDiscoveredCallback)
+void DeviceDiscovery::run(OnDeviceDiscoveredCallback callback)
 {
+    m_callback = callback;
     core::discovery::Request request;
     PBuffer body = Buffer::create(sizeof(request), &request);
     m_device_discovery_socket.send(0xFFFFFFFF, body);

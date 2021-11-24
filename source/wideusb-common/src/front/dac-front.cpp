@@ -1,6 +1,6 @@
-#include "wideusb-common/front/dac-front.hpp"
+#include "wideusb/front/dac-front.hpp"
 
-#include "wideusb-common/communication/modules/dac.hpp"
+#include "wideusb/communication/modules/dac.hpp"
 //#include "wideusb.hpp"
 
 //#include <iostream>

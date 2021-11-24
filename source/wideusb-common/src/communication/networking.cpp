@@ -1,4 +1,4 @@
-#include "wideusb-common/communication/networking.hpp"
+#include "wideusb/communication/networking.hpp"
 #include <cmath>
 
 #include <cstdio>

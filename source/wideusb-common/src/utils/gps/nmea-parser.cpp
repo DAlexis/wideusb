@@ -1,5 +1,5 @@
-#include "wideusb-common/utils/gps/nmea-parser.hpp"
-#include "wideusb-common/utils/utilities.hpp"
+#include "wideusb/utils/gps/nmea-parser.hpp"
+#include "wideusb/utils/utilities.hpp"
 
 #include <string.h>
 

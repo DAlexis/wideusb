@@ -1,4 +1,4 @@
-#include "wideusb-common/communication/i-physical-layer.hpp"
+#include "wideusb/communication/i-physical-layer.hpp"
 
 PhysicalLayerBuffer::PhysicalLayerBuffer(size_t incoming_capacity) :
     m_ring_buffer(incoming_capacity)

@@ -1,3 +1,3 @@
 [submodule "source/python-bindings/3rdparty/pybind11"]
-	path = source/python-bindings/3rdparty/pybind11
+	path = source/pc/python-bindings/3rdparty/pybind11
 	url = https://github.com/pybind/pybind11

@@ -1,4 +1,4 @@
-#include "wideusb-common/communication/utils.hpp"
+#include "wideusb/communication/utils.hpp"
 
 uint32_t hash_Ly(uint8_t next_byte, uint32_t prev_hash)
 {

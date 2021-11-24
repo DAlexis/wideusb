@@ -1,4 +1,4 @@
-#include "wideusb-common/utils/gps/nmea-parser.hpp"
+#include "wideusb/utils/gps/nmea-parser.hpp"
 
 #include "gtest/gtest.h"
 

@@ -1,4 +1,4 @@
-#include "wideusb-common/communication/binary/channel.hpp"
+#include "wideusb/communication/binary/channel.hpp"
 
 #include "gtest/gtest.h"
 

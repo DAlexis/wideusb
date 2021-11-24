@@ -6,7 +6,7 @@
  * published by Sam Hocevar. See the COPYING file for more details.
  */
 
-#include "wideusb-common/utils/gps/minmea.h"
+#include "wideusb/utils/gps/minmea.h"
 
 #include <stdlib.h>
 #include <string.h>

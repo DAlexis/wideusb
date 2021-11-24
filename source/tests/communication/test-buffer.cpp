@@ -1,6 +1,6 @@
-#include "wideusb-common/buffer.hpp"
+#include "wideusb/buffer.hpp"
 
-#include "wideusb-common/communication/networking.hpp"
+#include "wideusb/communication/networking.hpp"
 
 #include "gtest/gtest.h"
 

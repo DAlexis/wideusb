@@ -2,7 +2,7 @@
 
 #include "modules/gps/precision-timer.hpp"
 #include "modules/gps/nmea-receiver.hpp"
-#include "wideusb-common/communication/modules/gps.hpp"
+#include "wideusb/communication/modules/gps.hpp"
 
 #include "usart.h"
 

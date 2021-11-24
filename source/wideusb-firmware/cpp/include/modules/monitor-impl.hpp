@@ -1,11 +1,10 @@
 #ifndef MONITOR_HPP
 #define MONITOR_HPP
 
-#include "wideusb-common/communication/networking.hpp"
-#include "wideusb-common/module-base.hpp"
-#include "wideusb-common/back/monitor-back.hpp"
+#include "wideusb/communication/networking.hpp"
+#include "wideusb/back/monitor-back.hpp"
 
-class MonitorImpl : public MonitorBack, public IModule
+class MonitorImpl : public MonitorBack
 {
 public:
     MonitorImpl(NetService& net_service, Address monitor_address);

@@ -1,7 +1,7 @@
 #ifndef USBPHYSICALLAYER_HPP
 #define USBPHYSICALLAYER_HPP
 
-#include "wideusb-common/communication/i-physical-layer.hpp"
+#include "wideusb/communication/i-physical-layer.hpp"
 
 class USBPhysicalLayer : public IPhysicalLayer
 {

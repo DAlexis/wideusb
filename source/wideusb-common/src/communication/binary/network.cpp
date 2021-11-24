@@ -1,4 +1,4 @@
-#include "wideusb-common/communication/binary/network.hpp"
+#include "wideusb/communication/binary/network.hpp"
 
 #pragma pack(push, 1)
 struct PacketHeader

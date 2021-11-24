@@ -1,11 +1,9 @@
 #ifndef DAC_IMPL_HPP
 #define DAC_IMPL_HPP
 
-#include "wideusb-common/back/dac-back.hpp"
+#include "wideusb/back/dac-back.hpp"
 
-#include "wideusb-common/module-base.hpp"
-
-class DACImpl : public IModule, public DACModuleBackend
+class DACImpl : public DACModuleBackend
 {
 public:
     constexpr static uint16_t max_buffer_size = 1000;

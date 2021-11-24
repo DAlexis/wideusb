@@ -5,11 +5,11 @@
 #include "modules/dac-impl.hpp"
 
 #include "host-communication/usb-physical-layer.hpp"
-#include "wideusb-common/communication/binary/channel.hpp"
-#include "wideusb-common/communication/binary/network.hpp"
-#include "wideusb-common/communication/binary/transport.hpp"
+#include "wideusb/communication/binary/channel.hpp"
+#include "wideusb/communication/binary/network.hpp"
+#include "wideusb/communication/binary/transport.hpp"
 
-#include "wideusb-common/communication/modules/ids.hpp"
+#include "wideusb/communication/modules/ids.hpp"
 
 #include "os/cpp-freertos.hpp"
 

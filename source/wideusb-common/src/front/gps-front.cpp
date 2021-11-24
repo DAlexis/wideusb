@@ -1,6 +1,6 @@
-#include "wideusb-common/front/gps-front.hpp"
+#include "wideusb/front/gps-front.hpp"
 
-#include "wideusb-common/communication/modules/gps.hpp"
+#include "wideusb/communication/modules/gps.hpp"
 #include <iostream>
 
 GPSFront::GPSFront(NetService& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address) :

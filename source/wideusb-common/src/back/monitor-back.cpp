@@ -1,5 +1,5 @@
-#include "wideusb-common/back/monitor-back.hpp"
-#include "wideusb-common/communication/modules/monitor.hpp"
+#include "wideusb/back/monitor-back.hpp"
+#include "wideusb/communication/modules/monitor.hpp"
 
 MonitorBack::MonitorBack(NetService& net_service, Address module_address) :
     m_sock(net_service, module_address, ports::monitor::status_update, [this](ISocketUserSide&) { socket_listener(); })

@@ -1,7 +1,7 @@
-#include "wideusb-common/communication/utils/package-inspector.hpp"
-#include "wideusb-common/communication/binary/channel.hpp"
-#include "wideusb-common/communication/binary/network.hpp"
-#include "wideusb-common/communication/binary/transport.hpp"
+#include "wideusb/communication/utils/package-inspector.hpp"
+#include "wideusb/communication/binary/channel.hpp"
+#include "wideusb/communication/binary/network.hpp"
+#include "wideusb/communication/binary/transport.hpp"
 
 #include <sstream>
 #include <iomanip>

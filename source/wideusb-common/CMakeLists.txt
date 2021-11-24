@@ -5,44 +5,45 @@ project("wideusb-common" C CXX)
 set(CMAKE_CXX_STANDARD 17)
 
 set(SOURCES
-    wideusb-common/front/base.hpp
-    wideusb-common/front/dac-front.hpp
-    wideusb-common/front/gps-front.hpp
-    wideusb-common/front/monitor-front.hpp
-    wideusb-common/front/discovery.hpp
+    wideusb/front/base-front.hpp
+    wideusb/front/dac-front.hpp
+    wideusb/front/gps-front.hpp
+    wideusb/front/monitor-front.hpp
+    wideusb/front/discovery.hpp
 
-    wideusb-common/back/dac-back.hpp
-    wideusb-common/back/gps-back.hpp
-    wideusb-common/back/monitor-back.hpp
+    wideusb/back/base-back.hpp
+    wideusb/back/dac-back.hpp
+    wideusb/back/gps-back.hpp
+    wideusb/back/monitor-back.hpp
 
-    wideusb-common/utils/point.hpp
-    wideusb-common/utils/utilities.hpp
-    wideusb-common/utils/gps/minmea.h
-    wideusb-common/utils/gps/nmea-parser.hpp
-    wideusb-common/utils/base64.hpp
+    wideusb/utils/point.hpp
+    wideusb/utils/utilities.hpp
+    wideusb/utils/gps/minmea.h
+    wideusb/utils/gps/nmea-parser.hpp
+    wideusb/utils/base64.hpp
 
-    wideusb-common/core-base.hpp
+    wideusb/device-core.hpp
 
-    wideusb-common/buffer.hpp
+    wideusb/buffer.hpp
 
-    wideusb-common/communication/utils.hpp
-    wideusb-common/communication/networking.hpp
-    wideusb-common/communication/network-types.hpp
-    wideusb-common/communication/i-channel-layer.hpp
-    wideusb-common/communication/i-network-layer.hpp
-    wideusb-common/communication/i-physical-layer.hpp
-    wideusb-common/communication/i-transport-layer.hpp
-    wideusb-common/communication/binary/channel.hpp
-    wideusb-common/communication/binary/network.hpp
-    wideusb-common/communication/binary/transport.hpp
-    wideusb-common/communication/modules/monitor.hpp
-    wideusb-common/communication/modules/core.hpp
-    wideusb-common/communication/modules/ports.hpp
-    wideusb-common/communication/modules/ids.hpp
-    wideusb-common/communication/utils/package-inspector.hpp
+    wideusb/communication/utils.hpp
+    wideusb/communication/networking.hpp
+    wideusb/communication/network-types.hpp
+    wideusb/communication/i-channel-layer.hpp
+    wideusb/communication/i-network-layer.hpp
+    wideusb/communication/i-physical-layer.hpp
+    wideusb/communication/i-transport-layer.hpp
+    wideusb/communication/binary/channel.hpp
+    wideusb/communication/binary/network.hpp
+    wideusb/communication/binary/transport.hpp
+    wideusb/communication/modules/monitor.hpp
+    wideusb/communication/modules/core.hpp
+    wideusb/communication/modules/ports.hpp
+    wideusb/communication/modules/ids.hpp
+    wideusb/communication/utils/package-inspector.hpp
 
 
-    src/front/base.cpp
+    src/front/base-front.cpp
     src/front/dac-front.cpp
     src/front/gps-front.cpp
     src/front/monitor-front.cpp
@@ -58,7 +59,7 @@ set(SOURCES
     src/utils/gps/nmea-parser.cpp
     src/utils/base64.cpp
 
-    src/core-base.cpp
+    src/device-core.cpp
 
     src/communication/networking.cpp
     src/communication/utils.cpp

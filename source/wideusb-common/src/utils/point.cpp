@@ -1,5 +1,5 @@
-#include "wideusb-common/utils/point.hpp"
-#include "wideusb-common/utils/utilities.hpp"
+#include "wideusb/utils/point.hpp"
+#include "wideusb/utils/utilities.hpp"
 
 Point::Point()
 {

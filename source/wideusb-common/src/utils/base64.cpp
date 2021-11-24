@@ -9,7 +9,7 @@
  * See README for more details.
  */
 
-#include "wideusb-common/utils/base64.hpp"
+#include "wideusb/utils/base64.hpp"
 
 #include "string.h"
 

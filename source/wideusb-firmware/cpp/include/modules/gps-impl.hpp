@@ -1,11 +1,10 @@
 #ifndef GPS_HPP_UNCLUDED
 #define GPS_HPP_UNCLUDED
 
-#include "wideusb-common/module-base.hpp"
-#include "wideusb-common/utils/gps/nmea-parser.hpp"
+#include "wideusb/utils/gps/nmea-parser.hpp"
 #include "os/cpp-freertos.hpp"
-#include "wideusb-common/communication/networking.hpp"
-#include "wideusb-common/back/gps-back.hpp"
+#include "wideusb/communication/networking.hpp"
+#include "wideusb/back/gps-back.hpp"
 
 #include <memory>
 #include <set>
@@ -15,7 +14,7 @@ class NMEAReceiver;
 
 namespace gps { struct PosTime; }
 
-class GPSImpl : public GPSModuleBack, public IModule
+class GPSImpl : public GPSModuleBack
 {
 public:
     GPSImpl(NetService& net_service, Address module_address);

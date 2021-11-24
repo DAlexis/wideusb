@@ -1,6 +1,6 @@
 #include "modules/monitor-impl.hpp"
-#include "wideusb-common/communication/modules/monitor.hpp"
-#include "wideusb-common/communication/modules/ports.hpp"
+#include "wideusb/communication/modules/monitor.hpp"
+#include "wideusb/communication/modules/ports.hpp"
 
 #include "gpio.h"
 

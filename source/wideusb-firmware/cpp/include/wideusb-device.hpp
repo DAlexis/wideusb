@@ -1,7 +1,7 @@
 #ifndef WIDEUSBDEVICE_HPP
 #define WIDEUSBDEVICE_HPP
 
-#include "wideusb-common/core-base.hpp"
+#include "wideusb/device-core.hpp"
 
 class WideusbDevice
 {
