@@ -55,6 +55,9 @@ void DACModuleBackend::sock_setup_listener()
             } else if (req_run_stop->run_stop == dac::setup::RunRequest::stop)
             {
                 stop();
+            } else if (req_run_stop->run_stop == dac::setup::RunRequest::stop_immediately)
+            {
+                stop_immediately();
             }
             continue;
         }
@@ -75,5 +78,5 @@ void DACModuleBackend::send_notification_buffer_is_short(uint16_t size)
 {
     dac::data::BufferIsShortNotification notification;
     notification.buffer_size = size;
-    m_sock_setup.send(m_status_reports_receiver, Buffer::serialize(notification));
+    m_sock_data.send(m_status_reports_receiver, Buffer::serialize(notification));
 }

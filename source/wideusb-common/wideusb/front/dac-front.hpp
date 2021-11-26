@@ -25,7 +25,6 @@ public:
     void init_sample(uint16_t buffer_size, uint32_t prescaler, uint32_t period, bool repeat, OnInitDoneCallback on_init_done);
 
     void send_data(const std::vector<float>& data, OnDataSampleSet on_data_sample_set);
-    void add_continious_data_chunk(const std::vector<float>& data);
 
     void run(OnRun on_run);
     void stop(OnStop on_stop);

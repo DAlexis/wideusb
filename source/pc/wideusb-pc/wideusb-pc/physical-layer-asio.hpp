@@ -4,12 +4,6 @@
 #include <boost/asio.hpp>
 #include "wideusb/communication/i-physical-layer.hpp"
 
-#define INSPECT_PACKAGES
-
-#ifdef INSPECT_PACKAGES
-#include "wideusb/communication/utils/package-inspector.hpp"
-#endif
-
 class PhysicalLayerAsio : public IPhysicalLayer
 {
 public:
@@ -43,10 +37,6 @@ protected:
     RingBuffer m_output_ring_buffer;
 
     std::chrono::time_point<std::chrono::steady_clock> m_creation;
-
-#ifdef INSPECT_PACKAGES
-    PackageInspector m_inspector;
-#endif
 };
 
 

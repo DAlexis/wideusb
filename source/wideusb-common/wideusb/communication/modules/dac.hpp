@@ -54,6 +54,7 @@ namespace dac {
         {
             constexpr static uint8_t stop = 0;
             constexpr static uint8_t run = 1;
+            constexpr static uint8_t stop_immediately = 2;
 
             constexpr static uint8_t magic = 3;
             const uint8_t magic_value = magic;

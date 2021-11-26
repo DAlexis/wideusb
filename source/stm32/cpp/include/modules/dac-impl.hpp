@@ -7,7 +7,7 @@ class DACImpl : public DACModuleBackend
 {
 public:
     constexpr static uint16_t max_buffer_size = 1000;
-    constexpr static uint16_t max_dma_chunk_size = 100;
+    constexpr static uint16_t max_dma_chunk_size = 1000;
 
     DACImpl(NetService& net_service, Address module_address);
     ~DACImpl();
@@ -28,6 +28,7 @@ private:
     uint16_t init_sample(uint16_t buffer_size, uint32_t prescaler, uint32_t period, bool repeat) override;
     void run() override;
     void stop() override;
+    void stop_immediately() override;
     void receive_data(PBuffer data) override;
 
     void notify_data_sender();
@@ -37,16 +38,19 @@ private:
 
     uint16_t m_dma_chunk_size = max_dma_chunk_size;
 
-
-    std::unique_ptr<RingBuffer> m_ring_buffer;
     PBuffer m_linear_buffer;
 
-    uint16_t m_size_limit_notify = max_dma_chunk_size;
+    PBuffer m_continious_buffer_1;
+    PBuffer m_continious_buffer_2;
+
+    PBuffer* m_continious_buffer_current = nullptr;
+    PBuffer* m_continious_buffer_next = nullptr;
+    size_t m_buffer_filling_current = 0;
+    size_t m_buffer_filling_next = 0;
+
     bool m_stop_now = false;
     bool m_running = false;
-    bool m_already_notified = false;
-
-    MemBlock m_currently_being_played;
+    bool m_already_notified = true;
 
 };
 

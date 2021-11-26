@@ -4,12 +4,6 @@
 #include <boost/asio.hpp>
 #include "physical-layer-asio.hpp"
 
-#define INSPECT_PACKAGES
-
-#ifdef INSPECT_PACKAGES
-#include "wideusb/communication/utils/package-inspector.hpp"
-#endif
-
 class PhysicalLayerTcpClient : public PhysicalLayerAsio
 {
 public:

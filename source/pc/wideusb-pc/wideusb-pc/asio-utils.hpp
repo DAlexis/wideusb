@@ -2,6 +2,7 @@
 #define ASIO_TASK_HPP
 
 #include <boost/asio.hpp>
+#include <chrono>
 #include <memory>
 
 class Task
@@ -50,7 +51,13 @@ protected:
     void wait_for_notification()
     {
         std::unique_lock<std::mutex> lock(m_mutex);
-        if (!m_task_done) m_cv.wait(lock);
+        if (!m_task_done)
+        {
+            if (m_cv.wait_for(lock, std::chrono_literals::operator""s(1)) == std::cv_status::timeout)
+            {
+                throw std::runtime_error("Operation timeouted");
+            }
+        }
     }
 
     void notify()

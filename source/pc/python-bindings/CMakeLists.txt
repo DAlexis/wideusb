@@ -4,27 +4,28 @@ project(pywideusb LANGUAGES CXX)
 add_subdirectory(3rdparty/pybind11)
 
 SET(MODULE_SOURCES
-    pywideusb.cpp
-    py-buffer.hpp
-    py-buffer.cpp
-    py-physical-layer.hpp
-    py-physical-layer.cpp
-    py-wideusb-device.cpp
-    py-wideusb-device.hpp
-    py-net-service.hpp
-    py-net-service.cpp
-    py-monitor.cpp
-    py-monitor.hpp
-    py-gps.cpp
-    py-gps.hpp
-    py-dac.cpp
-    py-dac.hpp
-    py-asio-utils.hpp
-    py-asio-utils.cpp
+    src/pywideusb.cpp
+    src/py-buffer.cpp
+    src/py-physical-layer.cpp
+    src/py-net-service.cpp
+    src/py-monitor.cpp
+    src/py-gps.cpp
+    src/py-dac.cpp
+    src/py-asio-utils.cpp
+
+    include/py-buffer.hpp
+    include/py-physical-layer.hpp
+    include/py-net-service.hpp
+    include/py-monitor.hpp
+    include/py-gps.hpp
+    include/py-dac.hpp
+    include/py-asio-utils.hpp
+
 )
 
 add_library(${PROJECT_NAME} MODULE ${MODULE_SOURCES})
 target_link_libraries(${PROJECT_NAME} PUBLIC pybind11::module wideusb-pc wideusb-common)
+target_include_directories(${PROJECT_NAME} PUBLIC include)
 
 configure_file(tests/test-dac.py test-dac.py COPYONLY)
 

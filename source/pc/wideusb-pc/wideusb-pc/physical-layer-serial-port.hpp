@@ -5,12 +5,6 @@
 
 #include <boost/asio/serial_port.hpp>
 
-#define INSPECT_PACKAGES
-
-#ifdef INSPECT_PACKAGES
-#include "wideusb/communication/utils/package-inspector.hpp"
-#endif
-
 class PhysicalLayerSerialPort : public PhysicalLayerAsio
 {
 public:
@@ -25,9 +19,6 @@ private:
 
     boost::asio::serial_port m_serial_port;
     PBuffer m_data_to_send_now;
-#ifdef INSPECT_PACKAGES
-    PackageInspector m_inspector;
-#endif
 };
 
 

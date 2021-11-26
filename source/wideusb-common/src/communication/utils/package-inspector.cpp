@@ -24,33 +24,33 @@ std::string PackageInspector::inspect_package(const PBuffer data, size_t max_buf
 
     PBuffer copy = data->clone();
     BufferAccessor accessor(copy);
-    oss << "Package inspection:" << endl;
+    oss << "┌ Package inspection:" << endl;
     std::vector<DecodedFrame> frames = m_channel->decode(accessor);
-    oss << "frames count: " << frames.size() << endl;
+    oss << "│ frames count: " << frames.size() << endl;
     for (const auto& frame : frames)
     {
         std::vector<DecodedPacket> packets = m_network->decode(frame.frame);
-        oss << "  packets in frame: " << packets.size() << endl;
+        oss << "│  ╓ packets in frame: " << packets.size() << endl;
         for (size_t i = 0; i != packets.size(); i++)
         {
-            oss << "    packet " << i << ":" << endl;
-            oss << "    | options.receiver " << packets[i].options.receiver << endl;
-            oss << "    | options.sender   " << packets[i].options.sender << endl;
-            oss << "    | options.ttl      " << int(packets[i].options.ttl) << endl;
+            oss << "│  ║  ┌ packet " << i << ":" << endl;
+            oss << "│  ║  │ options.receiver " << packets[i].options.receiver << endl;
+            oss << "│  ║  │ options.sender   " << packets[i].options.sender << endl;
+            oss << "│  ║  │ options.ttl      " << int(packets[i].options.ttl) << endl;
 
             std::vector<DecodedSegment> segments = m_transport->decode(packets[i].packet);
-            oss << "    | segments count:  " << segments.size() << endl;
+            oss << "│  ║  │ segments count:  " << segments.size() << endl;
 
             for (size_t j = 0; j != segments.size(); j++)
             {
-                oss << "    | segment " << j << ":" << endl;
-                oss << "    | | segment_id         " << segments[j].segment_id << endl;
-                oss << "    | | ack_for_segment_id " << segments[j].ack_for_segment_id << endl;
-                oss << "    | | port               " << segments[j].port << endl;
-                oss << "    | | need_ack           " << ((segments[j].flags & DecodedSegment::Flags::need_ack) != 0) << endl;
-                oss << "    | | is_ack             " << ((segments[j].flags & DecodedSegment::Flags::is_ack) != 0) << endl;
-                oss << "    | | data size          " << segments[j].segment.size() << endl;
-                oss << "    | | contents           ";
+                oss << "│  ║  │ segment " << j << ":" << endl;
+                oss << "│  ║  │ │ segment_id         " << segments[j].segment_id << endl;
+                oss << "│  ║  │ │ ack_for_segment_id " << segments[j].ack_for_segment_id << endl;
+                oss << "│  ║  │ │ port               " << segments[j].port << endl;
+                oss << "│  ║  │ │ need_ack           " << ((segments[j].flags & DecodedSegment::Flags::need_ack) != 0) << endl;
+                oss << "│  ║  │ │ is_ack             " << (((segments[j].flags & DecodedSegment::Flags::is_ack) != 0) ? "YES" : "no") << endl;
+                oss << "│  ║  │ │ data size          " << segments[j].segment.size() << endl;
+                oss << "│  ║  │ └ contents           ";
                 size_t len = std::min(max_buffer_len_to_print, segments[j].segment.size());
                 for (size_t k = 0; k < len; k++)
                 {
@@ -62,9 +62,9 @@ std::string PackageInspector::inspect_package(const PBuffer data, size_t max_buf
                 }
                 oss << std::dec << std::endl;
 
-                oss << "    | =====================" << endl;
+                oss << "│  ║  └───────────────────────" << endl;
             }
-            oss << "    ===================" << packets[i].options.ttl << endl;
+            oss << "│  ╚═════════════════" << packets[i].options.ttl << endl;
         }
     }
     return oss.str();

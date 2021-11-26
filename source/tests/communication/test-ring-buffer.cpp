@@ -103,3 +103,24 @@ TEST_F(RingBufferTest, PutFromBuffer)
     ASSERT_EQ(from_buffer, test_val);
 }
 
+TEST_F(RingBufferTest, GetContiniousBlock)
+{
+    buffer->put(test_data, sizeof(test_data));
+    MemBlock block = buffer->get_continious_block(100);
+    ASSERT_EQ(block.size, sizeof(test_data));
+    ASSERT_EQ(buffer->free_space(), 10-4);
+
+    buffer->put(test_data, sizeof(test_data));
+    block = buffer->get_continious_block(100);
+    ASSERT_EQ(block.size, 2*sizeof(test_data));
+    // 8 of 10 (11)
+    buffer->skip(5); // read -> 5
+    buffer->put(test_data, sizeof(test_data)); // w -> 1?
+
+    block = buffer->get_continious_block(100);
+    ASSERT_EQ(block.size, 6);
+    buffer->skip(block.size);
+    block = buffer->get_continious_block(100);
+    ASSERT_EQ(block.size, 1);
+}
+

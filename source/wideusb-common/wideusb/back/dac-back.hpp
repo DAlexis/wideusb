@@ -18,6 +18,7 @@ protected:
     virtual uint16_t init_sample(uint16_t buffer_size, uint32_t prescaler, uint32_t period, bool repeat) = 0;
     virtual void run() = 0;
     virtual void stop() = 0;
+    virtual void stop_immediately() = 0;
     virtual void receive_data(PBuffer data) = 0;
 
     void send_notification_buffer_is_short(uint16_t size);

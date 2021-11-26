@@ -1,4 +1,4 @@
-project("libwideusb-unit-tests" CXX)
+project("wideusb-pc-unit-tests" CXX)
 
 set(EXE_SOURCES
     ${PROJECT_SOURCE_DIR}/test-synchronizator.cpp

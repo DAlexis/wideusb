@@ -1,8 +1,12 @@
 #include "wideusb-pc/physical-layer-asio.hpp"
 #include "wideusb/communication/networking.hpp"
 
+#include <iostream>
+
 #ifdef INSPECT_PACKAGES
-    #include <iostream>
+#include "wideusb/communication/utils/package-inspector.hpp"
+#include <iostream>
+static PackageInspector inspector;
 #endif
 
 
@@ -21,7 +25,6 @@ PhysicalLayerAsio::PhysicalLayerAsio(boost::asio::io_service& io_service,
 
 PhysicalLayerAsio::~PhysicalLayerAsio()
 {
-    std::cout << "dest" << std::endl;
 }
 
 SerialReadAccessor& PhysicalLayerAsio::incoming()
@@ -33,8 +36,9 @@ void PhysicalLayerAsio::send(PBuffer data)
 {
 #ifdef INSPECT_PACKAGES
     std::cout << " <= Outgoing data:" << data->size() << " bytes" << std::endl;
-    std::cout << m_inspector.inspect_package(data) << std::endl;
+    std::cout << inspector.inspect_package(data) << std::endl;
 #endif
+
     m_output_ring_buffer.put(data->data(), std::min(data->size(), m_output_ring_buffer.free_space()));
     boost::asio::post(m_write_strand, [this]() { async_send(); });
 }
@@ -62,10 +66,6 @@ void PhysicalLayerAsio::on_data_read(const boost::system::error_code& error, std
         size_t data_size = std::min(m_input_ring_buffer.free_space(), bytes_transferred);
         m_input_buffer[bytes_transferred] = '\0';
 
-#ifdef INSPECT_PACKAGES
-        std::cout << " => Incoming data:" << bytes_transferred << " bytes" << std::endl;
-        std::cout << m_inspector.inspect_package(Buffer::create(m_input_buffer.size(), m_input_buffer.data())) << std::endl;
-#endif
 
         m_input_ring_buffer.put(m_input_buffer.data(), data_size);
 

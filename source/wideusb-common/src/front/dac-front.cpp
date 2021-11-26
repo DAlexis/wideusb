@@ -3,7 +3,7 @@
 #include "wideusb/communication/modules/dac.hpp"
 //#include "wideusb.hpp"
 
-//#include <iostream>
+#include <iostream>
 
 #include <cmath>
 
@@ -79,10 +79,6 @@ void DACFront::send_data(const std::vector<float>& data, OnDataSampleSet on_data
 
 }
 
-void DACFront::add_continious_data_chunk(const std::vector<float>& data)
-{
-}
-
 
 void DACFront::run(OnRun on_run)
 {
@@ -122,14 +118,16 @@ void DACFront::sock_setup_listener()
 void DACFront::sock_data_listener()
 {
     // @todo TODO May be drop all notification except last?
-    while (m_sock_setup.has_data())
+    while (m_sock_data.has_data())
     {
-        ISocketUserSide::IncomingMessage incoming = *m_sock_setup.get();
+        ISocketUserSide::IncomingMessage incoming = *m_sock_data.get();
         auto buffer_is_short = try_interpret_buffer_magic<dac::data::BufferIsShortNotification>(incoming.data);
         if (buffer_is_short)
         {
             if (m_on_buffer_short)
+            {
                 m_on_buffer_short(buffer_is_short->buffer_size);
+            }
         }
     }
 }
@@ -169,6 +167,8 @@ std::vector<uint16_t> DACFront::prepare_to_send(const std::vector<float>& data)
     for (size_t i = 0; i < data.size(); i++)
     {
         to_send[i] = uint16_t( round(((1 << 12) - 1) * data[i]));
+//        to_send[i] = uint16_t( 255 * data[i]) << 4;
+//          to_send[i] = uint16_t(UINT16_MAX * data[i]);
     }
     return to_send;
 }

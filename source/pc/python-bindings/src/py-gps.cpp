@@ -1,15 +1,34 @@
 #include "py-gps.hpp"
 
-PyGPS::PyGPS(PyWideUSBDevice& device, Address custom_host_address, Address custom_device_address)
+#include "wideusb/front/gps-front.hpp"
+#include "wideusb-pc/asio-utils.hpp"
+
+namespace py = pybind11;
+
+class PyGPS
+{
+public:
+    PyGPS(NetService& net_service, Address local_address, Address remote_address);
+
+    std::map<std::string, std::string> position();
+    bool subscribe_to_timestamping();
+    std::vector<std::map<std::string, std::string>> timestamps();
+
+private:
+
+    static std::map<std::string, std::string> pos_to_map(const GPSFront::Position& pos);
+
+    void on_timestamping(GPSFront::Position pos);
+
+    std::unique_ptr<GPSFront> m_gps;
+
+    std::vector<GPSFront::Position> m_positions;
+};
+
+PyGPS::PyGPS(NetService& net_service, Address local_address, Address remote_address)
 {
     Waiter<bool> waiter;
-    m_gps.reset(
-                new GPSFront(
-                    device.device().net_service(), waiter.get_waiter_callback(),
-                    custom_host_address ? custom_host_address : device.device().host_address(),
-                    custom_device_address ? custom_device_address : device.device().device_address()
-                    )
-                );
+    m_gps.reset(new GPSFront(net_service, waiter.get_waiter_callback(), local_address, remote_address));
     bool success = waiter.wait();
     if (!success)
         throw std::runtime_error("GPS module creation failed");
@@ -54,4 +73,16 @@ std::map<std::string, std::string> PyGPS::pos_to_map(const GPSFront::Position& p
     result["altitude"] = std::to_string(pos.altitude);
     result["seconds"] = std::to_string(double(pos.nanoseconds) * 1e-9 + double(pos.seconds));
     return result;
+}
+
+void add_gps(pybind11::module& m)
+{
+    py::class_<PyGPS>(m, "GPS")
+        .def(py::init<NetService&, Address, Address>(),
+             py::arg("device"),
+             py::arg("local_address"),
+             py::arg("remote_address"))
+        .def("position", &PyGPS::position)
+        .def("subscribe_to_timestamping", &PyGPS::subscribe_to_timestamping)
+        .def("timestamps", &PyGPS::timestamps);
 }

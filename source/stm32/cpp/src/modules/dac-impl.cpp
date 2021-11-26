@@ -21,9 +21,10 @@ void DACImpl::tick()
 {
     if (m_running && m_run_mode == RunMode::continious)
     {
-        if (m_ring_buffer->size() <= m_size_limit_notify)
+        if (!m_already_notified)
         {
             notify_data_sender();
+            m_already_notified = true;
         }
     }
 }
@@ -41,13 +42,20 @@ uint16_t DACImpl::init_continious(uint16_t buffer_size, uint32_t prescaler, uint
 
     m_run_mode = RunMode::continious;
     m_linear_buffer.reset();
-    m_ring_buffer.reset(new RingBuffer(buffer_size));
+
+    m_continious_buffer_1 = Buffer::create(dma_chunk_size * sizeof(uint16_t));
+    m_continious_buffer_2 = Buffer::create(dma_chunk_size * sizeof(uint16_t));
+
+    m_continious_buffer_current = &m_continious_buffer_1;
+    m_continious_buffer_next = &m_continious_buffer_2;
+
+    m_buffer_filling_current = 0;
+    m_buffer_filling_next = 0;
 
     m_dma_chunk_size = dma_chunk_size;
-    m_size_limit_notify = notify_when_left;
 
-    MX_DAC_Init();
     MX_TIM4_Init_Parametric(prescaler, period);
+    HAL_TIM_Base_Start(&htim4);
     return 0;
 }
 
@@ -61,33 +69,25 @@ uint16_t DACImpl::init_sample(uint16_t buffer_size, uint32_t prescaler, uint32_t
 
     m_run_mode = repeat ? RunMode::repeat : RunMode::single;
 
-    m_ring_buffer.reset();
     m_linear_buffer = Buffer::create();
+    m_continious_buffer_1.reset();
+    m_continious_buffer_2.reset();
 
     MX_TIM4_Init_Parametric(prescaler, period);
     HAL_TIM_Base_Start(&htim4);
-
-    //MX_DAC_Init();
-    //MX_TIM4_Init();
-    //MX_TIM4_Init_Parametric(prescaler, period);
     return 0;
 }
 
 void DACImpl::play_next_block()
 {
-    /*HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*)test_buffer, 100, DAC_ALIGN_12B_L);
-    return;*/
-    /*if (m_stop_now)
-    {
-        m_running = false;
+    if (!m_running)
         return;
-    }*/
     switch (m_run_mode) {
     case RunMode::continious:
         play_next_continious_block();
         break;
     case RunMode::repeat:
-        HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*) m_linear_buffer->data(), m_linear_buffer->size() / 2, DAC_ALIGN_12B_L);
+        HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*) m_linear_buffer->data(), m_linear_buffer->size() / 2, DAC_ALIGN_12B_R);
         break;
     case RunMode::single:
         m_running = false;
@@ -97,13 +97,15 @@ void DACImpl::play_next_block()
 
 void DACImpl::play_next_continious_block()
 {
-    // Check if we have some new data in the buffer. Else previous fragment will be replayed
-    if (m_ring_buffer->size() > m_currently_being_played.size)
-    {
-        m_ring_buffer->skip(m_currently_being_played.size);
-    }
-    m_currently_being_played = m_ring_buffer->get_continious_block(max_dma_chunk_size);
-    HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*) m_currently_being_played.data, m_currently_being_played.size / 2, DAC_ALIGN_12B_L);
+    std::swap(m_continious_buffer_next, m_continious_buffer_current);
+    std::swap(m_buffer_filling_next, m_buffer_filling_current);
+
+    uint32_t dma_data_size = m_buffer_filling_current / 2;
+    if (dma_data_size == 0) // If no new data uploaded repeat previous buffer
+        dma_data_size = (*m_continious_buffer_current)->size() / 2;
+
+    HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*) (*m_continious_buffer_current)->data(), dma_data_size, DAC_ALIGN_12B_R);
+    m_buffer_filling_next = 0;
     m_already_notified = false;
 }
 
@@ -114,20 +116,23 @@ void DACImpl::run()
     m_stop_now = false;
     switch (m_run_mode) {
     case RunMode::continious:
-        m_currently_being_played.size = 0; // To prevent any data skip at first time
         play_next_continious_block();
         break;
     case RunMode::repeat:
     case RunMode::single:
-        HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*) m_linear_buffer->data(), m_linear_buffer->size() / 2, DAC_ALIGN_12B_L);
+        HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*) m_linear_buffer->data(), m_linear_buffer->size() / sizeof(uint16_t), DAC_ALIGN_12B_R);
     }
 }
 
 void DACImpl::stop()
 {
-    //m_stop_now = true;
-    HAL_DAC_Stop_DMA(&hdac, DAC_CHANNEL_1);
     m_running = false;
+}
+
+void DACImpl::stop_immediately()
+{
+    m_running = false;
+    HAL_DAC_Stop_DMA(&hdac, DAC_CHANNEL_1);
 }
 
 void DACImpl::receive_data(PBuffer data)
@@ -136,7 +141,14 @@ void DACImpl::receive_data(PBuffer data)
 
     switch (m_run_mode) {
     case RunMode::continious:
-        m_ring_buffer->put(acc, std::min(data->size(), m_ring_buffer->free_space()));
+        {
+            size_t next_buffer_space_left = (*m_continious_buffer_next)->size() - m_buffer_filling_next;
+            size_t size_to_copy = std::min(next_buffer_space_left, data->size());
+            memcpy(&(**m_continious_buffer_next)[m_buffer_filling_next], data->data(), size_to_copy);
+            m_buffer_filling_next += size_to_copy;
+            if (m_buffer_filling_next != (*m_continious_buffer_next)->size())
+                m_already_notified = false;
+        }
         break;
     case RunMode::repeat:
     case RunMode::single:
@@ -154,13 +166,12 @@ void DACImpl::notify_data_sender()
         return;
     m_already_notified = true;
     /// ^^^ to this
-
-    send_notification_buffer_is_short(m_ring_buffer->size());
+    send_notification_buffer_is_short((*m_continious_buffer_next)->size() / sizeof(uint16_t));
 }
 
 extern "C" void HAL_DAC_ConvCpltCallbackCh1(DAC_HandleTypeDef* hdac)
 {
     //HAL_DAC_Start_DMA(hdac, DAC_CHANNEL_1, (uint32_t*)test_buffer, sizeof(test_buffer) / 2, DAC_ALIGN_12B_L);
     active_dac_module->play_next_block();
-    HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
+    //HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
 }
