@@ -18,26 +18,8 @@ dac = wu.DAC(net_srv, 123, addr)
 
 x = np.linspace(0, 100, 10000)
 
-y = list((np.sin(x) + 1.0) * 10.0)
+y = list((np.sin(x) + 1.0) / 2.0)
 
-v = list(np.linspace(0, 1, 10))
+v = list(np.linspace(0, 1, 1000))
 
-dac.play_continious(buffer_size=1000, prescaler=200, period=500, dma_chunk_size=100, data=x)
-
-
-#!/usr/bin/env python3
-
-import numpy as np
-import pywideusb as wu
-
-dev = wu.Device()
-
-dac = wu.DAC(dev)
-
-dac.init_sample(buffer_size=50, prescaler=20, period=500, repeat=True)
-
-x = list(np.linspace(0, 1, 10))
-
-dac.send_data(x)
-
-dac.run()
+dac.play_continious(prescaler=200, period=500, dma_chunk_size=100, data=y)

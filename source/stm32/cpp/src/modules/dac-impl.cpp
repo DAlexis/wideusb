@@ -29,11 +29,8 @@ void DACImpl::tick()
     }
 }
 
-uint16_t DACImpl::init_continious(uint16_t buffer_size, uint32_t prescaler, uint32_t period, uint16_t dma_chunk_size, uint16_t notify_when_left)
+uint16_t DACImpl::init_continious(uint16_t dma_chunk_size, uint32_t prescaler, uint32_t period)
 {
-    if (buffer_size > 1000)
-        return 1;
-
     if (dma_chunk_size > max_dma_chunk_size)
         return 2;
 
@@ -87,7 +84,7 @@ void DACImpl::play_next_block()
         play_next_continious_block();
         break;
     case RunMode::repeat:
-        HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*) m_linear_buffer->data(), m_linear_buffer->size() / 2, DAC_ALIGN_12B_R);
+        HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*) m_linear_buffer->data(), m_linear_buffer->size() / sizeof(uint16_t), DAC_ALIGN_12B_R);
         break;
     case RunMode::single:
         m_running = false;
@@ -98,14 +95,16 @@ void DACImpl::play_next_block()
 void DACImpl::play_next_continious_block()
 {
     std::swap(m_continious_buffer_next, m_continious_buffer_current);
-    std::swap(m_buffer_filling_next, m_buffer_filling_current);
+    m_buffer_filling_current = m_buffer_filling_next;
+    m_buffer_filling_next = 0;
 
     uint32_t dma_data_size = m_buffer_filling_current / 2;
     if (dma_data_size == 0) // If no new data uploaded repeat previous buffer
-        dma_data_size = (*m_continious_buffer_current)->size() / 2;
+//        dma_data_size = (*m_continious_buffer_current)->size() / 2;
+        dma_data_size = 1; // This helps to inspect buffer issues
 
     HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*) (*m_continious_buffer_current)->data(), dma_data_size, DAC_ALIGN_12B_R);
-    m_buffer_filling_next = 0;
+
     m_already_notified = false;
 }
 

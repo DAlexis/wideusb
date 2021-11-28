@@ -16,11 +16,9 @@ void DACModuleBackend::sock_setup_listener()
         if (req_init_continious)
         {
             uint16_t error_code = init_continious(
-                        req_init_continious->buffer_size,
-                        req_init_continious->timings.prescaler,
-                        req_init_continious->timings.period,
                         req_init_continious->chunk_size,
-                        req_init_continious->notify_when_left);
+                        req_init_continious->timings.prescaler,
+                        req_init_continious->timings.period);
 
             dac::setup::InitResponse response;
             response.error_code = error_code;

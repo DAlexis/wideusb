@@ -14,17 +14,17 @@ public:
     };
 
     using OnInitDoneCallback = std::function<void(int)>;
-    using OnDataSampleSet = std::function<void(size_t)>;
+    using OnDataSampleSet = std::function<void(bool)>;
     using OnRun = std::function<void(bool)>;
     using OnStop = std::function<void(bool)>;
     using OnBufferIsShort = std::function<void(size_t)>;
 
     DACFront(NetService& host_connection_service, OnModuleCreatedCallback on_created, Address my_address = 0, Address device_address = 0);
 
-    void init_continious(uint16_t buffer_size, uint32_t prescaler, uint32_t period, uint16_t dma_chunk_size, uint16_t notify_when_left, OnInitDoneCallback on_init_done, OnBufferIsShort on_buffer_short);
+    void init_continious(uint16_t dma_chunk_size, uint32_t prescaler, uint32_t period, OnInitDoneCallback on_init_done, OnBufferIsShort on_buffer_short);
     void init_sample(uint16_t buffer_size, uint32_t prescaler, uint32_t period, bool repeat, OnInitDoneCallback on_init_done);
 
-    void send_data(const std::vector<float>& data, OnDataSampleSet on_data_sample_set);
+    void send_data(const float* data, size_t size, OnDataSampleSet on_data_sample_set);
 
     void run(OnRun on_run);
     void stop(OnStop on_stop);
@@ -35,8 +35,7 @@ private:
     void sock_setup_on_received(uint32_t id, bool success);
     void sock_data_on_received(uint32_t id, bool success);
 
-
-    static std::vector<uint16_t> prepare_to_send(const std::vector<float>& data);
+    static void prepare_to_send(uint16_t* dst, const float* data, size_t size);
 
     PBuffer m_data;
 
@@ -45,7 +44,6 @@ private:
 
     std::list<PBuffer> m_chunks;
 
-    PBuffer m_sample;
     OnDataSampleSet m_on_data_sample_set;
     SegmentID m_data_set_segment_id;
 

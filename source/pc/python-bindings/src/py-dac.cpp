@@ -16,16 +16,16 @@ public:
 
     size_t max_buffer_size();
 
-    void play_sample(uint16_t buffer_size, uint32_t prescaler, uint32_t period, bool repeat, const std::vector<float>& data);
-    void play_continious(uint16_t buffer_size, uint32_t prescaler, uint32_t period, uint16_t dma_chunk_size, const std::vector<float>& big_array);
+    void play_sample(uint32_t prescaler, uint32_t period, bool repeat, const std::vector<float>& data);
+    void play_continious(uint16_t dma_chunk_size, uint32_t prescaler, uint32_t period, const std::vector<float>& data);
+    void stop();
 
-    void send_data(const std::vector<float>& data);
-
-    void load_more_continious_data(size_t data_left);
 private:
     void run();
+    void send_data_by_chunks(const float* data, size_t size, bool sync);
+    size_t load_more_continious_data(size_t data_left);
 
-    const size_t samples_per_package = 50;
+    const size_t samples_per_package = 100;
 
     std::vector<float> m_continious_data;
     size_t m_next_continious_index;
@@ -42,41 +42,57 @@ PyDAC::PyDAC(NetService& net_service, Address local_address, Address remote_addr
         throw std::runtime_error("DAC module creation failed");
 }
 
-void PyDAC::play_sample(uint16_t buffer_size, uint32_t prescaler, uint32_t period, bool repeat, const std::vector<float>& data)
+void PyDAC::play_sample(uint32_t prescaler, uint32_t period, bool repeat, const std::vector<float>& data)
 {
     Waiter<int> waiter;
-    m_dac->init_sample(buffer_size, prescaler, period, repeat, waiter.get_waiter_callback());
+    m_dac->init_sample(data.size(), prescaler, period, repeat, waiter.get_waiter_callback());
     int result = waiter.wait();
     if (result != 0)
         throw std::runtime_error("DAC initialization failed with code " + std::to_string(result));
-    send_data(data);
+    send_data_by_chunks(data.data(), data.size(), true);
     run();
 }
 
-void PyDAC::play_continious(uint16_t buffer_size, uint32_t prescaler, uint32_t period, uint16_t dma_chunk_size, const std::vector<float>& big_array)
+void PyDAC::play_continious(uint16_t dma_chunk_size, uint32_t prescaler, uint32_t period, const std::vector<float>& data)
 {
     Waiter<int> waiter;
-    m_dac->init_continious(buffer_size, prescaler, period, dma_chunk_size, dma_chunk_size / 2, waiter.get_waiter_callback(), [this](size_t data_left){ load_more_continious_data(data_left); });
+    m_dac->init_continious(dma_chunk_size, prescaler, period, waiter.get_waiter_callback(), [this](size_t data_left){ load_more_continious_data(data_left); });
     int result = waiter.wait();
     if (result != 0)
         throw std::runtime_error("DAC initialization failed with code " + std::to_string(result));
-    m_continious_data = big_array;
-    m_next_continious_index = 0;
-    load_more_continious_data(0);
+    m_continious_data = data;
+    send_data_by_chunks(m_continious_data.data(), dma_chunk_size, true);
+    m_next_continious_index = dma_chunk_size;
     run();
 }
 
-void PyDAC::send_data(const std::vector<float>& data)
+void PyDAC::stop()
 {
-    std::cout << "Data send beginned... data size = " << data.size() << std::endl;
-    m_dac->send_data(data, nullptr);
-    /*Waiter<size_t> waiter;
-    m_dac->send_data(data, waiter.get_waiter_callback());
-    std::cout << "Waiting for confirmation" << std::endl;
-    size_t actual_sent = waiter.wait();
-    if (actual_sent != data.size()*2)
-        throw std::runtime_error("DAC data send was incomplete: " + std::to_string(actual_sent) + " btes actual sent of " + std::to_string(data.size()*2));*/
-    std::cout << "Data send complete" << std::endl;
+    Waiter<bool> waiter;
+    m_dac->stop(waiter.get_waiter_callback());
+    if (!waiter.wait())
+    {
+        throw std::runtime_error("DAC stop caused an error");
+    }
+}
+
+void PyDAC::send_data_by_chunks(const float* data, size_t size, bool sync)
+{
+    //std::cout << "Data send beginned... data size = " << data.size() << std::endl;
+    for (size_t begin = 0; begin != size; )
+    {
+        size_t block_size = std::min(size - begin, samples_per_package);
+        if (sync)
+        {
+            Waiter<bool> waiter;
+            m_dac->send_data(&data[begin], block_size, waiter.get_waiter_callback());
+            waiter.wait();
+        } else {
+            m_dac->send_data(&data[begin], block_size, nullptr);
+        }
+        begin += block_size;
+    }
+    //std::cout << "Data send complete" << std::endl;
 }
 
 void PyDAC::run()
@@ -94,7 +110,7 @@ size_t PyDAC::max_buffer_size()
     return 1000;
 }
 
-void PyDAC::load_more_continious_data(size_t samples_needed)
+size_t PyDAC::load_more_continious_data(size_t samples_needed)
 {
     std::cout << "load_more_continious_data called, data_left = " << samples_needed << "m_next_continious_index = " << m_next_continious_index << std::endl;
     size_t actual_data_size = std::min(samples_per_package, std::min(samples_needed, m_continious_data.size() - m_next_continious_index));
@@ -102,22 +118,12 @@ void PyDAC::load_more_continious_data(size_t samples_needed)
     {
         std::cout << "actual_data_size == 0, stopping" << std::endl;
         m_dac->stop(nullptr);
-        return;
+        return 0;
     }
-    /*if (actual_data_size == 0)
-    {
-        std::cout << "actual_data_size == 0, stopping" << std::endl;
-        Waiter<bool> waiter;
-        m_dac->stop(waiter.get_waiter_callback());
-        if (!waiter.wait())
-            throw std::runtime_error("DAC failed to run");
-        std::cout << "stopped" << std::endl;
-        return;
-    }*/
+    m_dac->send_data(&m_continious_data[m_next_continious_index], actual_data_size, nullptr);
     std::vector<float> data_chunk(m_continious_data.begin() + m_next_continious_index, m_continious_data.begin() + m_next_continious_index + actual_data_size);
     m_next_continious_index += actual_data_size;
-    //send_data(data_chunk);
-    m_dac->send_data(data_chunk, nullptr);
+    return actual_data_size;
 }
 
 void add_dac(pybind11::module& m)
@@ -127,8 +133,9 @@ void add_dac(pybind11::module& m)
              py::arg("device"),
              py::arg("local_address"),
              py::arg("remote_address"))
-        .def("play_sample", &PyDAC::play_sample, py::arg("buffer_size"), py::arg("prescaler"), py::arg("period"), py::arg("repeat"), py::arg("data"))
-        .def("play_continious", &PyDAC::play_continious, py::arg("buffer_size"), py::arg("prescaler"), py::arg("period"), py::arg("dma_chunk_size"), py::arg("data"))
+        .def("play_sample", &PyDAC::play_sample, py::arg("prescaler"), py::arg("period"), py::arg("repeat"), py::arg("data"))
+        .def("play_continious", &PyDAC::play_continious, py::arg("dma_chunk_size"), py::arg("prescaler"), py::arg("period"), py::arg("data"))
+        .def("stop", &PyDAC::stop)
         ;
 }
 

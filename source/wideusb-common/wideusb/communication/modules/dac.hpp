@@ -27,9 +27,7 @@ namespace dac {
             const uint8_t magic_value = magic;
 
             Timings timings;
-            uint16_t buffer_size = 1000;
             uint16_t chunk_size = 100;
-            uint32_t notify_when_left = 300;
         };
 
         struct InitSample

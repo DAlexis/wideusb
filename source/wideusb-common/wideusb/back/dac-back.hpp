@@ -14,7 +14,7 @@ private:
     void sock_data_listener();
 
 protected:
-    virtual uint16_t init_continious(uint16_t buffer_size, uint32_t prescaler, uint32_t period, uint16_t dma_chunk_size, uint16_t notify_when_left) = 0;
+    virtual uint16_t init_continious(uint16_t dma_chunk_size, uint32_t prescaler, uint32_t period) = 0;
     virtual uint16_t init_sample(uint16_t buffer_size, uint32_t prescaler, uint32_t period, bool repeat) = 0;
     virtual void run() = 0;
     virtual void stop() = 0;

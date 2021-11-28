@@ -31,18 +31,15 @@ DACFront::DACFront(NetService& host_connection_service, OnModuleCreatedCallback 
 {
 }
 
-void DACFront::init_continious(uint16_t buffer_size, uint32_t prescaler, uint32_t period, uint16_t dma_chunk_size, uint16_t notify_when_left, OnInitDoneCallback on_init_done, OnBufferIsShort on_buffer_short)
+void DACFront::init_continious(uint16_t dma_chunk_size, uint32_t prescaler, uint32_t period, OnInitDoneCallback on_init_done, OnBufferIsShort on_buffer_short)
 {
     dac::setup::InitContinious request;
     request.timings.period = period;
     request.timings.prescaler = prescaler;
-    request.buffer_size = buffer_size;
     request.chunk_size = dma_chunk_size;
-    request.notify_when_left = notify_when_left;
 
     m_on_init_done = on_init_done;
     m_on_buffer_short = on_buffer_short;
-    m_buffer_size = buffer_size;
 
     m_sock_setup.send(m_device_address, Buffer::serialize(request));
 }
@@ -61,22 +58,14 @@ void DACFront::init_sample(uint16_t buffer_size, uint32_t prescaler, uint32_t pe
     m_sock_setup.send(m_device_address, Buffer::serialize(request));
 }
 
-void DACFront::send_data(const std::vector<float>& data, OnDataSampleSet on_data_sample_set)
+void DACFront::send_data(const float* data, size_t size, OnDataSampleSet on_data_sample_set)
 {
-/*    if (!m_dac_initialized)
-        throw std::runtime_error("DAC is not initialized, cannot send data");
+    PBuffer uint16_data = Buffer::create(size*sizeof(uint16_t));
 
-    if (data.size() > m_buffer_size)
-        throw std::runtime_error("Data fragment is greater than buffer size");*/
+    prepare_to_send(reinterpret_cast<uint16_t*>(uint16_data->data()), data, size);
 
-    auto to_send = prepare_to_send(data);
-
-    m_sample = Buffer::create(to_send.size() * sizeof(uint16_t), to_send.data());
-
-    /// TODO Send samples part by part
     m_on_data_sample_set = on_data_sample_set;
-    m_data_set_segment_id = m_sock_data.send(m_device_address, m_sample); /// TODO prevent this double copy
-
+    m_data_set_segment_id = m_sock_data.send(m_device_address, uint16_data);
 }
 
 
@@ -156,19 +145,14 @@ void DACFront::sock_data_on_received(uint32_t id, bool success)
     if (id == m_data_set_segment_id)
     {
         if (m_on_data_sample_set)
-            m_on_data_sample_set(success ? m_sample->size() : 0);
+            m_on_data_sample_set(success);
     }
 }
 
-
-std::vector<uint16_t> DACFront::prepare_to_send(const std::vector<float>& data)
+void DACFront::prepare_to_send(uint16_t* dst, const float* data, size_t size)
 {
-    std::vector<uint16_t> to_send(data.size());
-    for (size_t i = 0; i < data.size(); i++)
+    for (size_t i = 0; i < size; i++)
     {
-        to_send[i] = uint16_t( round(((1 << 12) - 1) * data[i]));
-//        to_send[i] = uint16_t( 255 * data[i]) << 4;
-//          to_send[i] = uint16_t(UINT16_MAX * data[i]);
+        dst[i] = uint16_t( round(((1 << 12) - 1) * data[i]));
     }
-    return to_send;
 }

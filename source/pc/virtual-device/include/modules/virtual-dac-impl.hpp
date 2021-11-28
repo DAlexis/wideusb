@@ -12,7 +12,7 @@ public:
 private:
     void tick() override;
 
-    uint16_t init_continious(uint16_t buffer_size, uint32_t prescaler, uint32_t period, uint16_t dma_chunk_size, uint16_t notify_when_left) override;
+    uint16_t init_continious(uint16_t dma_chunk_size, uint32_t prescaler, uint32_t period) override;
     uint16_t init_sample(uint16_t buffer_size, uint32_t prescaler, uint32_t period, bool repeat) override;
     void run() override;
     void stop() override;
