@@ -17,6 +17,7 @@ public:
     PyMonitor(NetService& net_service, Address local_address, Address remote_address);
 
     std::string status();
+    void enable_stdout_print();
 
 private:
 
@@ -47,6 +48,15 @@ std::string PyMonitor::status()
     return result;
 }
 
+void PyMonitor::enable_stdout_print()
+{
+//    Waiter<bool> waiter;
+    m_monitor->connect_to_stdout(nullptr, [](const std::string& text) { std::cout << text; });
+//    bool success = waiter.wait();
+//    if (!success)
+//        throw std::runtime_error("Monitor module creation failed");
+}
+
 void add_monitor(pybind11::module& m)
 {
     py::class_<PyMonitor>(m, "Monitor")
@@ -54,5 +64,6 @@ void add_monitor(pybind11::module& m)
              py::arg("net_service"),
              py::arg("local_address") = 0,
              py::arg("remote_address") = 0)
-        .def("status", &PyMonitor::status);
+        .def("status", &PyMonitor::status)
+        .def("enable_stdout_print", &PyMonitor::enable_stdout_print);
 }

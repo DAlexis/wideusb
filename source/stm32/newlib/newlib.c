@@ -192,10 +192,12 @@ int _write(int file, char *ptr, int len)
     switch (file)
     {
     case STDOUT_FILENO: /* stdout */
-        CDC_Transmit_FS((uint8_t*) ptr, len);
+//        CDC_Transmit_FS((uint8_t*) ptr, len);
+        write_impl(ptr, len);
         break;
     case STDERR_FILENO: /* stderr */
-        CDC_Transmit_FS((uint8_t*) ptr, len);
+//        CDC_Transmit_FS((uint8_t*) ptr, len);
+        write_impl(ptr, len);
         break;
     default:
         errno = EBADF;

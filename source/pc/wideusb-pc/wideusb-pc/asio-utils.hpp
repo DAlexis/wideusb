@@ -53,7 +53,7 @@ protected:
         std::unique_lock<std::mutex> lock(m_mutex);
         if (!m_task_done)
         {
-            if (m_cv.wait_for(lock, std::chrono_literals::operator""s(1)) == std::cv_status::timeout)
+            if (m_cv.wait_for(lock, std::chrono::seconds(1)) == std::cv_status::timeout)
             {
                 throw std::runtime_error("Operation timeouted");
             }

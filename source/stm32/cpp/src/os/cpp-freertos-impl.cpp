@@ -17,6 +17,18 @@ namespace os {
 
 const Ticks max_delay = portMAX_DELAY;
 
+static void __attribute__((naked)) sys_ctl_dalay(unsigned long ulCount)
+{
+    __asm("    subs    r0, #1\n"
+       "    bne     SysCtlDelay\n"
+       "    bx      lr");
+}
+
+void delay_iter_us(uint32_t count)
+{
+    sys_ctl_dalay(count * 168);
+}
+
 void assert_print(const char* message, const char* file, int line)
 {
     printf("Assertion %s at %s:%d\r\n", message, file, line);
@@ -396,6 +408,30 @@ bool Mutex::is_locked()
         return false;
     }
     return true;
+}
+
+CriticalSection::CriticalSection()
+{
+    taskENTER_CRITICAL();
+}
+
+CriticalSection::~CriticalSection()
+{
+    unlock();
+}
+
+void CriticalSection::unlock()
+{
+    if (m_locked)
+    {
+        taskEXIT_CRITICAL();
+        m_locked = false;
+    }
+}
+
+bool CriticalSection::is_locked()
+{
+    return m_locked;
 }
 
 }

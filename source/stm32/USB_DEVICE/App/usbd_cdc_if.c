@@ -23,7 +23,7 @@
 #include "usbd_cdc_if.h"
 
 /* USER CODE BEGIN INCLUDE */
-#include "usbd-input-handle.h"
+#include "host-communication/usbd-input-handle.h"
 #include "cmsis_os.h"
 
 #include <string.h>
@@ -68,8 +68,7 @@
 /* USER CODE BEGIN PRIVATE_DEFINES */
 /* Define size for the receive and transmit buffer over CDC */
 /* It's up to user to redefine and/or remove those define */
-#define APP_RX_DATA_SIZE  512
-#define APP_TX_DATA_SIZE  2048
+
 /* USER CODE END PRIVATE_DEFINES */
 
 /**
@@ -82,9 +81,7 @@
   */
 
 /* USER CODE BEGIN PRIVATE_MACRO */
-#define USB_RX_TIMEOUT_TICKS  1000
 
-#define USB_RX_BUFFER_SIZE    2048
 /* USER CODE END PRIVATE_MACRO */
 
 /**

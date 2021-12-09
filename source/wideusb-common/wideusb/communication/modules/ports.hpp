@@ -14,6 +14,7 @@ namespace core
 namespace monitor
 {
     constexpr static Port status_update = 4;
+    constexpr static Port stdout_data = 40;
 }
 
 namespace gps {

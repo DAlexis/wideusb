@@ -115,9 +115,14 @@ void Buffer::clear()
     m_contents.clear();
 }
 
-uint8_t& Buffer::operator[](size_t pos)
+uint8_t& Buffer::at(size_t pos)
 {
     return m_contents[pos];
+}
+
+uint8_t& Buffer::operator[](size_t pos)
+{
+    return at(pos);
 }
 
 bool Buffer::operator==(const Buffer& right) const

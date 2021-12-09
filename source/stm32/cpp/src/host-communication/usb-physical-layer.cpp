@@ -1,6 +1,5 @@
 #include "host-communication/usb-physical-layer.hpp"
 
-#include "usbd-input-handle.h"
 #include "usbd_cdc_if.h"
 
 static USBPhysicalLayer* usb_handler = nullptr;

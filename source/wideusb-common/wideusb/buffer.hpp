@@ -129,6 +129,7 @@ public:
 
     void clear();
 
+    uint8_t& at(size_t pos);
     uint8_t& operator[](size_t pos);
 
     bool operator==(const Buffer& right) const;
@@ -184,6 +185,7 @@ public:
 
     /**
      * @brief Get largest avaliable continious data block with its size
+     *        May be bug here (old DAC case)??? Not used now
      * @param buf   OUT: Pointer to block
      * @param size  OUT: Block size
      */

@@ -14,6 +14,10 @@ public:
     uint32_t get_heap_used() override;
     uint32_t get_heap_total() override;
 
+    static RingBuffer stdout_buffer;
+
+    constexpr static size_t stdout_chunk_size = 100;
+
 private:
 
 };

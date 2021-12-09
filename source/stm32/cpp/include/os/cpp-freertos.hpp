@@ -10,6 +10,8 @@
 #ifndef CPP_FREERTOS_HPP_INCLUDED
 #define CPP_FREERTOS_HPP_INCLUDED
 
+#include "os/os-types.hpp"
+
 #include <functional>
 #include <memory>
 
@@ -25,16 +27,12 @@ namespace os
     #define ASSERT(condition, message)
 #endif
 
-using TaskFunction = std::function<void(void)>;
-using Time_ms = uint32_t;
-using Priority = int;
-using Ticks = uint32_t;
-using Handle = void*;
 
 extern const Ticks max_delay;
 
 Time_ms get_os_time();
 void delay(Time_ms ms);
+void delay_iter_us(uint32_t count);
 
 void assert_print(const char* message, const char* file, int line);
 
@@ -219,6 +217,19 @@ public:
 private:
 
     Handle m_handle;
+};
+
+class CriticalSection
+{
+public:
+    CriticalSection();
+    ~CriticalSection();
+
+    void unlock();
+    bool is_locked();
+
+private:
+    bool m_locked = true;
 };
 
 }

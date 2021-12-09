@@ -99,18 +99,20 @@ set(H_HEADERS
     ./Core/Inc/usart.h
     ./Core/Inc/dma.h
     ./Core/Inc/spi.h
-    ./c-tools/include/usbd-input-handle.h
 
     ./cpp/include/host-communication/usb-physical-layer.hpp
+    ./cpp/include/host-communication/usbd-input-handle.h
     ./cpp/include/modules/gps-impl.hpp
     ./cpp/include/modules/dac-impl.hpp
     ./cpp/include/modules/gps/nmea-receiver.hpp
     ./cpp/include/modules/gps/precision-timer.hpp
     ./cpp/include/modules/monitor-impl.hpp
     ./cpp/include/os/cpp-freertos.hpp
+    ./cpp/include/os/os-types.hpp
     ./cpp/include/data-saver.hpp
     ./cpp/include/macro.hpp
     ./cpp/include/wideusb-device.hpp
+    ./cpp/include/devices/nrf24l01.hpp
 )
 
 
@@ -168,7 +170,6 @@ set(C_SOURCES
     ./Core/Src/usart.c
     ./Core/Src/freertos.c
     ./Core/Src/spi.c
-    ./c-tools/src/usbd-input-handle.c
 )
 
 set(CPP_SOURCES
@@ -182,6 +183,7 @@ set(CPP_SOURCES
     ./cpp/src/os/cpp-freertos-impl.cpp
     ./cpp/src/cpp-bootstrap.cpp
     ./cpp/src/wideusb-device.cpp
+    ./cpp/src/devices/nrf24l01.cpp
 )
 
 set(ASM_SOURCES

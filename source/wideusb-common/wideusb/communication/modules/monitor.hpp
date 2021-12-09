@@ -28,6 +28,18 @@ namespace monitor {
         #pragma pack(pop)
     }
 
+    namespace stdout_data {
+        #pragma pack(push, 1)
+        struct SubscribeRequest
+        {
+            constexpr static uint8_t unsubscribe = 0;
+            constexpr static uint8_t subscribe = 1;
+
+            uint8_t action = subscribe;
+        };
+        #pragma pack(pop)
+    }
+
 }
 
 #endif // COMMUNICATION_MONITOR_HPP

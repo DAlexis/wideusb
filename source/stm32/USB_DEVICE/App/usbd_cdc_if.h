@@ -31,7 +31,7 @@
 #include "usbd_cdc.h"
 
 /* USER CODE BEGIN INCLUDE */
-#include "usbd-input-handle.h"
+#include "host-communication/usbd-input-handle.h"
 #include <stdint.h>
 /* USER CODE END INCLUDE */
 

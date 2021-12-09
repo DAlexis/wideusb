@@ -83,31 +83,6 @@ void MX_FREERTOS_Init(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-/*
-uint16_t test_buffer[1000];
-
-void fill_dac_buffer()
-{
-    for (size_t i = 0; i < 1000; i++)
-    {
-
-        test_buffer[i] = 0xFFFF / 2000 * i + 0x0FFF;
-
-    }
-}
-
-void run_dac()
-{
-    HAL_DAC_Start_DMA(&hdac, DAC_CHANNEL_1, (uint32_t*) test_buffer, 900, DAC_ALIGN_12B_L);
-    HAL_GPIO_WritePin(GPIOD, GPIO_PIN_13, GPIO_PIN_SET);
-}
-
-void HAL_DAC_ConvCpltCallbackCh1(DAC_HandleTypeDef* hdac)
-{
-
-    HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_12);
-    run_dac();
-}*/
 
 /* USER CODE END 0 */
 

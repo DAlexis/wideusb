@@ -8,6 +8,8 @@
 extern int heap_used;
 extern int heap_total;
 
+void write_impl(char *ptr, int len);
+
 #ifdef __cplusplus
     }
 #endif
