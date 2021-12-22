@@ -1,13 +1,16 @@
 #ifndef PHYSICALLAYERASIO_HPP
 #define PHYSICALLAYERASIO_HPP
 
-#include <boost/asio.hpp>
 #include "wideusb/communication/i-physical-layer.hpp"
+#include "wideusb/communication/i-package-inspector.hpp"
+
+#include <boost/asio.hpp>
 
 class PhysicalLayerAsio : public IPhysicalLayer
 {
 public:
     PhysicalLayerAsio(boost::asio::io_service& io_service,
+                      std::shared_ptr<IPackageInspector> package_inspector = nullptr,
                       size_t input_buffer_size = 10,
                       size_t input_ring_buffer_size = 10000,
                       size_t output_ring_buffer_size = 10000);
@@ -35,6 +38,8 @@ protected:
     std::vector<uint8_t> m_input_buffer;
     RingBuffer m_input_ring_buffer;
     RingBuffer m_output_ring_buffer;
+
+    std::shared_ptr<IPackageInspector> m_package_inspector;
 
     std::chrono::time_point<std::chrono::steady_clock> m_creation;
 };

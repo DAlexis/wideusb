@@ -13,6 +13,7 @@ set(LIB_SOURCES
     src/tcp-hub.cpp
     src/physical-layer-asio.cpp
     src/physical-layer-tcp-client.cpp
+    src/package-inspector.cpp
 )
 
 set(LIB_INCLUDES
@@ -23,6 +24,7 @@ set(LIB_INCLUDES
     wideusb-pc/tcp-hub.hpp
     wideusb-pc/physical-layer-asio.hpp
     wideusb-pc/physical-layer-tcp-client.hpp
+    wideusb-pc/package-inspector.hpp
 )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)

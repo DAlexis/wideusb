@@ -27,6 +27,7 @@ PYBIND11_MODULE(pywideusb, m) {
     add_usb_physical_layer(m);
     add_tcp_physical_layer(m);
 
+    add_package_inspector(m);
     add_net_service(m);
     add_device_discovery(m);
 

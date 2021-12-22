@@ -6,6 +6,7 @@
 #include "wideusb/communication/i-channel-layer.hpp"
 #include "wideusb/communication/i-network-layer.hpp"
 #include "wideusb/communication/i-transport-layer.hpp"
+#include "wideusb/communication/i-package-inspector.hpp"
 #include "wideusb/communication/utils/time-group-maker.hpp"
 #include "wideusb/buffer.hpp"
 
@@ -167,6 +168,7 @@ public:
             std::shared_ptr<ITransportLayer> transport,
             std::shared_ptr<IPhysicalLayer> default_transit_physical = nullptr,
             OnAnySocketSendCallback on_any_socket_send = nullptr,
+            std::shared_ptr<IPackageInspector> package_inspector = nullptr,
             RandomGenerator rand_gen = nullptr);
 
     void serve_sockets(uint32_t time_ms);
@@ -194,6 +196,7 @@ private:
     std::shared_ptr<IChannelLayer> m_channel;
     std::shared_ptr<INetworkLayer> m_network;
     std::shared_ptr<ITransportLayer> m_transport;
+    std::shared_ptr<IPackageInspector> m_package_inspector;
 
     std::shared_ptr<IPhysicalLayer> m_default_transit_physical;
 

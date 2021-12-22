@@ -3,13 +3,6 @@
 
 #include <cstdio>
 
-#ifdef INSPECT_PACKAGES
-#include "wideusb/communication/utils/package-inspector.hpp"
-#include <iostream>
-static PackageInspector inspector;
-#endif
-
-
 void AddressFilter::listen_address(Address addr, Address mask)
 {
     Target t;
@@ -163,11 +156,13 @@ NetService::NetService(
         std::shared_ptr<ITransportLayer> transport,
         std::shared_ptr<IPhysicalLayer> default_transit_physical,
         OnAnySocketSendCallback on_any_socket_send,
+        std::shared_ptr<IPackageInspector> package_inspector,
         RandomGenerator rand_gen) :
     m_physical(physical),
     m_channel(channel),
     m_network(network),
     m_transport(transport),
+    m_package_inspector(package_inspector),
     m_default_transit_physical(default_transit_physical),
     m_rand_gen(rand_gen != nullptr ? rand_gen : rand), // std rand() function
     m_on_any_socket_send_callback(on_any_socket_send)
@@ -289,15 +284,12 @@ void NetService::serve_sockets_output(uint32_t time_ms)
 
 void NetService::serve_sockets_input()
 {
-#ifdef INSPECT_PACKAGES
-    PBuffer incoming = Buffer::create(m_physical->incoming().size());
-    m_physical->incoming().get(incoming->data(), incoming->size());
-    if (incoming->size() >= 49)
+    if (m_package_inspector)
     {
-        std::cout << " => Incoming data:" << m_physical->incoming().size() << " bytes" << std::endl;
-        std::cout << inspector.inspect_package(incoming) << std::endl;
+        PBuffer incoming = Buffer::create(m_physical->incoming().size());
+        m_physical->incoming().get(incoming->data(), incoming->size());
+        m_package_inspector->inspect_package(incoming, "Incoming data");
     }
-#endif
 
     std::vector<DecodedFrame> frames = m_channel->decode(m_physical->incoming());
 

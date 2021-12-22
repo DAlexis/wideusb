@@ -33,6 +33,7 @@ set(SOURCES
     wideusb/communication/i-network-layer.hpp
     wideusb/communication/i-physical-layer.hpp
     wideusb/communication/i-transport-layer.hpp
+    wideusb/communication/i-package-inspector.hpp
     wideusb/communication/binary/channel.hpp
     wideusb/communication/binary/network.hpp
     wideusb/communication/binary/transport.hpp
@@ -40,7 +41,6 @@ set(SOURCES
     wideusb/communication/modules/core.hpp
     wideusb/communication/modules/ports.hpp
     wideusb/communication/modules/ids.hpp
-    wideusb/communication/utils/package-inspector.hpp
 
 
     src/front/base-front.cpp
@@ -68,7 +68,6 @@ set(SOURCES
     src/communication/binary/network.cpp
     src/communication/binary/transport.cpp
     src/communication/utils/time-group-maker.cpp
-    src/communication/utils/package-inspector.cpp
 
     src/buffer.cpp
 )

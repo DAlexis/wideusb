@@ -1,9 +1,10 @@
-#include "wideusb/communication/utils/package-inspector.hpp"
+#include "wideusb-pc/package-inspector.hpp"
 #include "wideusb/communication/binary/channel.hpp"
 #include "wideusb/communication/binary/network.hpp"
 #include "wideusb/communication/binary/transport.hpp"
 
 #include <sstream>
+#include <iostream>
 #include <iomanip>
 
 using namespace std;
@@ -18,7 +19,7 @@ PackageInspector::PackageInspector(std::shared_ptr<IChannelLayer> channel,
 
 }
 
-std::string PackageInspector::inspect_package(const PBuffer data, size_t max_buffer_len_to_print)
+void PackageInspector::inspect_package(const PBuffer data, const std::string& context_msg)
 {
     ostringstream oss;
 
@@ -51,12 +52,12 @@ std::string PackageInspector::inspect_package(const PBuffer data, size_t max_buf
                 oss << "│  ║  │ │ is_ack             " << (((segments[j].flags & DecodedSegment::Flags::is_ack) != 0) ? "YES" : "no") << endl;
                 oss << "│  ║  │ │ data size          " << segments[j].segment.size() << endl;
                 oss << "│  ║  │ └ contents           ";
-                size_t len = std::min(max_buffer_len_to_print, segments[j].segment.size());
+                size_t len = std::min(m_max_buffer_len_to_print, segments[j].segment.size());
                 for (size_t k = 0; k < len; k++)
                 {
                     oss << std::hex << std::setfill('0') << std::setw(2) << int(segments[j].segment[k]) << " ";
                 }
-                if (segments[j].segment.size() > max_buffer_len_to_print)
+                if (segments[j].segment.size() > m_max_buffer_len_to_print)
                 {
                     oss << "...";
                 }
@@ -67,5 +68,7 @@ std::string PackageInspector::inspect_package(const PBuffer data, size_t max_buf
             oss << "│  ╚═════════════════" << packets[i].options.ttl << endl;
         }
     }
-    return oss.str();
+    std::cout << context_msg << ", len = " << data->size() << std::endl;
+    std::cout << oss.str() << std::endl;
+
 }

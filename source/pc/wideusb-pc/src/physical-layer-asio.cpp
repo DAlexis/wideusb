@@ -3,14 +3,8 @@
 
 #include <iostream>
 
-#ifdef INSPECT_PACKAGES
-#include "wideusb/communication/utils/package-inspector.hpp"
-#include <iostream>
-static PackageInspector inspector;
-#endif
-
-
 PhysicalLayerAsio::PhysicalLayerAsio(boost::asio::io_service& io_service,
+                                     std::shared_ptr<IPackageInspector> package_inspector,
                                      size_t input_buffer_size,
                                      size_t input_ring_buffer_size,
                                      size_t output_ring_buffer_size) :
@@ -19,6 +13,7 @@ PhysicalLayerAsio::PhysicalLayerAsio(boost::asio::io_service& io_service,
     m_input_buffer(input_buffer_size),
     m_input_ring_buffer(input_ring_buffer_size),
     m_output_ring_buffer(output_ring_buffer_size),
+    m_package_inspector(package_inspector),
     m_creation(std::chrono::steady_clock::now())
 {
 }
@@ -34,10 +29,10 @@ SerialReadAccessor& PhysicalLayerAsio::incoming()
 
 void PhysicalLayerAsio::send(PBuffer data)
 {
-#ifdef INSPECT_PACKAGES
-    std::cout << " <= Outgoing data:" << data->size() << " bytes" << std::endl;
-    std::cout << inspector.inspect_package(data) << std::endl;
-#endif
+    if (m_package_inspector)
+    {
+        m_package_inspector->inspect_package(data, "<= Outgoint package");
+    }
 
     m_output_ring_buffer.put(data->data(), std::min(data->size(), m_output_ring_buffer.free_space()));
     boost::asio::post(m_write_strand, [this]() { async_send(); });
