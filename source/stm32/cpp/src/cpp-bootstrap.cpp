@@ -10,10 +10,11 @@
 #include "dma.h"
 #include "tim.h"
 
-extern "C" {
-void run_dac();
-void fill_dac_buffer();
-}
+#include "devices/nrf24l01-driver-impl.hpp"
+#include "devices/nrf24l01.hpp"
+
+#include <chrono>
+
 
 void cpp_bootstrap()
 {
@@ -27,7 +28,22 @@ void cpp_bootstrap()
     run_dac();
     */
 
-    printf("Starting\r\n");
+    printf("Starting\n");
+
+    auto driver = NRF24L01IODriverImpl::get();
+    printf("Driver created\n");
+    NRF24L01Manager nrf(driver);
+    printf("NRF24L01 device created\n");
+    nrf.printStatus();
+    printf("Status should be above\n");
+
+    {
+        int secs = std::chrono::duration_cast<std::chrono::milliseconds>(
+                    std::chrono::steady_clock::now().time_since_epoch()
+                    ).count();
+        printf("msecs = %d\n", secs);
+    }
+
     WideusbDevice dev;
     dev.run();
 

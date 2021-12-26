@@ -166,18 +166,9 @@
 #define REUSE_TX_PL             0b11100011
 
 
-void NRF24L01IODriver::transmit(uint8_t byte)
-{
-    transmit(&byte, 1);
-}
-
-
-NRF24L01Manager::NRF24L01Manager(std::shared_ptr<NRF24L01IODriver> io_driver,
-                                 bool useInterrupts,
-                                 uint8_t radioChannel) :
+NRF24L01Manager::NRF24L01Manager(std::shared_ptr<NRF24L01IODriverBase> io_driver, uint8_t radioChannel) :
     m_io_driver(io_driver),
-    m_radioChannel(radioChannel),
-    m_useInterrupts(useInterrupts)
+    m_radioChannel(radioChannel)
 {
     m_RFChannel = radioChannel;
 //    m_spi = SPIs->getSPI(SPIIndex);
@@ -216,23 +207,13 @@ NRF24L01Manager::NRF24L01Manager(std::shared_ptr<NRF24L01IODriver> io_driver,
     setupRetransmission(2, 15);
     switchToRX();
 
-    m_useInterrupts = useInterrupts;
-    if (m_useInterrupts)
-    {
-//        IRQPin->setExtiCallback(std::bind(&NRF24L01Manager::extiHandler, this, std::placeholders::_1), false);
-//        IRQPin->enableExti(true);
-        m_io_driver->set_irq_pin_exti_callback([this](bool state){ extiHandler(state); });
-        if (false == m_io_driver->get_irq_pin())
-            m_needInterrogation = true;
-        else
-            m_needInterrogation = false;
-    }
 
     if (m_TXAdress[0] == 0xe7)
     {
+        printf("NRF24L01 initialization successfully done\n");
 //        debug << "NRF24L01 initialization successfully done";
     } else {
-//        error << "Radio module seems to be not connected! Details:\n";
+        printf("Radio module seems to be not connected! Details:\r\n");
         printStatus();
     }
 }
@@ -762,6 +743,8 @@ void NRF24L01Manager::interrogate()
     }
 
 //    m_stager.stage("IRQ detected");
+
+    // Continuing here when IRQ detected
 
     updateStatus();
     if (isRXDataReady())

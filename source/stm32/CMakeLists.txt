@@ -113,6 +113,9 @@ set(H_HEADERS
     ./cpp/include/macro.hpp
     ./cpp/include/wideusb-device.hpp
     ./cpp/include/devices/nrf24l01.hpp
+    ./cpp/include/devices/nrf24l01-driver-impl.hpp
+    ./cpp/include/devices/nrf24l01-driver-base.hpp
+    ./cpp/include/connectivity/spi-interrupt-callbacks.hpp
 )
 
 
@@ -184,6 +187,9 @@ set(CPP_SOURCES
     ./cpp/src/cpp-bootstrap.cpp
     ./cpp/src/wideusb-device.cpp
     ./cpp/src/devices/nrf24l01.cpp
+    ./cpp/src/devices/nrf24l01-driver-impl.cpp
+    ./cpp/src/devices/nrf24l01-driver-base.cpp
+    ./cpp/src/connectivity/spi-interrupt-callbacks.cpp
 )
 
 set(ASM_SOURCES

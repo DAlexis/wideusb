@@ -2,6 +2,7 @@
 #define NRF24L01_HPP
 
 #include "os/os-types.hpp"
+#include "devices/nrf24l01-driver-base.hpp"
 
 #include <functional>
 #include <cstdint>
@@ -12,25 +13,6 @@
 using DataReceiveCallback = std::function<void(uint8_t/* channel*/, uint8_t*/* data*/)>;
 using TXMaxRetriesCallback = std::function<void(void)>;
 using TXDoneCallback = std::function<void(void)>;
-
-class NRF24L01IODriver
-{
-public:
-    using EXTICallback = std::function<void(bool)>;
-    virtual ~NRF24L01IODriver() = default;
-    virtual void set_chip_select(bool state) = 0;
-    virtual void set_chip_enable(bool state) = 0;
-    virtual bool get_irq_pin() = 0;
-
-    virtual uint8_t transmit_receive(uint8_t byte) = 0;
-    virtual void transmit(uint8_t* data, size_t size) = 0;
-    virtual void receive(uint8_t* data, size_t size) = 0;
-
-    virtual void set_irq_pin_exti_callback(EXTICallback callback) = 0;
-
-    void transmit(uint8_t byte);
-
-};
 
 class NRF24L01Manager
 {
@@ -44,8 +26,7 @@ public:
     constexpr static unsigned int payloadSize = 32;
     constexpr static uint8_t defaultRadioChannel = 1;
 
-    NRF24L01Manager(std::shared_ptr<NRF24L01IODriver> io_driver,
-                    bool useInterrupts,
+    NRF24L01Manager(std::shared_ptr<NRF24L01IODriverBase> io_driver,
                     uint8_t radioChannel = defaultRadioChannel);
 
     uint32_t getPayloadSize();
@@ -220,12 +201,10 @@ private:
 
     void reinitIfNeeded();
 
-    std::shared_ptr<NRF24L01IODriver> m_io_driver;
+    std::shared_ptr<NRF24L01IODriverBase> m_io_driver;
 
     uint8_t m_SPIIndex = 0;
     uint8_t m_radioChannel = 1;
-
-    bool m_useInterrupts = false;
 
     bool m_needInterrogation = false;
 

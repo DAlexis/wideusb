@@ -13,16 +13,16 @@
 #include <stdio.h>
 #include <cstring>
 
+extern "C" void __attribute__((naked)) sys_ctl_dalay(unsigned long ulCount)
+{
+    __asm("    subs    r0, #1\n"
+       "    bne     sys_ctl_dalay\n"
+       "    bx      lr");
+}
+
 namespace os {
 
 const Ticks max_delay = portMAX_DELAY;
-
-static void __attribute__((naked)) sys_ctl_dalay(unsigned long ulCount)
-{
-    __asm("    subs    r0, #1\n"
-       "    bne     SysCtlDelay\n"
-       "    bx      lr");
-}
 
 void delay_iter_us(uint32_t count)
 {

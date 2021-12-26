@@ -4,8 +4,6 @@ Board based on STM32F4 to connect various perepherial over USB. May be useful wi
 
 Nearest roadmap
 =====
-- Bugs
-    - [X] Monitor does not work with new front/back interface
 - Networking
     - [ ] Retransmitting to another network devices
     - [ ] Internal transmission without network
@@ -22,9 +20,12 @@ Nearest roadmap
     - [x] Forward sender address to client side
     - [x] Add callbacks when package received
     - [x] Add package inspection functions
+
+- Device core
+	- [ ] All time-related -> std::chrono
     
 - Modules interface
-    - [X] For each module make 'module back' and 'module front'. Front should be avaliable from MCU too.
+    - [x] For each module make 'module back' and 'module front'. Front should be avaliable from MCU too.
     - [ ] Derive backs from IModule
 
 - Monitor module
@@ -35,7 +36,7 @@ Nearest roadmap
     - [ ] Fill thimestamp structs with content
         
 - Asynchronous C++ API
-    - [ ] Add timeout for operations
+    - [x] Add timeout for operations
 
 - Synchronous python API
     - [ ] Replace condition variable with promise/future and wait_for (No! Timeout shoud be made in another way!)
@@ -49,8 +50,16 @@ Nearest roadmap
 
 - [ ] DAC module
 
-- [ ] nfr24l01 module
+- [ ] nfr24l01 device
+	- [x] Driver abstraction
+	- [x] Driver implementation
+	- [x] Single device test
+	- [ ] Double device test
+	- [ ] Device class code refactoring
 
 - [ ] LoRa module
 
 - [ ] State saving in EEPROM
+
+## Bugs
+- [X] Monitor does not work with new front/back interface
