@@ -13,7 +13,7 @@ DeviceCore::DeviceCore(NetService& net_service, Address device_address) :
     m_device_discovery_sock.options().input_queue_limit = 5;
     m_device_discovery_sock.options().need_acknoledgement = false;
     m_device_discovery_sock.options().retransmitting_options.cycles_count = 1;
-    m_device_discovery_sock.options().retransmitting_options.timeout = 0;
+    m_device_discovery_sock.options().retransmitting_options.timeout = 0ms;
     m_device_discovery_sock.address_filter().listen_address(0x00000000, 0x00000000); // Any
 
 }

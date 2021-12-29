@@ -33,14 +33,18 @@ void add_checksum(std::string& nmea_line)
 
 TEST(GPS, NmeaParseTypical)
 {
-    GPSData gps(1000);
+    using namespace std::literals::chrono_literals;
+    GPSData gps;
 
     bool success = true;
     std::istringstream f(sample);
     std::string line;
+
+    auto time_point = std::chrono::steady_clock::now();
+
     while (std::getline(f, line)) {
         add_checksum(line);
-        success = success && gps.parse_line(line.c_str(), 5000);
+        success = success && gps.parse_line(line.c_str(), time_point);
 //        std::cout << line << std::endl;
     }
 
@@ -51,16 +55,18 @@ TEST(GPS, NmeaParseTypical)
     ASSERT_EQ(t.tm_hour, 14);
     ASSERT_EQ(t.tm_min, 25);
     ASSERT_EQ(t.tm_sec, 01);
-    ASSERT_EQ(p.last_update_ticks, 5000);
+    ASSERT_EQ(p.last_update_ticks, time_point);
 
-    gps.fit_to_pps(5100);
+    time_point += 100ms;
+    gps.fit_to_pps(time_point);
     p = gps.point();
-    ASSERT_EQ(p.last_update_ticks, 5100);
+    ASSERT_EQ(p.last_update_ticks, time_point);
 
+    time_point += 800ms;
     // Assume we have next pps, but time was not updated by GPS yet
-    gps.fit_to_pps(5900);
+    gps.fit_to_pps(time_point);
     p = gps.point();
-    ASSERT_EQ(p.last_update_ticks, 5900);
+    ASSERT_EQ(p.last_update_ticks, time_point);
     t = *localtime(&p.time.tv_sec);
     ASSERT_EQ(t.tm_sec, 02);
 }

@@ -19,7 +19,7 @@
 void cpp_bootstrap()
 {
     // here is an entry point for C++ code
-    os::delay(2000);
+    os::delay(2000ms);
 
     /*
     HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12, GPIO_PIN_RESET);

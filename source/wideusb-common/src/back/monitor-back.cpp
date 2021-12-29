@@ -7,11 +7,11 @@ MonitorBack::MonitorBack(NetService& net_service, Address module_address) :
 {
     m_status_socket.options().need_acknoledgement = false;
     m_status_socket.options().retransmitting_options.cycles_count = 1;
-    m_status_socket.options().retransmitting_options.timeout = 0;
+    m_status_socket.options().retransmitting_options.timeout = 0ms;
 
     m_stdout_socket.options().need_acknoledgement = false;
     m_stdout_socket.options().retransmitting_options.cycles_count = 1;
-    m_stdout_socket.options().retransmitting_options.timeout = 0;
+    m_stdout_socket.options().retransmitting_options.timeout = 0ms;
 }
 
 

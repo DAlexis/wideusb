@@ -4,19 +4,26 @@
 #include <vector>
 #include <map>
 #include <cstdint>
+#include <chrono>
+
+using namespace std::literals::chrono_literals;
 
 struct TimePlanningOptions
 {
-    TimePlanningOptions(uint32_t interval = 1000, uint32_t duration = 100, uint32_t cycles_count = 0, uint32_t timeout = 0) :
+
+    TimePlanningOptions(std::chrono::milliseconds interval = 1000ms,
+                        std::chrono::milliseconds duration = 100ms,
+                        uint32_t cycles_count = 0,
+                        std::chrono::milliseconds timeout = 0ms) :
         duration(duration), interval(interval), cycles_count(cycles_count), timeout(timeout)
     { }
 
     TimePlanningOptions& operator=(const TimePlanningOptions&) = default;
 
-    uint32_t duration;
-    uint32_t interval;
+    std::chrono::milliseconds duration;
+    std::chrono::milliseconds interval;
     uint32_t cycles_count;
-    uint32_t timeout;
+    std::chrono::milliseconds timeout;
 };
 
 template<typename T>
@@ -29,7 +36,7 @@ public:
     public:
         Task() = default;
 
-        Task(T data, uint32_t id, uint32_t current_time, const TimePlanningOptions& time_planning_options) :
+        Task(T data, uint32_t id, std::chrono::steady_clock::time_point current_time, const TimePlanningOptions& time_planning_options) :
             m_id(id), m_time_planning_options(time_planning_options), m_data(data), m_creation_time(current_time)
         {
         }
@@ -42,7 +49,7 @@ public:
         TimePlanningOptions m_time_planning_options;
         T m_data;
 
-        uint32_t m_creation_time = 0;
+        std::chrono::steady_clock::time_point m_creation_time;
         uint32_t m_cycle_done = 0;
         uint32_t m_repetitions = 0;
     };
@@ -70,7 +77,7 @@ public:
         return it != m_active_tasks.end();
     }
 
-    Batch get_batch(uint32_t time, std::size_t task_limit = 0)
+    Batch get_batch(std::chrono::steady_clock::time_point time, std::size_t task_limit = 0)
     {
         TimePlanner::Batch result;
 
@@ -81,14 +88,14 @@ public:
 
             Task& task = it->second;
 
-            uint32_t lifetime = time - task.m_creation_time;
+            auto lifetime = time - task.m_creation_time;
 
             // Remove tasks
             if (
                     // Remove task if timeouted
-                    (task.m_time_planning_options.timeout != 0 && lifetime >= task.m_time_planning_options.timeout)
+                    (task.m_time_planning_options.timeout != 0ms && lifetime >= task.m_time_planning_options.timeout)
                     // or if all cycles are done AND timeout == 0
-                    || (task.m_time_planning_options.timeout == 0 && task.m_time_planning_options.cycles_count != 0 && task.m_repetitions >= task.m_time_planning_options.cycles_count)
+                    || (task.m_time_planning_options.timeout == 0ms && task.m_time_planning_options.cycles_count != 0 && task.m_repetitions >= task.m_time_planning_options.cycles_count)
                 )
             {
                 auto jt = std::next(it);
@@ -112,8 +119,8 @@ public:
             }
 
 
-            uint32_t cycle_duration = (task.m_time_planning_options.duration + task.m_time_planning_options.interval);
-            uint32_t time_in_cycle = lifetime % cycle_duration;
+            auto cycle_duration = (task.m_time_planning_options.duration + task.m_time_planning_options.interval);
+            auto time_in_cycle = lifetime % cycle_duration;
             uint32_t cycle_number = lifetime / cycle_duration + 1;
 
             if (time_in_cycle >= task.m_time_planning_options.interval && task.m_cycle_done <= cycle_number)

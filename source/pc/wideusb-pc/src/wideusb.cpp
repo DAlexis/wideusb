@@ -25,7 +25,7 @@ Device::Device(Address host_address, const std::string& port, OnDeviceDiscovered
         nullptr,
         [this]() { post_serve_sockets(); }
     ),
-    m_serve_sockets_task(m_io_service, 10, [this] { m_net_srv.serve_sockets(time_ms()); return false; }),
+    m_serve_sockets_task(m_io_service, 10, [this] { m_net_srv.serve_sockets(std::chrono::steady_clock::now()); return false; }),
     m_host_address(host_address),
 
     m_create_module_socket(m_net_srv, m_host_address, ports::core::create_module,
@@ -47,7 +47,7 @@ void Device::run_device_discovery()
     );
 
     m_device_discovery_socket->options().retransmitting_options.cycles_count = 0;
-    m_device_discovery_socket->options().retransmitting_options.timeout = 0;
+    m_device_discovery_socket->options().retransmitting_options.timeout = 0ms;
     m_device_discovery_socket->options().ttl = 1; // Do not retransmit over network
     m_device_discovery_socket->address_filter().listen_address(0x00000000, 0x00000000); // Any
 
@@ -84,16 +84,9 @@ void Device::run_single(SingleTask task, size_t milliseconds)
 
 }
 
-
 void Device::post_serve_sockets()
 {
-    boost::asio::post(m_io_service, [this]() { m_net_srv.serve_sockets(time_ms()); });
-}
-
-uint32_t Device::time_ms()
-{
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - m_creation).count();
-    return duration % std::numeric_limits<uint32_t>::max();
+    boost::asio::post(m_io_service, [this]() { m_net_srv.serve_sockets(std::chrono::steady_clock::now()); });
 }
 
 NetService& Device::net_service()

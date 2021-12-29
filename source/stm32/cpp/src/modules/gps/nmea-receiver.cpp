@@ -36,7 +36,7 @@ void NMEAReceiver::receiver_thread()
             line.insert(line.end(), m_buffer + borders.begin, m_buffer + buffer_size);
             line.insert(line.end(), m_buffer, m_buffer + borders.end);
         }
-        m_gps_data.parse_line(line.c_str(), os::get_os_time());
+        m_gps_data.parse_line(line.c_str(), std::chrono::steady_clock::now());
         //printf("> %s\r\n", line.c_str());
         //printf(line.c_str());
     }
@@ -54,8 +54,7 @@ void NMEAReceiver::monitor_thread()
             counter++;
             printf("===> state fix\r\n");
         }
-        os::delay(200);
-
+        os::delay(200ms);
     }
 }
 
@@ -84,7 +83,7 @@ void NMEAReceiver::interrupt_uart_RX_callback(uint8_t* data, uint16_t size)
 
 void NMEAReceiver::interrupt_pps()
 {
-    m_gps_data.fit_to_pps(os::get_os_time());
+    m_gps_data.fit_to_pps(std::chrono::steady_clock::now());
 }
 
 void NMEAReceiver::receive()

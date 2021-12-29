@@ -17,7 +17,7 @@ TEST(Synchronizer, WaitingForAsyncOp)
     AsioServiceRunner runner(io_service);
     runner.run_thread();
     Waiter<void> waiter;
-    DeferredTask::run(io_service, 1000, waiter.get_waiter_callback());
+    DeferredTask::run(io_service, 200, waiter.get_waiter_callback());
     waiter.wait();
 }
 

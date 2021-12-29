@@ -7,6 +7,7 @@
 #include <functional>
 #include <cstdint>
 #include <memory>
+#include <chrono>
 
 #define RADIO_ADDRESS_SIZE  5
 
@@ -114,7 +115,7 @@ private:
     };
 
 //    constexpr static uint16_t timeEnoughForTransmission = 1000;
-    constexpr static uint16_t timeEnoughForTransmission = 2;
+    constexpr static std::chrono::milliseconds time_enough_for_transmission{2};
 
     void switchToTX();
     void switchToRX();
@@ -223,7 +224,8 @@ private:
     TXMaxRetriesCallback m_TXMaxRTcallback = nullptr;
     TXDoneCallback m_TXDoneCallback = nullptr;
 
-    uint64_t m_lastTransmissionTime = 0;
+    std::chrono::steady_clock::time_point m_last_transmission_time;
+//    uint64_t m_lastTransmissionTime = 0;
     bool m_waitingForTransmissionEnd = false;
 
     bool m_debug = false;

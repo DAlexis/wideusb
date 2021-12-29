@@ -639,7 +639,8 @@ void NRF24L01Manager::sendData(unsigned char size, unsigned char* data)
     os::delay_iter_us(200);
 //    systemClock->wait_us(200);
     updateStatus();
-    m_lastTransmissionTime = os::get_os_time();
+    m_last_transmission_time = std::chrono::steady_clock::now();
+//    m_lastTransmissionTime = os::get_os_time();
 //    m_lastTransmissionTime = systemClock->getTime();
     m_waitingForTransmissionEnd = true;
 }
@@ -712,27 +713,12 @@ void NRF24L01Manager::resetAllIRQ()
 
 void NRF24L01Manager::interrogate()
 {
-    //info << "ri";
-    /*
-    if (m_useInterrupts)
-    {
-        if (!m_needInterrogation)
-            return;
-        m_needInterrogation = false;
-    } else {
-        if (true == m_IRQPin->state())
-            return;
-    }*/
-
-
-
     // This is a workaround for strange behavior of some (all?) nrf24l01 modules:
     // sometimes module does not reset IRQ pin in case of TX data sent AND does not set
     // proper flag, so we simply check a timeout
     bool softwareDetectionOfTXDataSent = (
         m_waitingForTransmissionEnd
-        && (os::get_os_time() - m_lastTransmissionTime) > timeEnoughForTransmission
-//        && (systemClock->getTime() - m_lastTransmissionTime) > timeEnoughForTransmission
+        && std::chrono::steady_clock::now() - m_last_transmission_time > time_enough_for_transmission
     );
 
 //    if (!softwareDetectionOfTXDataSent && m_IRQPin->state() == true)

@@ -34,14 +34,18 @@ void assert_print(const char* message, const char* file, int line)
     printf("Assertion %s at %s:%d\r\n", message, file, line);
 }
 
-Time_ms get_os_time()
+void delay(std::chrono::steady_clock::duration duration)
 {
-    return osKernelSysTick() * configTICK_RATE_HZ / 1000;
+    osDelay( std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() );
 }
 
-void delay(Time_ms ms)
+void delay_spinlock(std::chrono::steady_clock::duration duration)
 {
-    osDelay(ms);
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
+    while (std::chrono::steady_clock::now() - begin < duration)
+    {
+        // nothing
+    }
 }
 
 Thread::Thread(TaskFunction function, const char* name, uint32_t stack_size, Priority priority) :

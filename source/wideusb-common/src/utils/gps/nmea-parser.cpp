@@ -2,9 +2,11 @@
 #include "wideusb/utils/utilities.hpp"
 
 #include <string.h>
+#include <chrono>
 
-GPSData::GPSData(uint32_t ticks_per_sec) :
-    m_ticks_per_sec(ticks_per_sec)
+using namespace std::literals::chrono_literals;
+
+GPSData::GPSData()
 {
     zerify(m_rmc);
     zerify(m_gga);
@@ -16,7 +18,7 @@ GPSData::GPSData(uint32_t ticks_per_sec) :
     zerify(m_gll);
 }
 
-bool GPSData::parse_line(const char* line, size_t os_ticks)
+bool GPSData::parse_line(const char* line, std::chrono::steady_clock::time_point time)
 {
     bool result = true;
     switch(minmea_sentence_id(line, false))
@@ -27,7 +29,7 @@ bool GPSData::parse_line(const char* line, size_t os_ticks)
             break;
         update_lat_lon(m_rmc.latitude, m_rmc.longitude);
         minmea_gettime(&m_time, &m_rmc.date, &m_rmc.time);
-        m_os_ticks_last_time_update = os_ticks;
+        m_os_ticks_last_time_update = time;
         break;
 
     case MINMEA_SENTENCE_GGA:
@@ -101,15 +103,15 @@ Point GPSData::point() const
     return result;
 }
 
-void GPSData::fit_to_pps(size_t os_ticks)
+void GPSData::fit_to_pps( std::chrono::steady_clock::time_point ticks_from_last_pps)
 {
-    if (os_ticks - m_os_ticks_last_time_update > m_ticks_per_sec / 2)
+    if (ticks_from_last_pps - m_os_ticks_last_time_update > 500ms)
     {
         // It seems that we have next pps, but last time update over NMEA was too long ago
         m_time.tv_sec++;
-        m_os_ticks_last_time_update = os_ticks;
+        m_os_ticks_last_time_update = ticks_from_last_pps;
     }
-    m_os_ticks_last_pps = os_ticks;
+    m_os_ticks_last_pps = ticks_from_last_pps;
 
 }
 

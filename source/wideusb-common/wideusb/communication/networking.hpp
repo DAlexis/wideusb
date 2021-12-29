@@ -15,6 +15,7 @@
 #include <set>
 #include <functional>
 #include <optional>
+#include <chrono>
 
 class NetService;
 
@@ -46,7 +47,7 @@ struct SocketOptions
     Port port = 0;
     Address address;
     uint8_t ttl = 10;
-    TimePlanningOptions retransmitting_options{1000, 100, 10, 5000};
+    TimePlanningOptions retransmitting_options{std::chrono::milliseconds(1000), std::chrono::milliseconds(100), 10, std::chrono::milliseconds(5000)};
 
     uint32_t input_queue_limit = 20;
     uint32_t output_queue_limit = 20;
@@ -171,7 +172,7 @@ public:
             std::shared_ptr<IPackageInspector> package_inspector = nullptr,
             RandomGenerator rand_gen = nullptr);
 
-    void serve_sockets(uint32_t time_ms);
+    void serve_sockets(std::chrono::steady_clock::time_point time_ms);
 
     void add_socket(Socket& socket);
     void remove_socket(Socket& socket);
@@ -182,9 +183,9 @@ public:
 
 private:
 
-    void serve_sockets_output(uint32_t time_ms);
+    void serve_sockets_output(std::chrono::steady_clock::time_point time_ms);
     void serve_sockets_input();
-    void serve_time_planner(uint32_t time_ms);
+    void serve_time_planner(std::chrono::steady_clock::time_point time_ms);
 
     void send_ack(Address src, Address dst, Port port, uint32_t ttl, uint32_t ack_id, SegmentID seg_id);
 

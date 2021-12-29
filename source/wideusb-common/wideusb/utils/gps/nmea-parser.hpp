@@ -3,21 +3,23 @@
 
 #include "wideusb/utils/point.hpp"
 #include "wideusb/utils/gps/minmea.h"
+
+#include <chrono>
 #include <string>
 #include <ctime>
 
 class GPSData
 {
 public:
-    GPSData(uint32_t ticks_per_sec = 1000);
-    bool parse_line(const char* line, size_t os_ticks);
+    GPSData();
+    bool parse_line(const char* line, std::chrono::steady_clock::time_point time);
     Point point() const;
 
     /**
      * @brief Update round part of seconds when PPS received, if it was not already done by NMEA line
      * @param current PPS timer ticks
      */
-    void fit_to_pps(size_t ticks_from_last_pps);
+    void fit_to_pps( std::chrono::steady_clock::time_point ticks_from_last_pps);
 
 private:
     minmea_sentence_rmc m_rmc;
@@ -30,9 +32,8 @@ private:
     minmea_sentence_gll m_gll;
 
     struct timespec m_time;
-    size_t m_os_ticks_last_time_update = 0;
-    size_t m_os_ticks_last_pps = 0;
-    uint32_t m_ticks_per_sec;
+    std::chrono::steady_clock::time_point m_os_ticks_last_time_update;
+    std::chrono::steady_clock::time_point m_os_ticks_last_pps;
 
     float m_latitude = 0.0f, m_longitude = 0.0f;
 

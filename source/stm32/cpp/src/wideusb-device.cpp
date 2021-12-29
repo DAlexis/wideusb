@@ -32,7 +32,7 @@ void WideusbDevice::run()
 {
     for (;;)
     {
-        m_net_srv.serve_sockets(os::get_os_time());
+        m_net_srv.serve_sockets(std::chrono::steady_clock::now());
         m_core.tick();
     }
 }

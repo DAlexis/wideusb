@@ -46,7 +46,7 @@ void PhysicalLayerAsio::on_network_service_connected(NetService& srv)
 void PhysicalLayerAsio::post_serve_sockets()
 {
     if (m_net_service)
-        boost::asio::post(m_io_service, [this]() { m_net_service->serve_sockets(time_ms()); });
+        boost::asio::post(m_io_service, [this]() { m_net_service->serve_sockets(std::chrono::steady_clock::now()); });
 }
 
 void PhysicalLayerAsio::on_data_read(const boost::system::error_code& error, std::size_t bytes_transferred)

@@ -2,6 +2,7 @@
 #define POINT_HPP_INCLUDED
 
 #include <ctime>
+#include <chrono>
 
 struct Point
 {
@@ -13,7 +14,7 @@ struct Point
 
     timespec time;
 
-    size_t last_update_ticks = 0;
+    std::chrono::steady_clock::time_point last_update_ticks;
     bool has_pps = false;
 };
 

@@ -67,7 +67,7 @@ void GPSImpl::check_pps_thread()
 {
     for (;;)
     {
-        os::delay(100);
+        os::delay(100ms);
         if (m_precision_timer)
             m_precision_timer->check_for_pps_loss();
     }

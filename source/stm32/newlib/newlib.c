@@ -7,7 +7,6 @@
 #include <sys/time.h>
 
 #include <stm32f4xx_hal.h>
-#include "usbd_cdc_if.h"
 #include "cmsis_os.h"
 
 #define UNUSED_ARGUMENT(x) ((void) x)
@@ -192,11 +191,9 @@ int _write(int file, char *ptr, int len)
     switch (file)
     {
     case STDOUT_FILENO: /* stdout */
-//        CDC_Transmit_FS((uint8_t*) ptr, len);
         write_impl(ptr, len);
         break;
     case STDERR_FILENO: /* stderr */
-//        CDC_Transmit_FS((uint8_t*) ptr, len);
         write_impl(ptr, len);
         break;
     default:

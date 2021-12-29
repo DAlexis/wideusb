@@ -10,7 +10,7 @@ DeviceDiscovery::DeviceDiscovery(NetService& net_srv, Address local) :
             )
 {
     m_device_discovery_socket.options().retransmitting_options.cycles_count = 0;
-    m_device_discovery_socket.options().retransmitting_options.timeout = 0;
+    m_device_discovery_socket.options().retransmitting_options.timeout = 0ms;
     m_device_discovery_socket.options().ttl = 1; // Do not retransmit over network
     m_device_discovery_socket.address_filter().listen_address(0x00000000, 0x00000000); // Any
 }

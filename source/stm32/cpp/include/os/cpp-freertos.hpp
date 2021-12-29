@@ -17,6 +17,9 @@
 
 #include <stdint.h>
 #include <vector>
+#include <chrono>
+
+using namespace std::literals::chrono_literals;
 
 namespace os
 {
@@ -30,9 +33,9 @@ namespace os
 
 extern const Ticks max_delay;
 
-Time_ms get_os_time();
-void delay(Time_ms ms);
+void delay(std::chrono::steady_clock::duration duration);
 void delay_iter_us(uint32_t count);
+void delay_spinlock(std::chrono::steady_clock::duration duration);
 
 void assert_print(const char* message, const char* file, int line);
 

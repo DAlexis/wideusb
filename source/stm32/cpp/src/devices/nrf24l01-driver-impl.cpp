@@ -5,6 +5,7 @@
 #include "main.h"
 #include "spi.h"
 
+#include <chrono>
 #include <cstdio>
 
 //#define DEBUG_NRF_IO_DRIVER
@@ -149,9 +150,9 @@ void NRF24L01IODriverImpl::on_tx_rx_error_interrupt()
 
 bool NRF24L01IODriverImpl::wait_for_done(int64_t timeout_ms)
 {
-    int64_t start_time = os::get_os_time();
+    auto begin = std::chrono::steady_clock::now();
     while (!m_done) {
-        if (os::get_os_time() - start_time > timeout_ms)
+        if (std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - begin).count() > timeout_ms)
         {
             // Not false to prevent case when context switching cause 'timeout',
             // but not real timeout

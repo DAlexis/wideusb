@@ -199,7 +199,7 @@ void NetService::on_socket_send()
         m_on_any_socket_send_callback();
 }
 
-void NetService::serve_sockets(uint32_t time_ms)
+void NetService::serve_sockets(std::chrono::steady_clock::time_point time_ms)
 {
     serve_sockets_input();
     serve_sockets_output(time_ms);
@@ -238,7 +238,7 @@ bool NetService::is_already_received(uint32_t segment_id)
     return result;
 }
 
-void NetService::serve_sockets_output(uint32_t time_ms)
+void NetService::serve_sockets_output(std::chrono::steady_clock::time_point time_ms)
 {
     // Sending cycle
     for (auto& socket : m_sockets)
@@ -351,7 +351,7 @@ void NetService::serve_sockets_input()
     }
 }
 
-void NetService::serve_time_planner(uint32_t time_ms)
+void NetService::serve_time_planner(std::chrono::steady_clock::time_point time_ms)
 {
     auto batch = m_time_planner.get_batch(time_ms);
     if (batch.tasks.empty())

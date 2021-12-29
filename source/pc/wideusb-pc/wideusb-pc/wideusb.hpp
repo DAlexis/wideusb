@@ -47,8 +47,6 @@ private:
 
     void create_module_socket_listener();
 
-    uint32_t time_ms();
-
     // ASIO
     boost::asio::io_service m_io_service;
 
