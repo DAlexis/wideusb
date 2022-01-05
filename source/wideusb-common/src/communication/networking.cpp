@@ -150,24 +150,23 @@ void SocketState::clear()
 }
 
 NetService::NetService(
-        std::shared_ptr<IPhysicalLayer> physical,
-        std::shared_ptr<IChannelLayer> channel,
         std::shared_ptr<INetworkLayer> network,
         std::shared_ptr<ITransportLayer> transport,
-        std::shared_ptr<IPhysicalLayer> default_transit_physical,
         OnAnySocketSendCallback on_any_socket_send,
         std::shared_ptr<IPackageInspector> package_inspector,
         RandomGenerator rand_gen) :
-    m_physical(physical),
-    m_channel(channel),
     m_network(network),
     m_transport(transport),
     m_package_inspector(package_inspector),
-    m_default_transit_physical(default_transit_physical),
     m_rand_gen(rand_gen != nullptr ? rand_gen : rand), // std rand() function
     m_on_any_socket_send_callback(on_any_socket_send)
 {
-    m_physical->on_network_service_connected(*this);
+}
+
+void NetService::add_interface(std::shared_ptr<NetworkInterface> interface)
+{
+    m_interfaces.push_back(interface);
+    interface->physical->on_network_service_connected(*this);
 }
 
 void NetService::add_socket(Socket& socket)
@@ -206,36 +205,13 @@ void NetService::serve_sockets(std::chrono::steady_clock::time_point time_ms)
     serve_time_planner(time_ms);
 }
 
-void NetService::send_ack(Address src, Address dst, Port port, uint32_t ttl, uint32_t ack_id, SegmentID seg_id)
+void NetService::send_ack(std::shared_ptr<NetworkInterface> interface, Address src, Address dst, Port port, uint32_t ttl, uint32_t ack_id, SegmentID seg_id)
 {
     SegmentBuffer sb;
     m_transport->encode(sb, port, seg_id, false, true, ack_id);
-    m_network->encode(sb, NetworkOptions(src, dst, ttl));
-    m_channel->encode(sb);
-    m_physical->send(sb.merge());
-}
-
-bool NetService::is_already_received(uint32_t segment_id)
-{
-    bool result = false;
-    for (auto id : m_already_received)
-    {
-        if (id == segment_id)
-        {
-            result = true;
-        }
-    }
-
-    if (!result)
-    {
-        // New segment id, add it to list
-        if (m_already_received.size() == m_already_received_capacity)
-        {
-            m_already_received.pop_back();
-        }
-        m_already_received.push_front(segment_id);
-    }
-    return result;
+    m_network->encode(sb, NetworkOptions(src, dst, m_rand_gen(), ttl));
+    interface->channel->encode(sb);
+    interface->physical->send(sb.merge());
 }
 
 void NetService::serve_sockets_output(std::chrono::steady_clock::time_point time_ms)
@@ -284,66 +260,96 @@ void NetService::serve_sockets_output(std::chrono::steady_clock::time_point time
 
 void NetService::serve_sockets_input()
 {
-    if (m_package_inspector)
+    for (auto& interface : m_interfaces)
     {
-        PBuffer incoming = Buffer::create(m_physical->incoming().size());
-        m_physical->incoming().get(incoming->data(), incoming->size());
-        m_package_inspector->inspect_package(incoming, "Incoming data");
-    }
-
-    std::vector<DecodedFrame> frames = m_channel->decode(m_physical->incoming());
-
-    for (const auto& frame : frames)
-    {
-        std::vector<DecodedPacket> packets = m_network->decode(frame.frame);
-
-        for (const auto& packet : packets)
+        if (m_package_inspector)
         {
-            std::vector<ISocketSystemSide*> receivers = receivers_of_addr(packet.options.receiver);
+            PBuffer incoming = Buffer::create(interface->physical->incoming().size());
+            interface->physical->incoming().get(incoming->data(), incoming->size());
+            m_package_inspector->inspect_package(incoming, "Incoming data");
+        }
 
-            if (receivers.empty())
-                continue;
+        std::vector<DecodedFrame> frames = interface->channel->decode(interface->physical->incoming());
 
-            std::vector<DecodedSegment> segments = m_transport->decode(packet.packet);
-            for (const auto& segment : segments)
+
+        for (const auto& frame : frames)
+        {
+            std::vector<DecodedPacket> packets = m_network->decode(frame.frame);
+
+            std::vector<DecodedPacket> transit_packets;
+
+            for (const auto& packet : packets)
             {
-                if (is_already_received(segment.segment_id))
+                if (m_already_received_packets.check_update(packet.options.id))
                     continue;
 
-                for (auto receiver : receivers)
-                {
-                    SocketState& state = receiver->state();
-                    const SocketOptions& options = receiver->get_options();
+                std::vector<ISocketSystemSide*> receivers = receivers_of_addr(packet.options.receiver);
 
-                    if (options.port != segment.port)
+                if (receivers.empty())
+                    continue;
+
+                if (receivers.empty() || packet.options.retranslate_if_received)
+                {
+                    for (auto& retransmit_interface : m_interfaces)
+                    {
+                        if (!retransmit_interface->retransmission_to_interface)
+                            continue;
+
+                        // Packet is transit
+                        if (packet.options.ttl == 1)
+                            continue;
+
+                        SegmentBuffer retransmitted_data(Buffer::create(packet.packet.size(), packet.packet.data()));
+                        NetworkOptions opts = packet.options;
+                        opts.ttl--;
+                        m_network->encode(retransmitted_data, opts);
+                        retransmit_interface->channel->encode(retransmitted_data);
+                        retransmit_interface->physical->send(retransmitted_data.merge());
+                    }
+                    continue;
+                }
+
+                std::vector<DecodedSegment> segments = m_transport->decode(packet.packet);
+                for (const auto& segment : segments)
+                {
+                    if (m_already_received_segments.check_update(segment.segment_id))
                         continue;
 
-                    // TODO change this code to send ack many times
-                    if (segment.flags & DecodedSegment::Flags::need_ack)
+                    for (auto receiver : receivers)
                     {
-                        send_ack(options.address, packet.options.sender, options.port, options.ttl, segment.segment_id, segment.segment_id + 1);
-                    }
+                        SocketState& state = receiver->state();
+                        const SocketOptions& options = receiver->get_options();
 
-                    // If we got package with acknoledgement and we are waiting for it
-                    if (segment.flags & DecodedSegment::Flags::is_ack)
-                    {
-                        m_time_planner.remove(segment.ack_for_segment_id);
+                        if (options.port != segment.port)
+                            continue;
 
-                        if (state.state == SocketState::OutgoingState::repeating_untill_ack)
+                        // TODO change this code to send ack many times
+                        if (segment.flags & DecodedSegment::Flags::need_ack)
                         {
-                            if (segment.ack_for_segment_id == state.segment_id)
+                            send_ack(interface, options.address, packet.options.sender, options.port, options.ttl, segment.segment_id, segment.segment_id + 1);
+                        }
+
+                        // If we got package with acknoledgement and we are waiting for it
+                        if (segment.flags & DecodedSegment::Flags::is_ack)
+                        {
+                            m_time_planner.remove(segment.ack_for_segment_id);
+
+                            if (state.state == SocketState::OutgoingState::repeating_untill_ack)
                             {
-                                // We were waiting for this ack
-                                state.clear();
-                                receiver->pop(true);
+                                if (segment.ack_for_segment_id == state.segment_id)
+                                {
+                                    // We were waiting for this ack
+                                    state.clear();
+                                    receiver->pop(true);
+                                }
                             }
                         }
-                    }
 
-                    if (!segment.segment.empty())
-                    {
-                        BufferAccessor accessor(segment.segment);
-                        receiver->push(packet.options.sender, Buffer::create(accessor));
+                        if (!segment.segment.empty())
+                        {
+                            BufferAccessor accessor(segment.segment);
+                            receiver->push(packet.options.sender, Buffer::create(accessor));
+                        }
                     }
                 }
             }
@@ -364,7 +370,7 @@ void NetService::serve_time_planner(std::chrono::steady_clock::time_point time_m
         ISocketSystemSide::OutgoingMessage front = socket->front();
         SegmentBuffer sb(front.data);
 
-        const NetworkOptions opts(socket->get_options().address, front.receiver, socket->get_options().ttl);
+        const NetworkOptions opts(socket->get_options().address, front.receiver, 0, socket->get_options().ttl);
         m_transport->encode(
                     sb,
                     socket->get_options().port,
@@ -377,10 +383,14 @@ void NetService::serve_time_planner(std::chrono::steady_clock::time_point time_m
     for (auto& it: package_by_addr)
     {
         SegmentBuffer& sb = it.second;
-        const NetworkOptions& opts = it.first;
+        NetworkOptions opts = it.first;
+        opts.id = m_rand_gen(); // Changing id to random
         m_network->encode(sb, opts);
-        m_channel->encode(sb);
-        m_physical->send(sb.merge());
+        for (auto& interface : m_interfaces)
+        {
+            interface->channel->encode(sb);
+            interface->physical->send(sb.merge());
+        }
     }
 }
 

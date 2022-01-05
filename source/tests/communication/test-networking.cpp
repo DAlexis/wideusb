@@ -10,15 +10,17 @@ class NetworkingTest : public ::testing::Test
 protected:
     void SetUp() override {
         physical = std::make_shared<PhysicalLayerBuffer>(500);
-        service = std::make_shared<NetService>(physical,
-                                              std::make_shared<ChannelLayerBinary>(),
-                                              std::make_shared<NetworkLayerBinary>(),
+        interface = std::make_shared<NetworkInterface>(physical, std::make_shared<ChannelLayerBinary>(), true);
+
+        service = std::make_shared<NetService>(std::make_shared<NetworkLayerBinary>(),
                                               std::make_shared<TransportLayerBinary>());
+        service->add_interface(interface);
 
     }
 
     std::shared_ptr<PhysicalLayerBuffer> physical;
     std::shared_ptr<NetService> service;
+    std::shared_ptr<NetworkInterface> interface;
 
     const char test_data[23] = ">Some data here again<";
 };

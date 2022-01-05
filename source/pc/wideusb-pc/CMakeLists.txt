@@ -7,7 +7,6 @@ find_package(Threads)
 
 set(LIB_SOURCES
     src/physical-layer-serial-port.cpp
-    src/wideusb.cpp
     src/asio-utils.cpp
 
     src/tcp-hub.cpp
@@ -18,7 +17,6 @@ set(LIB_SOURCES
 
 set(LIB_INCLUDES
     wideusb-pc/physical-layer-serial-port.hpp
-    wideusb-pc/wideusb.hpp
     wideusb-pc/asio-utils.hpp
 
     wideusb-pc/tcp-hub.hpp

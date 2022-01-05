@@ -3,7 +3,7 @@
 
 
 #include "wideusb/communication/networking.hpp"
-#include "wideusb/utils/point.hpp"
+#include "wideusb/utils/gps/point.hpp"
 #include "wideusb/back/base-back.hpp"
 
 namespace gps { struct PosTime; }

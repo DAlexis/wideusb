@@ -6,6 +6,7 @@ struct PacketHeader
     Address sender = 0;
     Address receiver = 0;
     uint8_t ttl = 5;
+    uint32_t id = 0;
     uint32_t size = 0;
 };
 #pragma pack(pop)
@@ -22,7 +23,7 @@ std::vector<DecodedPacket> NetworkLayerBinary::decode(const BufferAccessor& fram
         if (header.size > current_accessor.size())
             break;
 
-        NetworkOptions opts(header.sender, header.receiver, header.ttl);
+        NetworkOptions opts(header.sender, header.receiver, header.id, header.ttl);
         result.emplace_back(opts, BufferAccessor(current_accessor, 0, header.size));
         current_accessor.skip(header.size);
     }
@@ -35,6 +36,7 @@ void NetworkLayerBinary::encode(SegmentBuffer& packet, const NetworkOptions& opt
     header.receiver = options.receiver;
     header.sender = options.sender;
     header.ttl = options.ttl;
+    header.id = options.id;
     header.size = packet.size();
     packet.push_front(Buffer::create(sizeof(header), &header));
 }

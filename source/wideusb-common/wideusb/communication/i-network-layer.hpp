@@ -8,13 +8,15 @@
 
 struct NetworkOptions
 {
-    NetworkOptions(Address sender, Address receiver, uint8_t ttl = 10) :
-        sender(sender), receiver(receiver), ttl(ttl)
+    NetworkOptions(Address sender, Address receiver, uint32_t id, uint8_t ttl) :
+        sender(sender), receiver(receiver), id(id), ttl(ttl)
     { }
 
     Address sender;
     Address receiver;
+    uint32_t id;
     uint8_t ttl;
+    bool retranslate_if_received = false;
 
     bool operator<(const NetworkOptions& right) const
     {
@@ -24,6 +26,11 @@ struct NetworkOptions
             return receiver < right.receiver;
         if (ttl != right.ttl)
             return ttl < right.ttl;
+        if (id != right.id)
+            return id < right.id;
+        if (retranslate_if_received != right.retranslate_if_received)
+            return retranslate_if_received < right.retranslate_if_received;
+
         return false;
     }
 };

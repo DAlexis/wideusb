@@ -11,9 +11,9 @@ TEST(NetworkLayerBinaryClass, Operating)
     SegmentBuffer sg2(Buffer::create(sizeof(test_data_2), test_data_2));
 
     NetworkLayerBinary net_layer;
-    net_layer.encode(sg1, NetworkOptions(0xAAAAAAAA, 0xBBBBBBBB, 4));
+    net_layer.encode(sg1, NetworkOptions(0xAAAAAAAA, 0xBBBBBBBB, 0, 4));
 
-    net_layer.encode(sg2, NetworkOptions(0xCCCCCCCC, 0xDDDDDDDD, 3));
+    net_layer.encode(sg2, NetworkOptions(0xCCCCCCCC, 0xDDDDDDDD, 1, 3));
 
     sg1.push_back(sg2);
     std::vector<DecodedPacket> packets = net_layer.decode(BufferAccessor(sg1.merge()));

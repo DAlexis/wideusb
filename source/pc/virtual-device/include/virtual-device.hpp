@@ -18,6 +18,7 @@ private:
     IOServiceRunner& m_io_service_runner;
 
     std::shared_ptr<PhysicalLayerAsio> m_physical;
+    std::shared_ptr<NetworkInterface> m_interface;
     NetService m_net_srv;
     DeviceCore m_core;
     Task m_module_tick_task;

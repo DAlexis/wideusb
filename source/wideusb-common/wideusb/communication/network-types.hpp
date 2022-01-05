@@ -8,5 +8,6 @@
 using Address = uint64_t;
 using Port = uint32_t;
 using SegmentID = uint32_t;
+using PacketID = uint32_t;
 
 #endif // NETWORK_TYPES_HPP

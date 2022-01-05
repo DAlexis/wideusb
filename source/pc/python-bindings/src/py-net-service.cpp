@@ -38,6 +38,14 @@ void add_package_inspector(pybind11::module& m)
     py::class_<PackageInspector, std::shared_ptr<PackageInspector>, IPackageInspector>(m, "PackageInspector")
             .def(py::init<>());
 }
+/*
+void add_net_interface(pybind11::module& m)
+{
+    py::class_<NetworkInterface, std::shared_ptr<NetworkInterface>>(m, "NetworkInterface")
+            .def(py::init([](std::shared_ptr<IPhysicalLayer> physical) {
+                     return std::make_shared<NetworkInterface>(physical, std::make_shared<ChannelLayerBinary>(), true);
+                 }), py::arg("physical"));
+}*/
 
 void add_net_service(pybind11::module& m)
 {
@@ -48,14 +56,17 @@ void add_net_service(pybind11::module& m)
                   if (!phys_layer_asio)
                       throw std::invalid_argument("NetService from python accept only ASIO-based physical layer");
 
-                  return std::make_shared<NetService>(
-                      phys_layer_asio,
-                      std::make_shared<ChannelLayerBinary>(),
+                  auto net_srv = std::make_shared<NetService>(
                       std::make_shared<NetworkLayerBinary>(),
                       std::make_shared<TransportLayerBinary>(),
-                      nullptr,
                       [phys_layer_asio]() { phys_layer_asio->post_serve_sockets(); },
                       package_inspector);
+
+                  net_srv->add_interface(std::make_shared<NetworkInterface>(
+                      phys_layer_asio,
+                      std::make_shared<ChannelLayerBinary>(),
+                      false));
+                  return net_srv;
             }), py::arg("physical_layer"), py::arg("package_inspector") = nullptr);
 }
 

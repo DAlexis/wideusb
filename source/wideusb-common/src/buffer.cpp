@@ -190,12 +190,17 @@ void BufferAccessor::skip(size_t count)
 
 void BufferAccessor::get(uint8_t* buf, size_t size) const
 {
-    memcpy(buf, m_buffer->data() + m_offset, size);
+    memcpy(buf, data(), size);
 }
 
 size_t BufferAccessor::size() const
 {
     return std::min(m_buffer->size(), m_limit) - m_offset;
+}
+
+const uint8_t* BufferAccessor::data() const
+{
+    return m_buffer->data() + m_offset;
 }
 
 uint8_t BufferAccessor::operator[](size_t pos) const

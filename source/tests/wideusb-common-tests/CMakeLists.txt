@@ -1,9 +1,9 @@
 project("wideusb-common-unit-tests")
 
 set(EXE_SOURCES
-    ${PROJECT_SOURCE_DIR}/test-base64.cpp
-    ${PROJECT_SOURCE_DIR}/test-nmea.cpp
-
+    test-base64.cpp
+    test-nmea.cpp
+    test-caching-set.cpp
 )
 
 add_executable(${PROJECT_NAME} ${EXE_SOURCES})

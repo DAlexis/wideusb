@@ -16,13 +16,13 @@
 WideusbDevice::WideusbDevice() :
     m_device_address(0x12345678),
     m_net_srv(
-        std::make_shared<USBPhysicalLayer>(),
-        std::make_shared<ChannelLayerBinary>(),
         std::make_shared<NetworkLayerBinary>(),
         std::make_shared<TransportLayerBinary>()
     ),
     m_core(m_net_srv, m_device_address)
 {
+    m_net_srv.add_interface(
+                std::make_shared<NetworkInterface>(std::make_shared<USBPhysicalLayer>(), std::make_shared<ChannelLayerBinary>(), false));
     m_core.add_module_factory(ids::monitor, [this](){ return create_monitor(); });
     m_core.add_module_factory(ids::gps, [this](){ return create_gps(); });
     m_core.add_module_factory(ids::dac, [this](){ return create_dac(); });

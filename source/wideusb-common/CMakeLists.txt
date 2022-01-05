@@ -16,11 +16,13 @@ set(SOURCES
     wideusb/back/gps-back.hpp
     wideusb/back/monitor-back.hpp
 
-    wideusb/utils/point.hpp
-    wideusb/utils/utilities.hpp
+
     wideusb/utils/gps/minmea.h
     wideusb/utils/gps/nmea-parser.hpp
+    wideusb/utils/gps/point.hpp
     wideusb/utils/base64.hpp
+    wideusb/utils/utilities.hpp
+    wideusb/utils/caching-set.hpp
 
     wideusb/device-core.hpp
 
@@ -29,6 +31,7 @@ set(SOURCES
     wideusb/communication/utils.hpp
     wideusb/communication/networking.hpp
     wideusb/communication/network-types.hpp
+    wideusb/communication/network-interface.hpp
     wideusb/communication/i-channel-layer.hpp
     wideusb/communication/i-network-layer.hpp
     wideusb/communication/i-physical-layer.hpp
@@ -53,10 +56,10 @@ set(SOURCES
     src/back/gps-back.cpp
     src/back/monitor-back.cpp
 
-    src/utils/point.cpp
     src/utils/utilities.cpp
     src/utils/gps/minmea.cpp
     src/utils/gps/nmea-parser.cpp
+    src/utils/gps/point.cpp
     src/utils/base64.cpp
 
     src/device-core.cpp

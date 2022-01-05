@@ -149,6 +149,7 @@ public:
     void skip(size_t count) override;
     void get(uint8_t* buf, size_t size) const override;
     size_t size() const override;
+    const uint8_t* data() const;
 
     uint8_t operator[](size_t pos) const override;
 
