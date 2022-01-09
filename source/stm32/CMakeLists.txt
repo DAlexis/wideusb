@@ -115,6 +115,10 @@ set(H_HEADERS
     ./cpp/include/devices/nrf24l01.hpp
     ./cpp/include/devices/nrf24l01-driver-impl.hpp
     ./cpp/include/devices/nrf24l01-driver-base.hpp
+
+    ./cpp/include/devices/sx1278/SX1278.h
+    ./cpp/include/devices/sx1278/SX1278_hw.h
+
     ./cpp/include/connectivity/spi-interrupt-callbacks.hpp
 )
 
@@ -189,6 +193,10 @@ set(CPP_SOURCES
     ./cpp/src/devices/nrf24l01.cpp
     ./cpp/src/devices/nrf24l01-driver-impl.cpp
     ./cpp/src/devices/nrf24l01-driver-base.cpp
+
+    ./cpp/src/devices/sx1278/SX1278.c
+    ./cpp/src/devices/sx1278/SX1278_hw.c
+
     ./cpp/src/connectivity/spi-interrupt-callbacks.cpp
 )
 

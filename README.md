@@ -2,10 +2,10 @@
 
 Board based on STM32F4 to connect various perepherial over USB. May be useful with single-board computers (SoCs) like Raspberry Pi
 
-Nearest roadmap
+Nearest roadmap and tasks
 =====
 - Networking
-    - [ ] Retransmitting to another network devices
+    - [?] Retransmitting to another network devices
     - [ ] Internal transmission without network
     - [ ] Struct-based layers parameters
     - [ ] Send ack second time if already sended ?
@@ -42,24 +42,31 @@ Nearest roadmap
     - [ ] Replace condition variable with promise/future and wait_for (No! Timeout shoud be made in another way!)
     ...
 
-- [ ] DAC module
+- [x] DAC module
 
 - [ ] ADC module
 
 - [ ] GPIO module
 
-- [ ] DAC module
-
 - [ ] nfr24l01 device
 	- [x] Driver abstraction
 	- [x] Driver implementation
 	- [x] Single device test
-	- [ ] Double device test
+	- [x] Double device test
 	- [ ] Device class code refactoring
+		- [ ] SPI without IRQ
 
 - [ ] LoRa module
+	- [ ] Double device test
+	- [ ] Code refactoring and adaptation
 
 - [ ] State saving in EEPROM
+
+- [ ] IR transmitter
+- [ ] IR receiver
+
+# Hardware
+- [ ] Gen 1 PCB design
 
 ## Bugs
 - [X] Monitor does not work with new front/back interface

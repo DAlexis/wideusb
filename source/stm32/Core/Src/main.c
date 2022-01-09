@@ -120,6 +120,7 @@ int main(void)
   MX_DAC_Init();
   MX_TIM4_Init();
   MX_SPI1_Init();
+  MX_SPI2_Init();
   /* USER CODE BEGIN 2 */
   //HAL_TIM_Base_Start(&htim4);
   //fill_dac_buffer();

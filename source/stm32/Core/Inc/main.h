@@ -84,6 +84,12 @@ void Error_Handler(void);
 #define TIM2_CAPTURE_GPS_PPS_GPIO_Port GPIOA
 #define DAC_OUT_CH_1_Pin GPIO_PIN_4
 #define DAC_OUT_CH_1_GPIO_Port GPIOA
+#define LORA_NSS_Pin GPIO_PIN_5
+#define LORA_NSS_GPIO_Port GPIOC
+#define LORA_INT_Pin GPIO_PIN_0
+#define LORA_INT_GPIO_Port GPIOB
+#define LORA_RESET_Pin GPIO_PIN_1
+#define LORA_RESET_GPIO_Port GPIOB
 #define MY_LED1_Pin GPIO_PIN_12
 #define MY_LED1_GPIO_Port GPIOD
 #define NRF24L01_IRQ_Pin GPIO_PIN_6
