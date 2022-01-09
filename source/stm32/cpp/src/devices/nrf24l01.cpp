@@ -166,47 +166,32 @@
 #define REUSE_TX_PL             0b11100011
 
 
-NRF24L01Manager::NRF24L01Manager(std::shared_ptr<NRF24L01IODriverBase> io_driver, uint8_t radioChannel) :
+NRF24L01Manager::NRF24L01Manager(std::shared_ptr<NRF24L01IODriverBase> io_driver, NRF24L01Config config) :
     m_io_driver(io_driver),
-    m_radioChannel(radioChannel)
+    m_config(config)
 {
-    m_RFChannel = radioChannel;
-//    m_spi = SPIs->getSPI(SPIIndex);
-//    m_spi->init(ISPIManager::BaudRatePrescaler32, chipSelectPin);
-
-    //////////////////////
-    // Chip enable line init
-//    m_chipEnablePin->switchToOutput();
-    chipEnableOff();
-
-    //////////////////////
-    // Chip select SPI line init
-    //m_chipSelectPin->switchToOutput();
-    chipDeselect();
-
-    // IRQ line input
-//    m_IRQPin->switchToInput();
+    chip_enable_off();
+    chip_deselect();
 
     //////////////////////
     // Configuring nrf24l01
     // Global settings
-    setAdressWidth(AW_5BYTES);
-    setRFChannel(m_RFChannel);
+    set_adress_width(m_config.address_width);
+    set_RF_channel(m_config.radio_channel);
     //setupRetransmission(0, 0);
 
     // Reading addresses to local variables
-    readRXAdresses();
-    readTXAdress();
+    read_rx_adresses();
+    read_tx_adress();
 
     // Setting up pipe 0
-    setAutoACK(0, DISABLE_OPTION);
-    enablePipe(0, ENABLE_OPTION);
-    setRXPayloadLength(0, payloadSize);
+    set_auto_ACK(0, false);
+    enable_pipe(0, true);
+    setRXPayloadLength(0, payload_size);
 
-    setRFSettings(BR_1MBIT, PW_0DB, LNA_ENABLE);
-    setupRetransmission(2, 15);
-    switchToRX();
-
+    set_RF_settings(m_config.baudrate, m_config.tx_power, m_config.lna_gain);
+    setup_retransmission(2, 15);
+    switch_to_rx();
 
     if (m_TXAdress[0] == 0xe7)
     {
@@ -214,297 +199,278 @@ NRF24L01Manager::NRF24L01Manager(std::shared_ptr<NRF24L01IODriverBase> io_driver
 //        debug << "NRF24L01 initialization successfully done";
     } else {
         printf("Radio module seems to be not connected! Details:\r\n");
-        printStatus();
+        print_status();
     }
 }
 
-void NRF24L01Manager::setDataReceiveCallback(DataReceiveCallback callback)
+void NRF24L01Manager::set_data_received_callback(DataReceiveCallback callback)
 {
     m_RXcallback = callback;
 }
 
-uint32_t NRF24L01Manager::getPayloadSize()
+bool NRF24L01Manager::is_tx_complete()
 {
-    return payloadSize;
+    return !m_waitingForTransmissionEnd;
 }
 
-void NRF24L01Manager::setTXMaxRetriesCallback(TXMaxRetriesCallback callback)
+void NRF24L01Manager::set_tx_max_retries_callback(TXMaxRetriesCallback callback)
 {
     m_TXMaxRTcallback = callback;
 }
 
-void NRF24L01Manager::setTXDoneCallback(TXDoneCallback callback)
+void NRF24L01Manager::set_tx_done_callback(TXDoneCallback callback)
 {
     m_TXDoneCallback = callback;
 }
 
-void NRF24L01Manager::switchToTX()
+void NRF24L01Manager::switch_to_tx()
 {
-    chipEnableOff();
-    setConfig(IM_MASK_MAX_RETRIES, CRC_ENABLE, CRC2BYTES, POWER_ON, MODE_TRANSMITTER);
+    chip_enable_off();
+    set_config(InterruptionsMasks::max_retries, Power::POWER_ON, RxTxMode::transmitter);
     os::delay_iter_us(150);
-//    systemClock->wait_us(150);
 }
 
-void NRF24L01Manager::switchToRX()
+void NRF24L01Manager::switch_to_rx()
 {
-    setConfig(IM_MASK_MAX_RETRIES, CRC_ENABLE, CRC2BYTES, POWER_ON, MODE_RECEIVER);
+    set_config(InterruptionsMasks::max_retries, Power::POWER_ON, RxTxMode::receiver);
     os::delay_iter_us(150);
-//    systemClock->wait_us(150);
-    chipEnableOn();
+    chip_enable_on();
+    os::delay_iter_us(250);
 }
 
 
-void NRF24L01Manager::chipEnableOn()
+void NRF24L01Manager::chip_enable_on()
 {
     m_io_driver->set_chip_enable(true);
 }
 
-void NRF24L01Manager::chipEnableOff()
+void NRF24L01Manager::chip_enable_off()
 {
     m_io_driver->set_chip_enable(false);
 }
 
-void NRF24L01Manager::chipSelect()
+void NRF24L01Manager::chip_select()
 {
     m_io_driver->set_chip_select(false);
 }
 
-void NRF24L01Manager::chipDeselect()
+void NRF24L01Manager::chip_deselect()
 {
     m_io_driver->set_chip_select(true);
 }
 
 
-void NRF24L01Manager::CEImpulse()
+void NRF24L01Manager::chip_enable_impulse()
 {
     os::CriticalSection cs;
-//    taskENTER_CRITICAL();
 
-        chipEnableOn();
-        os::delay_iter_us(15);
-//        systemClock->wait_us(15);
-        chipEnableOff();
-
-//    taskEXIT_CRITICAL();
+    chip_enable_on();
+    os::delay_iter_us(15);
+    chip_enable_off();
 }
 
-void NRF24L01Manager::writeReg(unsigned char reg, unsigned char size, unsigned char *data)
+void NRF24L01Manager::reg_write(unsigned char reg, unsigned char size, unsigned char *data)
 {
-    chipSelect();
-    m_io_driver->transmit_receive(W_REGISTER(reg));
-//    m_status = m_spi->TransmitReceive(W_REGISTER(reg));
+    chip_select();
+    m_reg_status = m_io_driver->transmit_receive(W_REGISTER(reg));
     if (size != 0)
     {
         m_io_driver->transmit(data, size);
-//      m_spi->Transmit(data, size);
     }
-    chipDeselect();
+    chip_deselect();
 }
 
-void NRF24L01Manager::readReg(unsigned char reg, unsigned char size, unsigned char *data)
+void NRF24L01Manager::reg_read(unsigned char reg, unsigned char size, unsigned char *data)
 {
-    chipSelect();
-    m_io_driver->transmit_receive(R_REGISTER(reg));
-//    m_status = m_spi->TransmitReceive(R_REGISTER(reg));
+    chip_select();
+    m_reg_status = m_io_driver->transmit_receive(R_REGISTER(reg));
     if (size != 0)
     {
         m_io_driver->receive(data, size);
-//        m_spi->Receive(data, size);
     }
-    chipDeselect();
+    chip_deselect();
 }
 
-void NRF24L01Manager::updateStatus()
+void NRF24L01Manager::update_status()
 {
-//    m_stager.stage("updateStatus()");
-    chipSelect();
-    m_io_driver->transmit_receive(NRF_NOP);
-//    m_status = m_spi->TransmitReceive(NRF_NOP);
-    chipDeselect();
+    chip_select();
+    m_reg_status = m_io_driver->transmit_receive(NRF_NOP);
+    chip_deselect();
 }
 
 /////////////////////
 // STATUS
-inline bool NRF24L01Manager::isRXDataReady()
+inline bool NRF24L01Manager::is_rx_data_ready()
 {
-    return m_status & (1 << NRF_REGF_RX_DR);
+    return m_reg_status & (1 << NRF_REGF_RX_DR);
 }
 
-inline bool NRF24L01Manager::isTXDataSent()
+inline bool NRF24L01Manager::is_tx_data_sent()
 {
-    return m_status & (1 << NRF_REGF_TX_DS);
+    return m_reg_status & (1 << NRF_REGF_TX_DS);
 }
 
-inline bool NRF24L01Manager::isMaxRetriesReached()
+inline bool NRF24L01Manager::is_max_retries_reached()
 {
-    return m_status & (1 << NRF_REGF_MAX_RT);
+    return m_reg_status & (1 << NRF_REGF_MAX_RT);
 }
 
-inline int NRF24L01Manager::getPipeNumberAvaliableForRXFIFO()
+inline int NRF24L01Manager::get_pipe_number_avaliable_for_rx_fifo()
 {
-    return (m_status & NRF_REGF_RX_P_NO_MASK) >> 1;
+    return (m_reg_status & NRF_REGF_RX_P_NO_MASK) >> 1;
 }
 
-inline bool NRF24L01Manager::isTXFIFOFull()
+inline bool NRF24L01Manager::is_tx_fifo_full()
 {
-    return m_status & (1 << NRF_REGF_TX_FULL);
+    return m_reg_status & (1 << NRF_REGF_TX_FULL);
 }
 
-void NRF24L01Manager::resetRXDataReady()
+void NRF24L01Manager::reset_interrupt_rx_data_ready()
 {
-    chipSelect();
+    chip_select();
     m_io_driver->transmit(W_REGISTER(NRF_REG_STATUS));
     m_io_driver->transmit(1 << NRF_REGF_RX_DR);
-//    m_spi->Transmit(W_REGISTER(NRF_REG_STATUS));
-//    m_spi->Transmit(1 << NRF_REGF_RX_DR);
-    chipDeselect();
-    updateStatus();
+    chip_deselect();
+    update_status();
 }
 
-void NRF24L01Manager::resetTXDataSent()
+void NRF24L01Manager::reset_interrupt_tx_data_sent()
 {
-    chipSelect();
+    chip_select();
     m_io_driver->transmit(W_REGISTER(NRF_REG_STATUS));
     m_io_driver->transmit(1 << NRF_REGF_TX_DS);
-//    m_spi->Transmit(W_REGISTER(NRF_REG_STATUS));
-//    m_spi->Transmit(1 << NRF_REGF_TX_DS);
-    chipDeselect();
-    updateStatus();
+    chip_deselect();
+    update_status();
 }
 
-void NRF24L01Manager::resetMaxRetriesReached()
+void NRF24L01Manager::reset_interrupt_max_retries_reached()
 {
-    chipSelect();
+    chip_select();
     m_io_driver->transmit(W_REGISTER(NRF_REG_STATUS));
     m_io_driver->transmit(1 << NRF_REGF_MAX_RT);
-//    m_spi->Transmit(W_REGISTER(NRF_REG_STATUS));
-//    m_spi->Transmit(1 << NRF_REGF_MAX_RT);
-    chipDeselect();
-    updateStatus();
+    chip_deselect();
+    update_status();
 }
 
 
 /////////////////////
 // CONFIG
-void NRF24L01Manager::setConfig(unsigned char interruptionsMask,
-            unsigned char enableCRC,
-            unsigned char CRC2bytes,
-            unsigned char powerUP,
-            unsigned char isRecieving)
+void NRF24L01Manager::set_config(InterruptionsMasks interruptionsMask,
+            Power powerUP,
+            RxTxMode isRecieving)
 {
-    m_config =
-            (interruptionsMask << NRF_REGF_MASK_MAX_RT)
-            | (enableCRC << NRF_REGF_EN_CRC)
-            | (CRC2bytes << NRF_REGF_CRCO)
-            | (powerUP << NRF_REGF_PWR_UP)
-            | (isRecieving << NRF_REGF_PRIM_RX);
-    //printf("Config: %u\n", m_config);
-    writeReg(NRF_REG_CONFIG, 1, &m_config);
+    uint8_t reg_config =
+            (uint8_t(interruptionsMask) << NRF_REGF_MASK_MAX_RT)
+            | (uint8_t(m_config.crc_mode) << NRF_REGF_EN_CRC)
+            | (uint8_t(m_config.crc_len) << NRF_REGF_CRCO)
+            | (uint8_t(powerUP) << NRF_REGF_PWR_UP)
+            | (uint8_t(isRecieving) << NRF_REGF_PRIM_RX);
+    reg_write(NRF_REG_CONFIG, 1, &reg_config);
 }
 
 /////////////////////
 // CD
-bool NRF24L01Manager::isCarrierDetected()
+bool NRF24L01Manager::is_carrier_detected()
 {
     unsigned char result=0;
-    readReg(NRF_REG_CD, 1, &result);
+    reg_read(NRF_REG_CD, 1, &result);
     return result & (1 << NRF_REGF_CD);
 }
 
 
 /////////////////////
 // EN_AA
-void NRF24L01Manager::setAutoACK(unsigned char channel, bool value)
+void NRF24L01Manager::set_auto_ACK(unsigned char channel, bool value)
 {
     unsigned char regValue=0;
-    readReg(NRF_REG_EN_AA, 1, &regValue);
+    reg_read(NRF_REG_EN_AA, 1, &regValue);
     if (value)
     {
         regValue |= (1 << channel);
     } else {
         regValue &= ~(1 << channel);
     }
-    //printf("to EN_AA: %u\n", regValue);
-    writeReg(NRF_REG_EN_AA, 1, &regValue);
+    reg_write(NRF_REG_EN_AA, 1, &regValue);
 }
 
 /////////////////////
 // EN_RXADDR
-void NRF24L01Manager::enablePipe(unsigned char pipe, unsigned char value)
+void NRF24L01Manager::enable_pipe(unsigned char pipe, bool enable)
 {
     unsigned char regValue=0;
-    readReg(NRF_REG_EN_RXADDR, 1, &regValue);
-    if (value)
+    reg_read(NRF_REG_EN_RXADDR, 1, &regValue);
+    if (enable)
         regValue |= (1 << pipe);
     else
         regValue &= ~(1 << pipe);
-    //printf("to NRF_REG_EN_RXADDR: %u\n", regValue);
-    writeReg(NRF_REG_EN_RXADDR, 1, &regValue);
+    reg_write(NRF_REG_EN_RXADDR, 1, &regValue);
 }
 
 /////////////////////
 // SETUP_AW
-void NRF24L01Manager::setAdressWidth(AdressWidth width)
+void NRF24L01Manager::set_adress_width(NRF24L01Config::AdressWidth width)
 {
     unsigned char regValue=0;
     switch(width)
     {
-    case AW_3BYTES: regValue |= 0b00000001; break;
-    case AW_4BYTES: regValue |= 0b00000010; break;
-    case AW_5BYTES: regValue |= 0b00000011; break;
+    case NRF24L01Config::AdressWidth::aw_3_bytes: regValue |= 0b00000001; break;
+    case NRF24L01Config::AdressWidth::aw_4_bytes: regValue |= 0b00000010; break;
+    case NRF24L01Config::AdressWidth::aw_5_bytes: regValue |= 0b00000011; break;
     }
-    writeReg(NRF_REG_SETUP_AW, 1, &regValue);
+    reg_write(NRF_REG_SETUP_AW, 1, &regValue);
 }
 
 /////////////////////
 // SETUP_RETR
-void NRF24L01Manager::setupRetransmission(unsigned char delay, unsigned char count)
+void NRF24L01Manager::setup_retransmission(unsigned char delay, unsigned char count)
 {
     unsigned char regValue = (delay << NRF_REGF_ARD) | (count << NRF_REGF_ARC);
-    writeReg(NRF_REG_SETUP_RETR, 1, &regValue);
+    reg_write(NRF_REG_SETUP_RETR, 1, &regValue);
 }
 
 /////////////////////
 // RF_CH
-void NRF24L01Manager::setRFChannel(unsigned char number)
+void NRF24L01Manager::set_RF_channel(unsigned char number)
 {
-    m_RFChannel = number & 0b01111111;
-    writeReg(NRF_REG_RF_CH, 1, &m_RFChannel);
+    uint8_t channel = number & 0b01111111;
+    reg_write(NRF_REG_RF_CH, 1, &channel);
 }
 
-void NRF24L01Manager::clearLostPackagesCount()
+void NRF24L01Manager::clear_lost_packages_count()
 {
-    writeReg(NRF_REG_RF_CH, 1, &m_RFChannel);
+    set_RF_channel(m_config.radio_channel);
 }
 
 /////////////////////
 // RF_SETUP
-void NRF24L01Manager::setRFSettings(unsigned char use2MBits, unsigned char power, unsigned char LNAGain)
+void NRF24L01Manager::set_RF_settings(NRF24L01Config::Baudrate use2MBits, NRF24L01Config::TXPower power, NRF24L01Config::LNAGain lna_gain)
 {
-    unsigned char regValue = (use2MBits << NRF_REGF_RF_DR) | (power << NRF_REGF_RF_PWR) | (LNAGain << NRF_REGF_LNA_HCURR);
-    writeReg(NRF_REG_RF_SETUP, 1, &regValue);
+    unsigned char regValue =
+            (uint8_t(use2MBits) << NRF_REGF_RF_DR)
+            | (uint8_t(power) << NRF_REGF_RF_PWR)
+            | (uint8_t(lna_gain) << NRF_REGF_LNA_HCURR);
+    reg_write(NRF_REG_RF_SETUP, 1, &regValue);
 }
 
 /////////////////////
 // OBSERVE_TX
-unsigned char NRF24L01Manager::getLostPackagesCount()
+unsigned char NRF24L01Manager::get_lost_packages_count()
 {
     unsigned char regValue=0;
-    readReg(NRF_REG_OBSERVE_TX, 1, &regValue);
+    reg_read(NRF_REG_OBSERVE_TX, 1, &regValue);
     return regValue >> NRF_REGF_PLOS_CNT;
 }
 
-unsigned char NRF24L01Manager::getResentPackagesCount()
+unsigned char NRF24L01Manager::get_resent_packages_count()
 {
     unsigned char regValue=0;
-    readReg(NRF_REG_OBSERVE_TX, 1, &regValue);
+    reg_read(NRF_REG_OBSERVE_TX, 1, &regValue);
     return regValue & NRF_REGF_ARC_CNT_MASK;
 }
 
 /////////////////////
 // RX_ADDR_Pn
-void NRF24L01Manager::setRXAddress(unsigned char channel, unsigned char* address)
+void NRF24L01Manager::set_rx_address(unsigned char channel, unsigned char* address)
 {
 
     switch(channel)
@@ -512,52 +478,52 @@ void NRF24L01Manager::setRXAddress(unsigned char channel, unsigned char* address
     default:
     case 0:
         memcpy(m_RXAdressP0, address, RADIO_ADDRESS_SIZE*sizeof(unsigned char));
-        writeReg(NRF_REG_RX_ADDR_P0, RADIO_ADDRESS_SIZE, address);
+        reg_write(NRF_REG_RX_ADDR_P0, RADIO_ADDRESS_SIZE, address);
         break;
     case 1:
         memcpy(m_RXAdressP1, address, RADIO_ADDRESS_SIZE*sizeof(unsigned char));
-        writeReg(NRF_REG_RX_ADDR_P1, RADIO_ADDRESS_SIZE, address);
+        reg_write(NRF_REG_RX_ADDR_P1, RADIO_ADDRESS_SIZE, address);
         break;
     case 2:
         m_RXAdressP2 = *address;
-        writeReg(NRF_REG_RX_ADDR_P2, 1, address);
+        reg_write(NRF_REG_RX_ADDR_P2, 1, address);
         break;
     case 3:
         m_RXAdressP3 = *address;
-        writeReg(NRF_REG_RX_ADDR_P3, 1, address);
+        reg_write(NRF_REG_RX_ADDR_P3, 1, address);
         break;
     case 4:
         m_RXAdressP4 = *address;
-        writeReg(NRF_REG_RX_ADDR_P4, 1, address);
+        reg_write(NRF_REG_RX_ADDR_P4, 1, address);
         break;
     case 5:
         m_RXAdressP5 = *address;
-        writeReg(NRF_REG_RX_ADDR_P5, 1, address);
+        reg_write(NRF_REG_RX_ADDR_P5, 1, address);
         break;
     }
 }
 
-void NRF24L01Manager::readRXAdresses()
+void NRF24L01Manager::read_rx_adresses()
 {
-    readReg(NRF_REG_RX_ADDR_P0, 5, m_RXAdressP0);
-    readReg(NRF_REG_RX_ADDR_P1, 5, m_RXAdressP1);
-    readReg(NRF_REG_RX_ADDR_P2, 1, &m_RXAdressP2);
-    readReg(NRF_REG_RX_ADDR_P3, 1, &m_RXAdressP3);
-    readReg(NRF_REG_RX_ADDR_P4, 1, &m_RXAdressP4);
-    readReg(NRF_REG_RX_ADDR_P5, 1, &m_RXAdressP5);
+    reg_read(NRF_REG_RX_ADDR_P0, 5, m_RXAdressP0);
+    reg_read(NRF_REG_RX_ADDR_P1, 5, m_RXAdressP1);
+    reg_read(NRF_REG_RX_ADDR_P2, 1, &m_RXAdressP2);
+    reg_read(NRF_REG_RX_ADDR_P3, 1, &m_RXAdressP3);
+    reg_read(NRF_REG_RX_ADDR_P4, 1, &m_RXAdressP4);
+    reg_read(NRF_REG_RX_ADDR_P5, 1, &m_RXAdressP5);
 }
 
 /////////////////////
 // TX_ADDR
-void NRF24L01Manager::setTXAddress(unsigned char* address)
+void NRF24L01Manager::set_tx_address(unsigned char* address)
 {
     memcpy(m_TXAdress, address, RADIO_ADDRESS_SIZE*sizeof(unsigned char));
-    writeReg(NRF_REG_TX_ADDR, RADIO_ADDRESS_SIZE, m_TXAdress);
+    reg_write(NRF_REG_TX_ADDR, RADIO_ADDRESS_SIZE, m_TXAdress);
 }
 
-void NRF24L01Manager::readTXAdress()
+void NRF24L01Manager::read_tx_adress()
 {
-    readReg(NRF_REG_TX_ADDR, RADIO_ADDRESS_SIZE, m_TXAdress);
+    reg_read(NRF_REG_TX_ADDR, RADIO_ADDRESS_SIZE, m_TXAdress);
 }
 
 /////////////////////
@@ -569,130 +535,118 @@ void NRF24L01Manager::setRXPayloadLength(unsigned char channel, unsigned char pa
     switch(channel)
     {
     default:
-    case 0: writeReg(NRF_REG_RX_PW_P0, 1, &payloadLength); break;
-    case 1: writeReg(NRF_REG_RX_PW_P1, 1, &payloadLength); break;
-    case 2: writeReg(NRF_REG_RX_PW_P2, 1, &payloadLength); break;
-    case 3: writeReg(NRF_REG_RX_PW_P3, 1, &payloadLength); break;
-    case 4: writeReg(NRF_REG_RX_PW_P4, 1, &payloadLength); break;
-    case 5: writeReg(NRF_REG_RX_PW_P5, 1, &payloadLength); break;
+    case 0: reg_write(NRF_REG_RX_PW_P0, 1, &payloadLength); break;
+    case 1: reg_write(NRF_REG_RX_PW_P1, 1, &payloadLength); break;
+    case 2: reg_write(NRF_REG_RX_PW_P2, 1, &payloadLength); break;
+    case 3: reg_write(NRF_REG_RX_PW_P3, 1, &payloadLength); break;
+    case 4: reg_write(NRF_REG_RX_PW_P4, 1, &payloadLength); break;
+    case 5: reg_write(NRF_REG_RX_PW_P5, 1, &payloadLength); break;
     }
 }
 
 /////////////////////
 // FIFO_STATUS
-bool NRF24L01Manager::isReuseEnabled()
+bool NRF24L01Manager::is_reuse_enabled()
 {
     unsigned char regValue;
-    readReg(NRF_REG_FIFO_STATUS, 1, &regValue);
+    reg_read(NRF_REG_FIFO_STATUS, 1, &regValue);
     return (regValue & (1 << NRF_REGF_FIFO_TX_REUSE));
 }
 
-bool NRF24L01Manager::isTXFull()
+bool NRF24L01Manager::is_tx_full()
 {
     unsigned char regValue;
-    readReg(NRF_REG_FIFO_STATUS, 1, &regValue);
+    reg_read(NRF_REG_FIFO_STATUS, 1, &regValue);
     return (regValue & (1 << NRF_REGF_FIFO_TX_FULL));
 }
 
-bool NRF24L01Manager::isTXEmpty()
+bool NRF24L01Manager::is_tx_empty()
 {
     unsigned char regValue;
-    readReg(NRF_REG_FIFO_STATUS, 1, &regValue);
+    reg_read(NRF_REG_FIFO_STATUS, 1, &regValue);
     return (regValue & (1 << NRF_REGF_FIFO_TX_EMPTY));
 }
 
-bool NRF24L01Manager::isRXFull()
+bool NRF24L01Manager::is_rx_full()
 {
     unsigned char regValue;
-    readReg(NRF_REG_FIFO_STATUS, 1, &regValue);
+    reg_read(NRF_REG_FIFO_STATUS, 1, &regValue);
     return (regValue & (1 << NRF_REGF_FIFO_RX_FULL));
 }
 
-bool NRF24L01Manager::isRXEmpty()
+bool NRF24L01Manager::is_rx_empty()
 {
     unsigned char regValue;
-    readReg(NRF_REG_FIFO_STATUS, 1, &regValue);
+    reg_read(NRF_REG_FIFO_STATUS, 1, &regValue);
     return (regValue & (1 << NRF_REGF_FIFO_RX_EMPTY));
 }
 
 /////////////////////
 // Send and receive
-void NRF24L01Manager::sendData(unsigned char size, unsigned char* data)
+void NRF24L01Manager::send(unsigned char size, unsigned char* data)
 {
-//    if (m_debug)
-//    {
-//        trace << "nrf24l01 package >> " << hexStr(data, size);
-//    }
-    switchToTX();
+    switch_to_tx();
     os::delay_iter_us(200);
 //    systemClock->wait_us(200); // Strange workaround to prevent hard fault about here.
 //                               // If you think that is bad - go and investigate just now.
 //                               // It is something near hardware: big spi prescaler decrease fault prob.
-    chipSelect();
-    m_status = m_io_driver->transmit_receive(W_TX_PAYLOAD);
-//    m_status = m_spi->TransmitReceive(W_TX_PAYLOAD);
+    chip_select();
+    m_reg_status = m_io_driver->transmit_receive(W_TX_PAYLOAD);
 
     m_io_driver->transmit(data, size);
-//    m_spi->Transmit(data, size);
-    chipDeselect();
-    CEImpulse();
+    chip_deselect();
+    chip_enable_impulse();
     os::delay_iter_us(200);
-//    systemClock->wait_us(200);
-    updateStatus();
+    update_status();
     m_last_transmission_time = std::chrono::steady_clock::now();
-//    m_lastTransmissionTime = os::get_os_time();
-//    m_lastTransmissionTime = systemClock->getTime();
     m_waitingForTransmissionEnd = true;
 }
 
-void NRF24L01Manager::receiveData(unsigned char size, unsigned char* data)
+void NRF24L01Manager::receive_data(unsigned char size, unsigned char* data)
 {
-//    m_stager.stage("receiveData()");
-    chipEnableOff();
-    chipSelect();
-    m_status = m_io_driver->transmit_receive(R_RX_PAYLOAD);
-//    m_status = m_spi->TransmitReceive(R_RX_PAYLOAD);
+    chip_enable_off();
+    chip_select();
+    m_reg_status = m_io_driver->transmit_receive(R_RX_PAYLOAD);
     m_io_driver->receive(data, size);
-//    m_spi->Receive(data, size);
-    chipDeselect();
-//    m_stager.stage("receiveData() end");
+    chip_deselect();
 }
 
-void NRF24L01Manager::flushTX()
+void NRF24L01Manager::flush_tx()
 {
-    chipSelect();
-    m_status = m_io_driver->transmit_receive(FLUSH_TX);
-//    m_status = m_spi->TransmitReceive(FLUSH_TX);
-    chipDeselect();
+    chip_select();
+    m_reg_status = m_io_driver->transmit_receive(FLUSH_TX);
+    chip_deselect();
 }
 
-void NRF24L01Manager::flushRX()
+void NRF24L01Manager::flush_rx()
 {
-    chipSelect();
-    m_status = m_io_driver->transmit_receive(FLUSH_RX);
-//    m_status = m_spi->TransmitReceive(FLUSH_RX);
-    chipDeselect();
+    chip_select();
+    m_reg_status = m_io_driver->transmit_receive(FLUSH_RX);
+
+    chip_deselect();
 }
 
-void NRF24L01Manager::printStatus()
+void NRF24L01Manager::print_status()
 {
 #ifndef DBG_NRF_DISABLE
-    updateStatus();
-    readRXAdresses();
-    readTXAdress();
-    printf("status: %x\n", m_status);
-    if (isRXDataReady()) printf("RX Data ready\n");
-    if (isTXDataSent()) printf("TX Data sent\n");
-    if (isMaxRetriesReached()) printf("Max retries reached\n");
-    printf ("Pipe avaliable for RX FIFO: %d\n", getPipeNumberAvaliableForRXFIFO());
+    update_status();
+    read_rx_adresses();
+    read_tx_adress();
+    printf("=== status: %x\n", m_reg_status);
+    printf("RX Data ready: %d, TX Data sent: %d, Max retries: %d\n", (int) is_rx_data_ready(), (int) is_tx_data_sent(), (int) is_max_retries_reached());
+    int pipe = get_pipe_number_avaliable_for_rx_fifo();
+    if (pipe != 7)
+        printf ("Pipe avaliable for RX FIFO: %d\n", pipe);
+    else
+        printf ("Pipe avaliable for RX FIFO: all empty\n");
 
-    if (isReuseEnabled()) printf ("Reuse enabled\n");
-    if (isTXFull()) printf("TX full\n");
-    if (isTXEmpty()) printf("TX empty\n");
-    if (isRXFull()) printf("RX full\n");
-    if (isRXEmpty()) printf ("RX empty\n");
-    printf("Lost: %u, resent: %u\n", getLostPackagesCount(), getResentPackagesCount());
-
+    if (is_reuse_enabled()) printf ("Reuse avaliable enabled\n");
+    if (is_tx_full()) printf("TX full\n");
+    if (is_tx_empty()) printf("TX empty\n");
+    if (is_rx_full()) printf("RX full\n");
+    if (is_rx_empty()) printf ("RX empty\n");
+    printf("Lost: %u, resent: %u\n", get_lost_packages_count(), get_resent_packages_count());
+/*
     printf("Adresses:\n");
     printf("   TX: %x %x %x %x %x\n", m_TXAdress[0], m_TXAdress[1], m_TXAdress[2], m_TXAdress[3], m_TXAdress[4]);
     printf("RX P0: %x %x %x %x %x\n", m_RXAdressP0[0], m_RXAdressP0[1], m_RXAdressP0[2], m_RXAdressP0[3], m_RXAdressP0[4]);
@@ -700,22 +654,23 @@ void NRF24L01Manager::printStatus()
     printf("RX P2: %x %x %x %x %x\n", m_RXAdressP1[0], m_RXAdressP1[1], m_RXAdressP1[2], m_RXAdressP1[3], m_RXAdressP2);
     printf("RX P3: %x %x %x %x %x\n", m_RXAdressP1[0], m_RXAdressP1[1], m_RXAdressP1[2], m_RXAdressP1[3], m_RXAdressP3);
     printf("RX P4: %x %x %x %x %x\n", m_RXAdressP1[0], m_RXAdressP1[1], m_RXAdressP1[2], m_RXAdressP1[3], m_RXAdressP4);
-    printf("RX P5: %x %x %x %x %x\n", m_RXAdressP1[0], m_RXAdressP1[1], m_RXAdressP1[2], m_RXAdressP1[3], m_RXAdressP5);
+    printf("RX P5: %x %x %x %x %x\n", m_RXAdressP1[0], m_RXAdressP1[1], m_RXAdressP1[2], m_RXAdressP1[3], m_RXAdressP5);*/
 #endif
 }
 
-void NRF24L01Manager::resetAllIRQ()
+void NRF24L01Manager::reset_all_interrupts()
 {
-    resetRXDataReady();
-    resetTXDataSent();
-    resetMaxRetriesReached();
+    reset_interrupt_rx_data_ready();
+    reset_interrupt_tx_data_sent();
+    reset_interrupt_max_retries_reached();
 }
 
-void NRF24L01Manager::interrogate()
+void NRF24L01Manager::tick()
 {
     // This is a workaround for strange behavior of some (all?) nrf24l01 modules:
     // sometimes module does not reset IRQ pin in case of TX data sent AND does not set
     // proper flag, so we simply check a timeout
+    /*
     bool softwareDetectionOfTXDataSent = (
         m_waitingForTransmissionEnd
         && std::chrono::steady_clock::now() - m_last_transmission_time > time_enough_for_transmission
@@ -726,45 +681,55 @@ void NRF24L01Manager::interrogate()
     {
         reinitIfNeeded();
         return;
-    }
+    }*/
 
-//    m_stager.stage("IRQ detected");
+    if (m_io_driver->get_irq_pin() == true)
+        return;
+
+    //printf("NRF IRQ detected\n");
 
     // Continuing here when IRQ detected
+    update_status();
+    print_status();
+    if (is_rx_data_ready())
+    {
+        printf("RX data ready\n");
+        on_rx_data_ready();
+    }
+    update_status();
+    if (is_max_retries_reached())
+    {
+        printf("MAX RT\n");
+        on_max_retries_reached();
+    }
+    update_status();
+    if (is_tx_data_sent())
+    {
+        printf("Data sent\n");
+        on_tx_data_sent();
+    }
 
-    updateStatus();
-    if (isRXDataReady())
-    {
-        onRXDataReady();
-    }
-    updateStatus();
-    if (isMaxRetriesReached())
-    {
-        onMaxRetriesReached();
-    }
-    updateStatus();
-    if (isTXDataSent())
-    {
-        onTXDataSent();
-    }
-
+/*
     if (softwareDetectionOfTXDataSent)
     {
 //        m_stager.stage("interrogate(): WA for TX freeze");
         onTXDataSent();
         return;
-    }
+    }*/
 
-    //resetAllIRQ();
+//    resetRXDataReady();
+    //if (!m_waitingForTransmissionEnd)
+    //resetTXDataSent();
+    //resetMaxRetriesReached();
 }
 
 
-void NRF24L01Manager::onTXDataSent()
+void NRF24L01Manager::on_tx_data_sent()
 {
 //    m_stager.stage("onTXDataSent()");
     // Returning to default state: receiver
-    resetTXDataSent();
-    switchToRX();
+    reset_interrupt_tx_data_sent();
+    switch_to_rx();
     m_waitingForTransmissionEnd = false;
 
     if (m_TXDoneCallback == nullptr) {
@@ -773,88 +738,32 @@ void NRF24L01Manager::onTXDataSent()
         m_TXDoneCallback();
 }
 
-void NRF24L01Manager::onRXDataReady()
+void NRF24L01Manager::on_rx_data_ready()
 {
-//    m_stager.stage("onRXDataReady()");
-    //info << "RX data ready";
-    unsigned char pipe = getPipeNumberAvaliableForRXFIFO();
-    unsigned char data[payloadSize];
-    while (!isRXEmpty())
+    unsigned char pipe = get_pipe_number_avaliable_for_rx_fifo();
+    unsigned char data[payload_size];
+    while (!is_rx_empty())
     {
-        receiveData(payloadSize, data); // This updates m_status value
-        if (m_debug)
-        {
-//            trace << "nrf24l01 package << " << hexStr(data, payloadSize);
-        }
+        receive_data(payload_size, data); // This updates m_status value
         if (m_RXcallback == nullptr) {
             printf("Warning: Callback is not set! RX data from pipe %d: \n", pipe);
         } else {
-            //info << "RX callback called";
             m_RXcallback(pipe, data);
         }
     }
-    chipEnableOn();
-    //info << "resetRXDataReady";
-    resetRXDataReady();
+    chip_enable_on();
+    reset_interrupt_rx_data_ready();
 }
 
-void NRF24L01Manager::onMaxRetriesReached()
+void NRF24L01Manager::on_max_retries_reached()
 {
-//    m_stager.stage("onMaxRetriesReached()");
     if (m_TXMaxRTcallback == nullptr) {
         printf("Max RT; no cb\n");
     } else {
         m_TXMaxRTcallback();
     }
     // Clearing PLOS_CNT
-    setRFChannel(m_RFChannel);
+    clear_lost_packages_count();
 
-    resetMaxRetriesReached();
-}
-
-void NRF24L01Manager::reinitIfNeeded()
-{/*
-    Time now = systemClock->getTime();
-    if (now - m_lastReinitTime > reinitPeriod)
-    {
-        m_lastReinitTime = now;
-        radio << "Regular NRF reinit";
-        init(
-            m_chipEnablePin,
-            m_chipSelectPin,
-            m_IRQPin,
-            m_SPIIndex,
-            m_useInterrupts,
-            m_radioChannel
-            );
-        radio << "Regular NRF reinit done";
-    }*/
-}
-
-////////////////////
-// Interrupts handling
-void NRF24L01Manager::extiHandler(bool state)
-{
-    //info << "NRF24l01 IRQ! state: " << state;
-    if (true == state)
-        return;
-/*
-    updateStatus();
-    /// @todo Create function with code below
-    if (isTXDataSent())
-    {
-        // Returning to default state: receiver
-        switchToRX();
-        resetTXDataSent();
-        if (m_TXDoneCallback == nullptr) {
-            printf("TX done; no cb\n");
-        } else
-            m_TXDoneCallback();
-    }*/
-    m_needInterrogation = true;
-}
-
-void NRF24L01Manager::enableDebug(bool debug)
-{
-    m_debug = debug;
+    reset_interrupt_max_retries_reached();
 }

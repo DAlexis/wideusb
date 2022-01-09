@@ -26,7 +26,7 @@ const Ticks max_delay = portMAX_DELAY;
 
 void delay_iter_us(uint32_t count)
 {
-    sys_ctl_dalay(count * 168);
+    sys_ctl_dalay(count * 168 / 3);
 }
 
 void assert_print(const char* message, const char* file, int line)

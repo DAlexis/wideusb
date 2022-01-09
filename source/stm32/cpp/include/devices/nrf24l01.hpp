@@ -15,203 +15,187 @@ using DataReceiveCallback = std::function<void(uint8_t/* channel*/, uint8_t*/* d
 using TXMaxRetriesCallback = std::function<void(void)>;
 using TXDoneCallback = std::function<void(void)>;
 
+struct NRF24L01Config
+{
+    enum class CRCLen : uint8_t
+    {
+        crc_1_byte = 0,
+        crc_2_byte = 1,
+    };
+
+    enum class CRCMode : uint8_t
+    {
+        disabled = 0,
+        enabled = 1,
+    };
+
+    enum class AdressWidth
+    {
+        aw_3_bytes,
+        aw_4_bytes,
+        aw_5_bytes,
+    };
+
+    enum class Baudrate : uint8_t
+    {
+        br_1_mbit = 0,
+        br_2_mbit = 1,
+    };
+
+    enum class TXPower : uint8_t
+    {
+        pw_m18db = 0,
+        pw_m12db = 1,
+        pw_m6db = 2,
+        pw_0db = 3,
+    };
+
+    enum class LNAGain : uint8_t
+    {
+        disabled = 0,
+        enabled = 1
+    };
+
+    uint8_t radio_channel = 1;
+    AdressWidth address_width = AdressWidth::aw_5_bytes;
+    Baudrate baudrate = Baudrate::br_1_mbit;
+    TXPower tx_power = TXPower::pw_0db;
+    LNAGain lna_gain = LNAGain::enabled;
+    CRCMode crc_mode = CRCMode::enabled;
+    CRCLen crc_len = CRCLen::crc_1_byte;
+};
+
 class NRF24L01Manager
 {
 public:
-    enum EnableDisable
-    {
-        DISABLE_OPTION = 0,
-        ENABLE_OPTION = 1,
-    };
-
-    constexpr static unsigned int payloadSize = 32;
+    constexpr static unsigned int payload_size = 32;
     constexpr static uint8_t defaultRadioChannel = 1;
 
     NRF24L01Manager(std::shared_ptr<NRF24L01IODriverBase> io_driver,
-                    uint8_t radioChannel = defaultRadioChannel);
+                    NRF24L01Config config);
+    void set_data_received_callback(DataReceiveCallback callback);
+    void set_tx_done_callback(TXDoneCallback callback);
+    void set_tx_max_retries_callback(TXMaxRetriesCallback callback);
 
-    uint32_t getPayloadSize();
+    void tick();
 
-    void setDataReceiveCallback(DataReceiveCallback callback);
-    void setTXDoneCallback(TXDoneCallback callback);
-    void sendData(uint8_t size, uint8_t* data);
-    void setRXAddress(uint8_t channel, uint8_t* address);
-    void setTXAddress(uint8_t* address);
-    void printStatus();
+    bool is_tx_complete();
+    void send(uint8_t size, uint8_t* data);
+    void print_status();
 
+    void set_rx_address(uint8_t channel, uint8_t* address);
+    void set_tx_address(uint8_t* address);
 
-    void setTXMaxRetriesCallback(TXMaxRetriesCallback callback);
-    void resetAllIRQ();
+    void enable_pipe(uint8_t pipe, bool enable);
 
-    void interrogate();
-
-    // EN_RXARRD
-    void enablePipe(uint8_t pipe, uint8_t value);
-
-    void flushTX();
-    void flushRX();
-
-    void enableDebug(bool debug = true);
+    // CD register
+    bool is_carrier_detected();
 
 private:
-    constexpr static uint32_t reinitPeriod = 10000000;
+    enum class InterruptionsMasks : uint8_t
+    {
+        max_retries = 1,
+        tx_data_ready  = 2,
+        rx_data_ready  = 4
+    };
 
-    enum Power
+    enum class Power : uint8_t
     {
         POWER_OFF = 0,
         POWER_ON = 1
     };
 
-    enum InterruptionsMasks
+    enum class RxTxMode : uint8_t
     {
-        IM_MASK_MAX_RETRIES = 1,
-        IM_MASK_TX_DATA_READY  = 2,
-        IM_MASK_RX_DATA_READY  = 4
+        transmitter = 0,
+        receiver = 1,
     };
 
-    enum CRCEnableDisable
-    {
-        CRC_DISABLE = 0,
-        CRC_ENABLE = 1
-    };
 
-    enum CRCLen
-    {
-        CRC1BYTE = 0,
-        CRC2BYTES = 1,
-    };
-
-    enum AdressWidth
-    {
-        AW_3BYTES,
-        AW_4BYTES,
-        AW_5BYTES,
-    };
-
-    enum Baudrate
-    {
-        BR_1MBIT = 0,
-        BR_2MBIT = 1,
-    };
-
-    enum TXPower
-    {
-        PW_m18DB = 0,
-        PW_m12DB = 1,
-        PW_m6DB = 2,
-        PW_0DB = 3,
-    };
-
-    enum LNAGain
-    {
-        LNA_DISABLE = 0,
-        LNA_ENABLE = 1,
-    };
-
-    enum RXTXMODE
-    {
-        MODE_TRANSMITTER = 0,
-        MODE_RECEIVER = 1,
-    };
-
-//    constexpr static uint16_t timeEnoughForTransmission = 1000;
+    constexpr static uint32_t reinitPeriod = 10000000;
     constexpr static std::chrono::milliseconds time_enough_for_transmission{2};
 
-    void switchToTX();
-    void switchToRX();
+    void flush_tx();
+    void flush_rx();
 
-    void receiveData(uint8_t size, uint8_t* data);
+    void switch_to_tx();
+    void switch_to_rx();
 
-    void initInterrupts();
-    void writeReg(uint8_t reg, uint8_t size, uint8_t *data);
-    void readReg(uint8_t reg, uint8_t size, uint8_t *data);
+    void receive_data(uint8_t size, uint8_t* data);
 
-    void extiHandler(bool state);
+    void init_interrupts();
+    void reg_write(uint8_t reg, uint8_t size, uint8_t *data);
+    void reg_read(uint8_t reg, uint8_t size, uint8_t *data);
 
     // CONFIG register
-    void setConfig(uint8_t interruptionsMask,
-            uint8_t enableCRC,
-            uint8_t CRC2bytes,
-            uint8_t powerUP,
-            uint8_t isRecieving);
-
-    void switchToReceiver();
-    void switchToTranmitter();
+    void set_config(InterruptionsMasks interruptionsMask,
+            Power powerUP,
+            RxTxMode isRecieving);
 
     // STATUS register parcers
-    void updateStatus();
-    inline bool isRXDataReady();
-    inline bool isTXDataSent();
-    inline bool isMaxRetriesReached();
-    inline int getPipeNumberAvaliableForRXFIFO();
-    inline bool isTXFIFOFull();
+    void update_status();
+    bool is_rx_data_ready();
+    bool is_tx_data_sent();
+    bool is_max_retries_reached();
+    int get_pipe_number_avaliable_for_rx_fifo();
+    bool is_tx_fifo_full();
 
-    void resetRXDataReady();
-    void resetTXDataSent();
-    void resetMaxRetriesReached();
+    void reset_interrupt_rx_data_ready();
+    void reset_interrupt_tx_data_sent();
+    void reset_interrupt_max_retries_reached();
+    void reset_all_interrupts();
 
-    // CD register
-    bool isCarrierDetected();
 
     // EN_AA register
-    void setAutoACK(uint8_t channel, bool value);
+    void set_auto_ACK(uint8_t channel, bool value);
 
     // SETUP_AW
-    void setAdressWidth(AdressWidth width);
+    void set_adress_width(NRF24L01Config::AdressWidth width);
 
     // SETUP_RETR
-    void setupRetransmission(uint8_t delay, uint8_t count);
+    void setup_retransmission(uint8_t delay, uint8_t count);
 
     // RF_CH
-    void setRFChannel(uint8_t number);
-    void clearLostPackagesCount();
+    void set_RF_channel(uint8_t number);
+    void clear_lost_packages_count();
 
     // RF_SETUP
-    void setRFSettings(uint8_t use2MBits, uint8_t power, uint8_t LNAGain);
+    void set_RF_settings(NRF24L01Config::Baudrate use2MBits, NRF24L01Config::TXPower power, NRF24L01Config::LNAGain lna_gain);
 
     // OBSERVE_TX
-    uint8_t getLostPackagesCount();
-    uint8_t getResentPackagesCount();
+    uint8_t get_lost_packages_count();
+    uint8_t get_resent_packages_count();
 
     // RX_ADDR_Pn
-    void readRXAdresses();
+    void read_rx_adresses();
 
     // TX_ADDR
-    void readTXAdress();
+    void read_tx_adress();
 
     // RX_PW_Pn
     void setRXPayloadLength(uint8_t channel, uint8_t payloadLength);
 
     // FIFO_STATUS
-    bool isReuseEnabled();
-    bool isTXFull();
-    bool isTXEmpty();
-    bool isRXFull();
-    bool isRXEmpty();
+    bool is_reuse_enabled();
+    bool is_tx_full();
+    bool is_tx_empty();
+    bool is_rx_full();
+    bool is_rx_empty();
 
     // Wires
-    void chipEnableOn();
-    void chipEnableOff();
-    void chipSelect();
-    void chipDeselect();
-    void CEImpulse();
+    void chip_enable_on();
+    void chip_enable_off();
+    void chip_select();
+    void chip_deselect();
+    void chip_enable_impulse();
 
-    void onRXDataReady();
-    void onTXDataSent();
-    void onMaxRetriesReached();
-
-    void reinitIfNeeded();
+    void on_rx_data_ready();
+    void on_tx_data_sent();
+    void on_max_retries_reached();
 
     std::shared_ptr<NRF24L01IODriverBase> m_io_driver;
 
-    uint8_t m_SPIIndex = 0;
-    uint8_t m_radioChannel = 1;
-
-    bool m_needInterrogation = false;
-
-    uint8_t m_status = 0;
-    uint8_t m_config = 0;
-    uint8_t m_RFChannel = defaultRadioChannel;
+    uint8_t m_reg_status = 0;
     uint8_t m_TXAdress[RADIO_ADDRESS_SIZE];
     uint8_t m_RXAdressP0[RADIO_ADDRESS_SIZE];
     uint8_t m_RXAdressP1[RADIO_ADDRESS_SIZE];
@@ -228,9 +212,9 @@ private:
 //    uint64_t m_lastTransmissionTime = 0;
     bool m_waitingForTransmissionEnd = false;
 
-    bool m_debug = false;
-
     uint64_t m_lastReinitTime = 0;
+
+    NRF24L01Config m_config;
 };
 
 
