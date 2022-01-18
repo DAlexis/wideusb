@@ -35,9 +35,9 @@ void MonitorBack::socket_listener_status()
     response.heap_used = get_heap_used();
     PBuffer resp_buffer = Buffer::create(sizeof(response), &response);
 
-    while (m_status_socket.has_data())
+    while (m_status_socket.has_incoming())
     {
-        Socket::IncomingMessage incoming = *m_status_socket.get();
+        Socket::IncomingMessage incoming = *m_status_socket.get_incoming();
 
         auto request = try_interpret_buffer_no_magic<monitor::status::Request>(incoming.data);
         if (!request)
@@ -49,9 +49,9 @@ void MonitorBack::socket_listener_status()
 
 void MonitorBack::socket_listener_stdout()
 {
-    while (m_stdout_socket.has_data())
+    while (m_stdout_socket.has_incoming())
     {
-        Socket::IncomingMessage incoming = *m_stdout_socket.get();
+        Socket::IncomingMessage incoming = *m_stdout_socket.get_incoming();
         auto request = try_interpret_buffer_no_magic<monitor::stdout_data::SubscribeRequest>(incoming.data);
         if (!request)
             continue;

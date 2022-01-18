@@ -12,6 +12,7 @@
 
 #include "os/os-types.hpp"
 
+#include <optional>
 #include <functional>
 #include <memory>
 
@@ -151,45 +152,62 @@ public:
     QueueBase(unsigned int queue_size, size_t object_size);
     ~QueueBase();
 
-    void push_back(const void* obj, Ticks time_to_wait = max_delay);
-    void push_front(const void* obj, Ticks time_to_wait = max_delay);
-    void pop_front(void* target, Ticks time_to_wait = max_delay);
-    void push_back_from_ISR(const void* obj);
-    void push_front_from_ISR(const void* obj);
-    void pop_front_from_ISR(void* target);
+    bool push_back(const void* obj, Ticks time_to_wait = max_delay);
+    bool push_front(const void* obj, Ticks time_to_wait = max_delay);
+    bool front(void* target, Ticks time_to_wait = max_delay);
+    bool pop_front(void* target, Ticks time_to_wait = max_delay);
+    bool push_back_from_ISR(const void* obj);
+    bool push_front_from_ISR(const void* obj);
+    bool pop_front_from_ISR(void* target);
 
     uint16_t size();
     uint16_t size_from_ISR();
     bool empty();
     bool empty_from_ISR();
+    size_t capacity();
 
 
 private:
     Handle m_handle;
+    size_t m_capacity;
 };
 
+
 template<typename T>
-class Queue : public QueueBase
+class QueueCopying : public QueueBase
 {
 public:
-    Queue(unsigned int size = 10) :
+    QueueCopying(unsigned int size = 10) :
         QueueBase(size, sizeof(T))
     { }
 
-    void push_back(const T& obj, Ticks time_to_wait = max_delay)
+    bool push_back(const T& obj, Ticks time_to_wait = max_delay)
 	{
-        QueueBase::push_back(&obj, time_to_wait);
+        return QueueBase::push_back(&obj, time_to_wait);
 	}
 
-    void push_front(const T& obj, Ticks time_to_wait = max_delay)
+    bool push_front(const T& obj, Ticks time_to_wait = max_delay)
 	{
-        QueueBase::push_front(&obj, time_to_wait);
+        return QueueBase::push_front(&obj, time_to_wait);
 	}
 
-    void pop_front(T& target, Ticks time_to_wait = max_delay)
+    std::optional<T> pop_front(Ticks time_to_wait = max_delay)
 	{
-        QueueBase::pop_front(&target, time_to_wait);
+        T target;
+        if (QueueBase::pop_front(&target, time_to_wait))
+            return target;
+        else
+            return std::nullopt;
 	}
+
+    std::optional<T> front(Ticks time_to_wait = max_delay)
+    {
+        T target;
+        if (QueueBase::front(&target, time_to_wait))
+            return target;
+        else
+            return std::nullopt;
+    }
 
     void push_back_from_ISR(const T& obj)
 	{
@@ -201,10 +219,62 @@ public:
         QueueBase::push_front_from_ISR(&obj);
 	}
 
-    void pop_front_from_ISR(T& target)
+    std::optional<T> pop_front_from_ISR()
     {
-        QueueBase::pop_front_from_ISR(&target);
+        T target;
+        if (QueueBase::pop_front_from_ISR(&target))
+            return target;
+        else
+            return std::nullopt;
 	}
+};
+
+template<typename T>
+class QueuePointerBased : protected QueueBase
+{
+public:
+    QueuePointerBased(unsigned int size = 10) :
+        QueueBase(size, sizeof(T*))
+    { }
+
+    bool push_back(const T& obj, Ticks time_to_wait = max_delay)
+    {
+        T* p_copy = new T{obj};
+        return QueueBase::push_back(&p_copy, time_to_wait);
+    }
+
+    bool push_front(const T& obj, Ticks time_to_wait = max_delay)
+    {
+        T* p_copy = new T{obj};
+        return QueueBase::push_front(&obj, time_to_wait);
+    }
+
+    std::optional<T> pop_front(Ticks time_to_wait = max_delay)
+    {
+        T* p_data;
+        if (QueueBase::pop_front(&p_data, time_to_wait))
+        {
+            T result(*p_data);
+            delete p_data;
+            return result;
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    std::optional<T> front(Ticks time_to_wait = max_delay)
+    {
+        T* p_data;
+        if (QueueBase::front(&p_data, time_to_wait))
+        {
+            return *p_data;
+        } else {
+            return std::nullopt;
+        }
+    }
+
+    using QueueBase::capacity;
+    using QueueBase::size;
 };
 
 class Mutex

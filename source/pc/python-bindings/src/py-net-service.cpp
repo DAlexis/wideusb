@@ -10,6 +10,7 @@
 
 #include "wideusb-pc/physical-layer-asio.hpp"
 #include "wideusb-pc/package-inspector.hpp"
+#include "wideusb-pc/socket-queue-mutex.hpp"
 
 #include "pybind11/stl.h"
 
@@ -57,6 +58,7 @@ void add_net_service(pybind11::module& m)
                       throw std::invalid_argument("NetService from python accept only ASIO-based physical layer");
 
                   auto net_srv = std::make_shared<NetService>(
+                      std::make_shared<MutexQueueFactory>(),
                       std::make_shared<NetworkLayerBinary>(),
                       std::make_shared<TransportLayerBinary>(),
                       [phys_layer_asio]() { phys_layer_asio->post_serve_sockets(); },

@@ -32,7 +32,7 @@ private:
     std::unique_ptr<PrecisionTimer> m_precision_timer;
     std::unique_ptr<NMEAReceiver> m_nmea_receiver;
     os::Thread m_check_pps_thread {[this](){ check_pps_thread(); }, "PPS_check", 128};
-    os::Queue<Point> m_points_queue;
+    os::QueueCopying<Point> m_points_queue;
 
     std::set<Address> m_subscribers;
 };

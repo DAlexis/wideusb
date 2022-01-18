@@ -44,7 +44,7 @@ void MonitorFront::connect_to_stdout(OnConnectedToStdout on_connected, OnStdoutD
 
 void MonitorFront::socket_listener_status()
 {
-    ISocketUserSide::IncomingMessage incoming = *m_status_socket.get();
+    ISocketUserSide::IncomingMessage incoming = *m_status_socket.get_incoming();
 
     monitor::status::Response response;
 
@@ -62,7 +62,7 @@ void MonitorFront::socket_listener_status()
 
 void MonitorFront::socket_listener_stdout()
 {
-    ISocketUserSide::IncomingMessage incoming = *m_stdout_socket.get();
+    ISocketUserSide::IncomingMessage incoming = *m_stdout_socket.get_incoming();
 
     if (!m_on_data_received)
         return;

@@ -58,7 +58,7 @@ void GPSFront::request_status()
 
 void GPSFront::socket_listener_positioning()
 {
-    ISocketUserSide::IncomingMessage incoming = *m_sock_position.get();
+    ISocketUserSide::IncomingMessage incoming = *m_sock_position.get_incoming();
 
     auto response = try_interpret_buffer_no_magic<gps::positioning::Response>(incoming.data);
 
@@ -75,7 +75,7 @@ void GPSFront::socket_listener_positioning()
 
 void GPSFront::socket_listener_timestamp()
 {
-    ISocketUserSide::IncomingMessage incoming = *m_sock_timestamping.get();
+    ISocketUserSide::IncomingMessage incoming = *m_sock_timestamping.get_incoming();
     // Parsing if SubscribeResponse
 
     std::optional<gps::timestamping::SubscribeResponse> resp_subscribe = try_interpret_buffer_magic<gps::timestamping::SubscribeResponse>(incoming.data);

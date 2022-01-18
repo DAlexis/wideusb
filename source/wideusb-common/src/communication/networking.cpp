@@ -21,140 +21,15 @@ bool AddressFilter::is_acceptable(const Address& addr) const
     return false;
 }
 
-Socket::Socket(NetService& net_service,
-               Address my_address,
-               uint32_t port,
-               OnIncomingDataCallback incoming_cb,
-               OnDataReceivedCallback received_cb) :
-    m_net_service(net_service),
-    m_options(my_address),
-    m_incoming_cb(incoming_cb),
-    m_received_cb(received_cb)
-{
-    m_options.port = port;
-    m_net_service.add_socket(*this);
-    m_filter.listen_address(m_options.address, 0xFFFFFFFF);
-}
-
-Socket::~Socket()
-{
-    m_net_service.remove_socket(*this);
-}
-
-// ISocketUserSide
-SegmentID Socket::send(Address destination, PBuffer data)
-{
-    OutgoingMessage item;
-    item.data = data->clone();
-    item.receiver = destination;
-    item.id = m_net_service.generate_segment_id();
-    if (
-            m_options.output_queue_limit != 0
-            && m_outgoing.size() >= m_options.output_queue_limit
-            && m_outgoing.size() >= 2)
-    {
-        // Remove the oldest one, but not front because it ma be in work
-        m_outgoing.erase(std::next(m_outgoing.begin()));
-    }
-    m_outgoing.push_back(item);
-    m_net_service.on_socket_send();
-    return item.id;
-}
-
-std::optional<ISocketUserSide::IncomingMessage> Socket::get()
-{
-    if (m_incoming.empty())
-        return std::nullopt;
-
-    IncomingMessage data = m_incoming.front();
-    m_incoming.pop_front();
-    return data;
-}
-
-SocketOptions& Socket::options()
-{
-    return m_options;
-}
-
-AddressFilter& Socket::address_filter()
-{
-    return m_filter;
-}
-
-bool Socket::has_data()
-{
-    return !m_incoming.empty();
-}
-
-void Socket::drop_currently_sending()
-{
-    m_state.clear();
-}
-
-// ISocketSystemSide
-ISocketSystemSide::OutgoingMessage Socket::front()
-{
-    return m_outgoing.front();
-}
-
-bool Socket::has_outgoing_data()
-{
-    return !m_outgoing.empty();
-}
-
-void Socket::pop(bool success)
-{
-    uint32_t id = m_outgoing.front().id;
-    if (m_received_cb)
-        m_received_cb(id, success);
-    m_outgoing.pop_front();
-}
-
-void Socket::push(Address sender, PBuffer data)
-{
-    if (m_options.input_queue_limit != 0 && m_incoming.size() >= m_options.input_queue_limit)
-    {
-        m_incoming.pop_front();
-    }
-    IncomingMessage msg;
-    msg.sender = sender;
-    msg.data = data;
-    m_incoming.push_back(msg);
-    if (m_incoming_cb)
-        m_incoming_cb(*this);
-}
-
-const SocketOptions& Socket::get_options()
-{
-    return m_options;
-}
-
-const AddressFilter& Socket::get_address_filter()
-{
-    return m_filter;
-}
-
-SocketState& Socket::state()
-{
-    return m_state;
-}
-
-SocketState::SocketState()
-{
-    clear();
-}
-
-void SocketState::clear()
-{
-    state = OutgoingState::clear;
-}
 
 NetService::NetService(
+        IQueueFactory::Ptr queue_factory,
         std::shared_ptr<INetworkLayer> network,
         std::shared_ptr<ITransportLayer> transport,
         OnAnySocketSendCallback on_any_socket_send,
         std::shared_ptr<IPackageInspector> package_inspector,
         RandomGenerator rand_gen) :
+    m_queue_factory(queue_factory),
     m_network(network),
     m_transport(transport),
     m_package_inspector(package_inspector),
@@ -169,12 +44,12 @@ void NetService::add_interface(std::shared_ptr<NetworkInterface> interface)
     interface->physical->on_network_service_connected(*this);
 }
 
-void NetService::add_socket(Socket& socket)
+void NetService::add_socket(ISocketSystemSide& socket)
 {
     m_sockets.push_back(&socket);
 }
 
-void NetService::remove_socket(Socket& socket)
+void NetService::remove_socket(ISocketSystemSide& socket)
 {
     for (size_t i = 0; i < m_sockets.size(); i++)
     {
@@ -196,6 +71,11 @@ void NetService::on_socket_send()
 {
     if (m_on_any_socket_send_callback)
         m_on_any_socket_send_callback();
+}
+
+IQueueFactory::Ptr NetService::get_queue_factory()
+{
+    return m_queue_factory;
 }
 
 void NetService::serve_sockets(std::chrono::steady_clock::time_point time_ms)
@@ -225,35 +105,22 @@ void NetService::serve_sockets_output(std::chrono::steady_clock::time_point time
         if (state.state == SocketState::OutgoingState::clear)
         {
             // Socket is ready to transmit data
-            if (!socket->has_outgoing_data())
+            if (!socket->has_outgoing())
                 continue; // No data
 
             state.segment_id = m_rand_gen();
-            m_time_planner.add(TimePlanner<ISocketSystemSide*>::Task(socket, state.segment_id, time_ms, options.retransmitting_options));
+            m_time_planner.add(TimePlanner<SocketSendTask>::Task(
+                                   SocketSendTask(socket->get_outgoing(), socket),
+                                   state.segment_id, time_ms, options.retransmitting_options));
 
-            if (options.need_acknoledgement)
-            {
-                state.state = SocketState::OutgoingState::repeating_untill_ack;
-            } else {
-                state.state = SocketState::OutgoingState::repeating_untill_expired_no_ack;
-            }
+            state.state = SocketState::OutgoingState::waiting;
             continue;
         }
 
         if (!m_time_planner.has_task(state.segment_id))
         {
-            // Socket task is expired
-            if (state.state == SocketState::OutgoingState::repeating_untill_ack)
-            {
-                // But socket was waiting for an ack
-                socket->pop(false);
-                state.clear();
-            } else if (state.state == SocketState::OutgoingState::repeating_untill_expired_no_ack)
-            {
-                // But socket was waiting for timeout or cycles count is over, it does not need an ack
-                socket->pop(true);
-                state.clear();
-            }
+            socket->notify_outgoing_sending_done(state.segment_id, !socket->get_options().need_acknoledgement);
+            state.clear();
         }
     }
 }
@@ -334,21 +201,20 @@ void NetService::serve_sockets_input()
                         {
                             m_time_planner.remove(segment.ack_for_segment_id);
 
-                            if (state.state == SocketState::OutgoingState::repeating_untill_ack)
+                            if (state.state == SocketState::OutgoingState::waiting
+                                    // && receiver->get_options().need_acknoledgement
+                                    && segment.ack_for_segment_id == state.segment_id)
                             {
-                                if (segment.ack_for_segment_id == state.segment_id)
-                                {
-                                    // We were waiting for this ack
-                                    state.clear();
-                                    receiver->pop(true);
-                                }
+                                // We were waiting for this ack
+                                receiver->notify_outgoing_sending_done(state.segment_id, true);
+                                state.clear();
                             }
                         }
 
                         if (!segment.segment.empty())
                         {
                             BufferAccessor accessor(segment.segment);
-                            receiver->push(packet.options.sender, Buffer::create(accessor));
+                            receiver->push_incoming(packet.options.sender, Buffer::create(accessor));
                         }
                     }
                 }
@@ -365,12 +231,12 @@ void NetService::serve_time_planner(std::chrono::steady_clock::time_point time_m
 
     // Classifying packages by its network options
     std::map <NetworkOptions, SegmentBuffer> package_by_addr;
-    for (auto socket : batch.tasks)
+    for (auto send_task : batch.tasks)
     {
-        ISocketSystemSide::OutgoingMessage front = socket->front();
-        SegmentBuffer sb(front.data);
+        SegmentBuffer sb(send_task.message.data);
+        auto socket = send_task.socket;
 
-        const NetworkOptions opts(socket->get_options().address, front.receiver, 0, socket->get_options().ttl);
+        const NetworkOptions opts(socket->get_options().address, send_task.message.receiver, 0, socket->get_options().ttl);
         m_transport->encode(
                     sb,
                     socket->get_options().port,

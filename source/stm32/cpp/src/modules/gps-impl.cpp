@@ -49,8 +49,7 @@ void GPSImpl::tick()
 {
     if (!m_points_queue.empty())
     {
-        Point p;
-        m_points_queue.pop_front(p);
+        Point p = *m_points_queue.pop_front();
         send_point_to_subscribers(p);
     }
 }

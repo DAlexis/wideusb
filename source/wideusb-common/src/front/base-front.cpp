@@ -35,7 +35,7 @@ void ModuleFrontBase::create_module()
 
 void ModuleFrontBase::create_module_socket_listener()
 {
-    Socket::IncomingMessage incoming = *m_create_module_socket->get();
+    Socket::IncomingMessage incoming = *m_create_module_socket->get_incoming();
     //std::cout << "Create module response received from " << incoming.sender << std::endl;
 
     bool success = false;

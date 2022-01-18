@@ -43,7 +43,7 @@ private:
 
     UART_HandleTypeDef* m_uart_handler;
 
-    os::Queue<SentenceBorders> m_sentence_queue;
+    os::QueueCopying<SentenceBorders> m_sentence_queue;
 
     //os::Thread m_receiver_thread{[this](){ receiver_thread(); }, "NMEA_receiver", 1024};
     os::Thread m_receiver_thread{[this](){ receiver_thread(); }, "NMEA_parser", 1024};

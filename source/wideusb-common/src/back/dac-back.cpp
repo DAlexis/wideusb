@@ -9,9 +9,9 @@ DACModuleBackend::DACModuleBackend(NetService& net_service, Address module_addre
 
 void DACModuleBackend::sock_setup_listener()
 {
-    while (m_sock_setup.has_data())
+    while (m_sock_setup.has_incoming())
     {
-        Socket::IncomingMessage incoming = *m_sock_setup.get();
+        Socket::IncomingMessage incoming = *m_sock_setup.get_incoming();
         auto req_init_continious = try_interpret_buffer_magic<dac::setup::InitContinious>(incoming.data);
         if (req_init_continious)
         {
@@ -65,9 +65,9 @@ void DACModuleBackend::sock_setup_listener()
 
 void DACModuleBackend::sock_data_listener()
 {
-    while (m_sock_data.has_data())
+    while (m_sock_data.has_incoming())
     {
-        Socket::IncomingMessage incoming = *m_sock_data.get();
+        Socket::IncomingMessage incoming = *m_sock_data.get_incoming();
         receive_data(incoming.data);
     }
 }

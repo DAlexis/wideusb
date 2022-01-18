@@ -26,8 +26,7 @@ void NMEAReceiver::receiver_thread()
 {
     for (;;)
     {
-        SentenceBorders borders;
-        m_sentence_queue.pop_front(borders);
+        SentenceBorders borders = *m_sentence_queue.pop_front();
         std::string line;
         if (borders.begin < borders.end)
         {

@@ -304,7 +304,7 @@ bool TaskCycled::run(Time_ms period, Time_ms firstRunDelay, uint32_t cyclesCount
 }
 
 QueueBase::QueueBase(unsigned int queue_size, size_t object_size) :
-    m_handle((Handle) xQueueCreate(queue_size, object_size))
+    m_handle((Handle) xQueueCreate(queue_size, object_size)), m_capacity(queue_size)
 {
 }
 
@@ -313,40 +313,48 @@ QueueBase::~QueueBase()
     vQueueDelete((QueueHandle_t) m_handle);
 }
 
-void QueueBase::push_back(const void* obj, Ticks timeToWait)
+bool QueueBase::push_back(const void* obj, Ticks time_to_wait)
 {
-    xQueueSendToBack((xQueueHandle) m_handle, obj, timeToWait);
+    return xQueueSendToBack((xQueueHandle) m_handle, obj, time_to_wait) == pdTRUE;
 }
 
-void QueueBase::push_front(const void* obj, Ticks timeToWait)
+bool QueueBase::push_front(const void* obj, Ticks time_to_wait)
 {
-    xQueueSendToFront((xQueueHandle) m_handle, obj, timeToWait);
+    return xQueueSendToFront((xQueueHandle) m_handle, obj, time_to_wait) == pdTRUE;
 }
 
-void QueueBase::pop_front(void* target, Ticks timeToWait)
+bool QueueBase::front(void* target, Ticks time_to_wait)
 {
-    xQueueReceive((xQueueHandle) m_handle, target, timeToWait);
+    return xQueuePeek((xQueueHandle) m_handle, target, time_to_wait) == pdTRUE;
 }
 
-void QueueBase::push_back_from_ISR(const void* obj)
+bool QueueBase::pop_front(void* target, Ticks time_to_wait)
+{
+    return xQueueReceive((xQueueHandle) m_handle, target, time_to_wait) == pdTRUE;
+}
+
+bool QueueBase::push_back_from_ISR(const void* obj)
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    xQueueSendToBackFromISR((xQueueHandle) m_handle, obj, &xHigherPriorityTaskWoken);
+    bool result = xQueueSendToBackFromISR((xQueueHandle) m_handle, obj, &xHigherPriorityTaskWoken) == pdPASS;
     portYIELD_FROM_ISR (xHigherPriorityTaskWoken);
+    return result;
 }
 
-void QueueBase::push_front_from_ISR(const void* obj)
+bool QueueBase::push_front_from_ISR(const void* obj)
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    xQueueSendToFrontFromISR((xQueueHandle) m_handle, obj, &xHigherPriorityTaskWoken);
+    bool result = xQueueSendToFrontFromISR((xQueueHandle) m_handle, obj, &xHigherPriorityTaskWoken) == pdPASS;
     portYIELD_FROM_ISR (xHigherPriorityTaskWoken);
+    return result;
 }
 
-void QueueBase::pop_front_from_ISR(void* target)
+bool QueueBase::pop_front_from_ISR(void* target)
 {
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    xQueueReceiveFromISR((xQueueHandle) m_handle, target, &xHigherPriorityTaskWoken);
+    bool result = xQueueReceiveFromISR((xQueueHandle) m_handle, target, &xHigherPriorityTaskWoken) == pdPASS;
     portYIELD_FROM_ISR (xHigherPriorityTaskWoken);
+    return result;
 }
 
 uint16_t QueueBase::size()
@@ -368,16 +376,11 @@ bool QueueBase::empty_from_ISR()
 {
     return size_from_ISR() == 0;
 }
-/*
-RingBuffer::RingBuffer(size_t buffer_size) :
-    m_buffer(buffer_size, 0)
+
+size_t QueueBase::capacity()
 {
+    return m_capacity;
 }
-
-bool RingBuffer::put(uint8_t* data, uint32_t size)
-{
-
-}*/
 
 Mutex::Mutex() :
     m_handle(xSemaphoreCreateMutex())

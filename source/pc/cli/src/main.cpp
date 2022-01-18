@@ -1,8 +1,10 @@
 #include "wideusb-pc/asio-utils.hpp"
 #include "wideusb-pc/physical-layer-serial-port.hpp"
+#include "wideusb-pc/socket-queue-mutex.hpp"
 #include "wideusb/front/gps-front.hpp"
 #include "wideusb/front/monitor-front.hpp"
 #include "wideusb/front/discovery.hpp"
+
 
 #include "wideusb/communication/binary/channel.hpp"
 #include "wideusb/communication/binary/network.hpp"
@@ -22,12 +24,13 @@ int main()
     using namespace std::chrono_literals;
     srand(time(NULL));
 
-    IOServiceRunner runner;
-    auto sp = std::make_shared<PhysicalLayerSerialPort>(runner.io_service(), "/dev/ttyACM0");
+    auto runner = IOServiceRunner::create();
+    auto sp = std::make_shared<PhysicalLayerSerialPort>(runner->io_service(), "/dev/ttyACM0");
     auto interface = std::make_shared<NetworkInterface>(sp, std::make_shared<ChannelLayerBinary>(), true);
 
 
-    NetService net_srv(std::make_shared<NetworkLayerBinary>(),
+    NetService net_srv(std::make_shared<MutexQueueFactory>(),
+                       std::make_shared<NetworkLayerBinary>(),
                        std::make_shared<TransportLayerBinary>(),
                        [sp](){ sp->post_serve_sockets(); });
 

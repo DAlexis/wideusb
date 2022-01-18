@@ -91,7 +91,7 @@ void DACFront::stop(OnStop on_stop)
 
 void DACFront::sock_setup_listener()
 {
-    ISocketUserSide::IncomingMessage incoming = *m_sock_setup.get();
+    ISocketUserSide::IncomingMessage incoming = *m_sock_setup.get_incoming();
     auto response = try_interpret_buffer_no_magic<dac::setup::InitResponse>(incoming.data);
 
     if (!response.has_value())
@@ -107,9 +107,9 @@ void DACFront::sock_setup_listener()
 void DACFront::sock_data_listener()
 {
     // @todo TODO May be drop all notification except last?
-    while (m_sock_data.has_data())
+    while (m_sock_data.has_incoming())
     {
-        ISocketUserSide::IncomingMessage incoming = *m_sock_data.get();
+        ISocketUserSide::IncomingMessage incoming = *m_sock_data.get_incoming();
         auto buffer_is_short = try_interpret_buffer_magic<dac::data::BufferIsShortNotification>(incoming.data);
         if (buffer_is_short)
         {

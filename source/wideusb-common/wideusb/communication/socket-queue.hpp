@@ -1,0 +1,4 @@
+#ifndef SOCKETQUEUE_HPP
+#define SOCKETQUEUE_HPP
+
+#endif // SOCKETQUEUE_HPP

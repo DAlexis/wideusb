@@ -11,7 +11,7 @@ public:
     using TaskCallback = std::function<bool(void)>;
     using OnTaskEndCallback = std::function<void(void)>;
 
-    Task(boost::asio::io_service& io_service, size_t milliseconds, TaskCallback task, OnTaskEndCallback when_task_ends = nullptr);
+    Task(boost::asio::io_service& io_service, std::chrono::milliseconds milliseconds, TaskCallback task, OnTaskEndCallback when_task_ends = nullptr);
 
     void cancel();
 
@@ -124,7 +124,7 @@ private:
 class IOServiceRunner
 {
 public:
-    IOServiceRunner();
+    static std::shared_ptr<IOServiceRunner> create();
     ~IOServiceRunner();
 
     boost::asio::io_service& io_service();
@@ -138,11 +138,32 @@ public:
      * @brief Join the worker thread
      */
     void join();
+
+protected:
+    IOServiceRunner();
+
 private:
 
     boost::asio::io_service m_io_service;
     std::shared_ptr<boost::asio::io_service::work> m_work;
     std::thread m_service_thread;
+};
+
+
+class NetService;
+
+class NetworkManagerPlaner
+{
+public:
+    NetworkManagerPlaner(std::shared_ptr<IOServiceRunner> runner, NetService& net_srv, std::chrono::milliseconds serve_tick_delay);
+    ~NetworkManagerPlaner();
+
+    void post_serve_sockets();
+
+private:
+    std::shared_ptr<IOServiceRunner> m_runner;
+    NetService& m_net_srv;
+    Task m_serve_sockets_task;
 };
 
 #endif // ASIO_TASK_HPP

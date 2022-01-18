@@ -12,7 +12,7 @@ void add_io_service(pybind11::module& m)
 
 void add_io_service_runner(pybind11::module& m)
 {
-    py::class_<IOServiceRunner>(m, "IOServiceRunner")
-            .def(py::init<>())
+    py::class_<IOServiceRunner, std::shared_ptr<IOServiceRunner>>(m, "IOServiceRunner")
+            .def(py::init([](){ return IOServiceRunner::create(); }))
             .def("io_service", &IOServiceRunner::io_service, py::return_value_policy::reference_internal);
 }

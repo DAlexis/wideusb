@@ -112,6 +112,7 @@ set(H_HEADERS
     ./cpp/include/data-saver.hpp
     ./cpp/include/macro.hpp
     ./cpp/include/wideusb-device.hpp
+    ./cpp/include/socket-queue-rtos.hpp
     ./cpp/include/devices/nrf24l01.hpp
     ./cpp/include/devices/nrf24l01-driver-impl.hpp
     ./cpp/include/devices/nrf24l01-driver-base.hpp
@@ -190,6 +191,7 @@ set(CPP_SOURCES
     ./cpp/src/os/cpp-freertos-impl.cpp
     ./cpp/src/cpp-bootstrap.cpp
     ./cpp/src/wideusb-device.cpp
+    ./cpp/src/socket-queue-rtos.cpp
     ./cpp/src/devices/nrf24l01.cpp
     ./cpp/src/devices/nrf24l01-driver-impl.cpp
     ./cpp/src/devices/nrf24l01-driver-base.cpp

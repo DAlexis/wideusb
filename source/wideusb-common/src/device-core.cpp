@@ -54,9 +54,9 @@ Address DeviceCore::address()
 
 void DeviceCore::sock_device_discovery_listener()
 {
-    while (m_device_discovery_sock.has_data())
+    while (m_device_discovery_sock.has_incoming())
     {
-        const Socket::IncomingMessage inc = *m_device_discovery_sock.get();
+        const Socket::IncomingMessage inc = *m_device_discovery_sock.get_incoming();
 
         core::discovery::Response response;
         PBuffer body = Buffer::create(sizeof(response), &response);
@@ -66,9 +66,9 @@ void DeviceCore::sock_device_discovery_listener()
 
 void DeviceCore::sock_create_module_listener()
 {
-    while (m_create_module_sock.has_data())
+    while (m_create_module_sock.has_incoming())
     {
-        const Socket::IncomingMessage inc = *m_create_module_sock.get();
+        const Socket::IncomingMessage inc = *m_create_module_sock.get_incoming();
         auto request = try_interpret_buffer_no_magic<core::create_module::Request>(inc.data);
 
         bool success = create_module(request->module_id);

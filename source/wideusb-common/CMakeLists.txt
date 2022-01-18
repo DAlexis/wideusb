@@ -30,6 +30,8 @@ set(SOURCES
 
     wideusb/communication/utils.hpp
     wideusb/communication/networking.hpp
+    wideusb/communication/socket.hpp
+    wideusb/communication/socket-queue.hpp
     wideusb/communication/network-types.hpp
     wideusb/communication/network-interface.hpp
     wideusb/communication/i-channel-layer.hpp
@@ -65,6 +67,7 @@ set(SOURCES
     src/device-core.cpp
 
     src/communication/networking.cpp
+    src/communication/socket.cpp
     src/communication/utils.cpp
     src/communication/physical-layer.cpp
     src/communication/binary/channel.cpp

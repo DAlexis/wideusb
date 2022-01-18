@@ -13,6 +13,7 @@ set(LIB_SOURCES
     src/physical-layer-asio.cpp
     src/physical-layer-tcp-client.cpp
     src/package-inspector.cpp
+    src/socket-queue-mutex.cpp
 )
 
 set(LIB_INCLUDES
@@ -23,6 +24,7 @@ set(LIB_INCLUDES
     wideusb-pc/physical-layer-asio.hpp
     wideusb-pc/physical-layer-tcp-client.hpp
     wideusb-pc/package-inspector.hpp
+    wideusb-pc/socket-queue-mutex.hpp
 )
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)

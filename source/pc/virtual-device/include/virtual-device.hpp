@@ -21,7 +21,7 @@ private:
     std::shared_ptr<NetworkInterface> m_interface;
     NetService m_net_srv;
     DeviceCore m_core;
-    Task m_module_tick_task;
+//    Task m_module_tick_task;
 };
 
 #endif // VIRTUALDEVICE_HPP

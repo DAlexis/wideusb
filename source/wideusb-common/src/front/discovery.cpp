@@ -31,7 +31,7 @@ const std::list<Address>& DeviceDiscovery::devices() const
 
 void DeviceDiscovery::discovery_socket_listener()
 {
-    Socket::IncomingMessage incoming = *m_device_discovery_socket.get();
+    Socket::IncomingMessage incoming = *m_device_discovery_socket.get_incoming();
     std::cout << "Device discovered!! " << incoming.sender << std::endl;
     m_discovered.push_back(incoming.sender);
     if (m_callback)

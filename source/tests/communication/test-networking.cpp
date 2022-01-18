@@ -2,6 +2,7 @@
 #include "wideusb/communication/binary/channel.hpp"
 #include "wideusb/communication/binary/network.hpp"
 #include "wideusb/communication/binary/transport.hpp"
+#include "wideusb-pc/socket-queue-mutex.hpp"
 
 #include "gtest/gtest.h"
 
@@ -12,8 +13,9 @@ protected:
         physical = std::make_shared<PhysicalLayerBuffer>(500);
         interface = std::make_shared<NetworkInterface>(physical, std::make_shared<ChannelLayerBinary>(), true);
 
-        service = std::make_shared<NetService>(std::make_shared<NetworkLayerBinary>(),
-                                              std::make_shared<TransportLayerBinary>());
+        service = std::make_shared<NetService>(std::make_shared<MutexQueueFactory>(),
+                                               std::make_shared<NetworkLayerBinary>(),
+                                               std::make_shared<TransportLayerBinary>());
         service->add_interface(interface);
 
     }
@@ -69,12 +71,12 @@ TEST_F(NetworkingTest, BasicOperatingWithAck)
     // Receive data, send ack
     service->serve_sockets(tp);
 
-    ASSERT_FALSE(sock1.has_data());
-    ASSERT_TRUE(sock2.has_data());
-    ASSERT_FALSE(sock3.has_data());
-    ASSERT_FALSE(sock4.has_data());
+    ASSERT_FALSE(sock1.has_incoming());
+    ASSERT_TRUE(sock2.has_incoming());
+    ASSERT_FALSE(sock3.has_incoming());
+    ASSERT_FALSE(sock4.has_incoming());
 
-    auto sock_incoming = sock2.get();
+    auto sock_incoming = sock2.get_incoming();
 
     ASSERT_TRUE(sock_incoming.has_value());
     ASSERT_EQ(sock_incoming->sender, 0x12345678);
@@ -122,10 +124,10 @@ TEST_F(NetworkingTest, BasicOperatingNoAck)
     // Receive data, send ack
     service->serve_sockets(tp);
 
-    ASSERT_FALSE(sock1.has_data());
-    ASSERT_TRUE(sock2.has_data());
+    ASSERT_FALSE(sock1.has_incoming());
+    ASSERT_TRUE(sock2.has_incoming());
 
-    auto sock_incoming = sock2.get();
+    auto sock_incoming = sock2.get_incoming();
 
     ASSERT_TRUE(sock_incoming.has_value());
     ASSERT_EQ(sock_incoming->sender, 0x12345678);
@@ -186,9 +188,9 @@ TEST_F(NetworkingTest, DataCorruption)
 
     service->serve_sockets(tp + 2101ms); // Data received, sending ack
 
-    ASSERT_TRUE(sock2.has_data());
+    ASSERT_TRUE(sock2.has_incoming());
 
-    auto sock_incoming = sock2.get();
+    auto sock_incoming = sock2.get_incoming();
 
     ASSERT_TRUE(sock_incoming.has_value());
     ASSERT_EQ(sock_incoming->sender, 0x12345678);

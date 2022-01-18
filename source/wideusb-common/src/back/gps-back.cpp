@@ -16,9 +16,9 @@ void GPSModuleBack::socket_listener_positioning()
 
     PBuffer resp_buffer = Buffer::create(sizeof(resp), &resp);
 
-    while (m_sock_positioning.has_data())
+    while (m_sock_positioning.has_incoming())
     {
-        Socket::IncomingMessage incoming = *m_sock_positioning.get();
+        Socket::IncomingMessage incoming = *m_sock_positioning.get_incoming();
 
         gps::positioning::Request request;
         if (incoming.data->size() != sizeof(request))
@@ -32,9 +32,9 @@ void GPSModuleBack::socket_listener_positioning()
 
 void GPSModuleBack::socket_listener_timestamping()
 {
-    while (m_sock_timestamping.has_data())
+    while (m_sock_timestamping.has_incoming())
     {
-        Socket::IncomingMessage incoming = *m_sock_timestamping.get();
+        Socket::IncomingMessage incoming = *m_sock_timestamping.get_incoming();
 
         auto request = try_interpret_buffer_magic<gps::timestamping::SubscribeRequest>(incoming.data);
         if (request.has_value())

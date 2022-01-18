@@ -20,7 +20,7 @@ struct TimePlanningOptions
 
     TimePlanningOptions& operator=(const TimePlanningOptions&) = default;
 
-    std::chrono::milliseconds duration;
+    std::chrono::milliseconds duration; ///< Task may be peeked during duration
     std::chrono::milliseconds interval;
     uint32_t cycles_count;
     std::chrono::milliseconds timeout;
@@ -61,7 +61,7 @@ public:
 
     void add(const Task& task)
     {
-        m_active_tasks[task.m_id] = task;
+        m_active_tasks.emplace(task.m_id, task);
     }
 
     void remove(uint32_t id)
