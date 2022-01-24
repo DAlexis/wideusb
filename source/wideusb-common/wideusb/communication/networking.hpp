@@ -2,6 +2,7 @@
 #define NETWORKING_HPP
 
 #include "wideusb/communication/socket.hpp"
+#include "wideusb/communication/net-srv-runner.hpp"
 #include "wideusb/communication/network-types.hpp"
 #include "wideusb/communication/network-interface.hpp"
 #include "wideusb/communication/i-physical-layer.hpp"
@@ -24,18 +25,19 @@ class NetService
 {
 public:
     using RandomGenerator = std::function<uint32_t(void)>;
-    using OnAnySocketSendCallback = std::function<void(void)>;
 
     NetService(
+            std::unique_ptr<INetServiceRunner> service_runner,
             IQueueFactory::Ptr queue_factory,
             std::shared_ptr<INetworkLayer> network,
             std::shared_ptr<ITransportLayer> transport,
-            OnAnySocketSendCallback on_any_socket_send = nullptr,
             std::shared_ptr<IPackageInspector> package_inspector = nullptr,
             RandomGenerator rand_gen = nullptr);
+    ~NetService();
 
     void add_interface(std::shared_ptr<NetworkInterface> interface);
 
+    void serve_sockets();
     void serve_sockets(std::chrono::steady_clock::time_point time_ms);
 
     void add_socket(ISocketSystemSide& socket);
@@ -57,6 +59,7 @@ private:
 
     std::vector<ISocketSystemSide*> receivers_of_addr(Address addr);
 
+    std::unique_ptr<INetServiceRunner> m_service_runner;
     IQueueFactory::Ptr m_queue_factory;
 
     std::shared_ptr<INetworkLayer> m_network;
@@ -65,7 +68,6 @@ private:
 
     std::vector<ISocketSystemSide*> m_sockets;
     RandomGenerator m_rand_gen;
-    OnAnySocketSendCallback m_on_any_socket_send_callback;
 
     CachingSet<SegmentID> m_already_received_segments{100};
     CachingSet<PacketID> m_already_received_packets{100};

@@ -3,6 +3,7 @@
 
 #include "wideusb/communication/i-physical-layer.hpp"
 #include "wideusb/communication/i-package-inspector.hpp"
+#include "wideusb-pc/asio-utils.hpp"
 
 #include <boost/asio.hpp>
 
@@ -19,8 +20,6 @@ public:
     ~PhysicalLayerAsio();
     SerialReadAccessor& incoming() override;
     void send(PBuffer data) override;
-    void on_network_service_connected(NetService& srv) override;
-    void post_serve_sockets();
 
 protected:
     virtual void async_read() = 0;

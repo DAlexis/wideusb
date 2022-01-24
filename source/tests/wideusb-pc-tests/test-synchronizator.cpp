@@ -4,20 +4,12 @@
 
 using namespace std::chrono_literals;
 
-/*
-TEST(Synchronizer, AsioTest)
-{
-
-}*/
-
-
 TEST(Synchronizer, WaitingForAsyncOp)
 {
-    boost::asio::io_service io_service;
-    AsioServiceRunner runner(io_service);
-    runner.run_thread();
+    auto service_runner = IOServiceRunner::create();
+
     Waiter<void> waiter;
-    DeferredTask::run(io_service, 200, waiter.get_waiter_callback());
+    DeferredTask::run(service_runner->io_service(), 200ms, waiter.get_waiter_callback());
     waiter.wait();
 }
 

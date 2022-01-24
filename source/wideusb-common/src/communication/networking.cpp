@@ -23,25 +23,32 @@ bool AddressFilter::is_acceptable(const Address& addr) const
 
 
 NetService::NetService(
+        std::unique_ptr<INetServiceRunner> service_runner,
         IQueueFactory::Ptr queue_factory,
         std::shared_ptr<INetworkLayer> network,
         std::shared_ptr<ITransportLayer> transport,
-        OnAnySocketSendCallback on_any_socket_send,
         std::shared_ptr<IPackageInspector> package_inspector,
         RandomGenerator rand_gen) :
+    m_service_runner(std::move(service_runner)),
     m_queue_factory(queue_factory),
     m_network(network),
     m_transport(transport),
     m_package_inspector(package_inspector),
-    m_rand_gen(rand_gen != nullptr ? rand_gen : rand), // std rand() function
-    m_on_any_socket_send_callback(on_any_socket_send)
+    m_rand_gen(rand_gen != nullptr ? rand_gen : rand) // std rand() function
 {
+    if (m_service_runner)
+        m_service_runner->set_callback([this]() { serve_sockets(); });
+}
+
+NetService::~NetService()
+{
+    if (m_service_runner)
+        m_service_runner->cancel();
 }
 
 void NetService::add_interface(std::shared_ptr<NetworkInterface> interface)
 {
     m_interfaces.push_back(interface);
-    interface->physical->on_network_service_connected(*this);
 }
 
 void NetService::add_socket(ISocketSystemSide& socket)
@@ -69,13 +76,20 @@ uint32_t NetService::generate_segment_id()
 
 void NetService::on_socket_send()
 {
-    if (m_on_any_socket_send_callback)
-        m_on_any_socket_send_callback();
+    if (m_service_runner)
+        m_service_runner->post_serve_sockets(0ms);
 }
 
 IQueueFactory::Ptr NetService::get_queue_factory()
 {
     return m_queue_factory;
+}
+
+void NetService::serve_sockets()
+{
+    serve_sockets(std::chrono::steady_clock::now());
+    if (m_service_runner)
+        m_service_runner->post_serve_sockets(10ms);
 }
 
 void NetService::serve_sockets(std::chrono::steady_clock::time_point time_ms)

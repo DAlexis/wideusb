@@ -29,6 +29,7 @@ set(SOURCES
     wideusb/buffer.hpp
 
     wideusb/communication/utils.hpp
+    wideusb/communication/net-srv-runner.hpp
     wideusb/communication/networking.hpp
     wideusb/communication/socket.hpp
     wideusb/communication/socket-queue.hpp

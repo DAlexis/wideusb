@@ -15,10 +15,6 @@ void PhysicalLayerBuffer::send(const PBuffer data)
     m_out_queue.push(data);
 }
 
-void PhysicalLayerBuffer::on_network_service_connected(NetService& srv)
-{
-}
-
 PBuffer PhysicalLayerBuffer::out_next()
 {
     if (m_out_queue.empty())

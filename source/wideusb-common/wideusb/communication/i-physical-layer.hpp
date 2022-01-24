@@ -12,7 +12,6 @@ class IPhysicalLayer
 public:
     virtual SerialReadAccessor& incoming() = 0;
     virtual void send(PBuffer data) = 0;
-    virtual void on_network_service_connected(NetService& srv) = 0;
     virtual ~IPhysicalLayer() = default;
 };
 
@@ -23,7 +22,6 @@ public:
 
     SerialReadAccessor& incoming() override;
     void send(PBuffer data) override;
-    void on_network_service_connected(NetService& srv) override; // do nothing
 
     PBuffer out_next();
     void in_next(const void* data, size_t size);

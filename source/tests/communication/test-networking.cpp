@@ -13,7 +13,8 @@ protected:
         physical = std::make_shared<PhysicalLayerBuffer>(500);
         interface = std::make_shared<NetworkInterface>(physical, std::make_shared<ChannelLayerBinary>(), true);
 
-        service = std::make_shared<NetService>(std::make_shared<MutexQueueFactory>(),
+        service = std::make_shared<NetService>(nullptr,
+                                               std::make_shared<MutexQueueFactory>(),
                                                std::make_shared<NetworkLayerBinary>(),
                                                std::make_shared<TransportLayerBinary>());
         service->add_interface(interface);

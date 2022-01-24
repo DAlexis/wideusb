@@ -5,34 +5,11 @@
 #include <chrono>
 #include <memory>
 
-class Task
-{
-public:
-    using TaskCallback = std::function<bool(void)>;
-    using OnTaskEndCallback = std::function<void(void)>;
-
-    Task(boost::asio::io_service& io_service, std::chrono::milliseconds milliseconds, TaskCallback task, OnTaskEndCallback when_task_ends = nullptr);
-
-    void cancel();
-
-private:
-    void on_timer_done();
-    void post_task();
-
-    bool m_canceled = false;
-    TaskCallback m_task;
-    OnTaskEndCallback m_when_task_ends;
-
-    boost::asio::io_service& m_io_service;
-    boost::posix_time::milliseconds m_interval;
-    boost::asio::deadline_timer m_timer;
-};
-
 class DeferredTask
 {
 public:
     using DeferredTaskCallback = std::function<void(void)>;
-    static void run(boost::asio::io_service& io_service, size_t milliseconds, DeferredTaskCallback callabck);
+    static void run(boost::asio::io_service& io_service, std::chrono::milliseconds ms, DeferredTaskCallback callabck);
 
 private:
     DeferredTask(boost::asio::io_service& io_service, size_t milliseconds, DeferredTaskCallback callabck);
@@ -147,23 +124,6 @@ private:
     boost::asio::io_service m_io_service;
     std::shared_ptr<boost::asio::io_service::work> m_work;
     std::thread m_service_thread;
-};
-
-
-class NetService;
-
-class NetworkManagerPlaner
-{
-public:
-    NetworkManagerPlaner(std::shared_ptr<IOServiceRunner> runner, NetService& net_srv, std::chrono::milliseconds serve_tick_delay);
-    ~NetworkManagerPlaner();
-
-    void post_serve_sockets();
-
-private:
-    std::shared_ptr<IOServiceRunner> m_runner;
-    NetService& m_net_srv;
-    Task m_serve_sockets_task;
 };
 
 #endif // ASIO_TASK_HPP

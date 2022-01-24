@@ -1,6 +1,7 @@
 #include "virtual-device.hpp"
 #include "wideusb-pc/physical-layer-tcp-client.hpp"
 #include "wideusb-pc/socket-queue-mutex.hpp"
+#include "wideusb-pc/asio-net-srv-runner.hpp"
 #include "wideusb/communication/modules/ids.hpp"
 #include "wideusb/communication/binary/channel.hpp"
 #include "wideusb/communication/binary/network.hpp"
@@ -9,15 +10,15 @@
 
 
 VirtualDevice::VirtualDevice(IOServiceRunner& io_service_runner, Address device_address) :
-    m_io_service_runner(io_service_runner),
-    m_physical(std::make_shared<PhysicalLayerTcpClient>(m_io_service_runner.io_service(), "127.0.0.1", 4321)),
+    m_io_service_runner(IOServiceRunner::create()),
+    m_physical(std::make_shared<PhysicalLayerTcpClient>(m_io_service_runner->io_service(), "127.0.0.1", 4321)),
     m_interface(std::make_shared<NetworkInterface>(m_physical,
                 std::make_shared<ChannelLayerBinary>(),
                 true)),
-    m_net_srv(std::make_shared<MutexQueueFactory>(),
+    m_net_srv(std::move(NetServiceRunnerAsio::create(m_io_service_runner)),
+              std::make_shared<MutexQueueFactory>(),
               std::make_shared<NetworkLayerBinary>(),
-              std::make_shared<TransportLayerBinary>(),
-              [this]() { m_physical->post_serve_sockets(); }),
+              std::make_shared<TransportLayerBinary>()),
     m_core(m_net_srv, device_address)
     //m_module_tick_task(m_io_service_runner.io_service(), 1, [this](){ m_core.tick(); return false; })
 {

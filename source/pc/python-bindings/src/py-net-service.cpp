@@ -11,6 +11,7 @@
 #include "wideusb-pc/physical-layer-asio.hpp"
 #include "wideusb-pc/package-inspector.hpp"
 #include "wideusb-pc/socket-queue-mutex.hpp"
+#include "wideusb-pc/asio-net-srv-runner.hpp"
 
 #include "pybind11/stl.h"
 
@@ -51,17 +52,17 @@ void add_net_interface(pybind11::module& m)
 void add_net_service(pybind11::module& m)
 {
     py::class_<NetService, std::shared_ptr<NetService>>(m, "NetService")
-         .def(py::init([](std::shared_ptr<IPhysicalLayer> physical, std::shared_ptr<IPackageInspector> package_inspector)
+         .def(py::init([](std::shared_ptr<IOServiceRunner> io_service_runner, std::shared_ptr<IPhysicalLayer> physical, std::shared_ptr<IPackageInspector> package_inspector)
               {
                   auto phys_layer_asio = std::dynamic_pointer_cast<PhysicalLayerAsio>(physical);
                   if (!phys_layer_asio)
                       throw std::invalid_argument("NetService from python accept only ASIO-based physical layer");
 
                   auto net_srv = std::make_shared<NetService>(
+                      std::move(NetServiceRunnerAsio::create(io_service_runner)),
                       std::make_shared<MutexQueueFactory>(),
                       std::make_shared<NetworkLayerBinary>(),
                       std::make_shared<TransportLayerBinary>(),
-                      [phys_layer_asio]() { phys_layer_asio->post_serve_sockets(); },
                       package_inspector);
 
                   net_srv->add_interface(std::make_shared<NetworkInterface>(
@@ -69,7 +70,7 @@ void add_net_service(pybind11::module& m)
                       std::make_shared<ChannelLayerBinary>(),
                       false));
                   return net_srv;
-            }), py::arg("physical_layer"), py::arg("package_inspector") = nullptr);
+            }), py::arg("io_service_runner"), py::arg("physical_layer"), py::arg("package_inspector") = nullptr);
 }
 
 void add_device_discovery(pybind11::module& m)

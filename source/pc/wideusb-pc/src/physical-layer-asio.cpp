@@ -38,17 +38,6 @@ void PhysicalLayerAsio::send(PBuffer data)
     boost::asio::post(m_write_strand, [this]() { async_send(); });
 }
 
-void PhysicalLayerAsio::on_network_service_connected(NetService& srv)
-{
-    m_net_service = &srv;
-}
-
-void PhysicalLayerAsio::post_serve_sockets()
-{
-    if (m_net_service)
-        boost::asio::post(m_io_service, [this]() { m_net_service->serve_sockets(std::chrono::steady_clock::now()); });
-}
-
 void PhysicalLayerAsio::on_data_read(const boost::system::error_code& error, std::size_t bytes_transferred)
 {
     if (error == boost::asio::error::operation_aborted)
@@ -64,7 +53,6 @@ void PhysicalLayerAsio::on_data_read(const boost::system::error_code& error, std
 
         m_input_ring_buffer.put(m_input_buffer.data(), data_size);
 
-        post_serve_sockets();
     }
 
     async_read();

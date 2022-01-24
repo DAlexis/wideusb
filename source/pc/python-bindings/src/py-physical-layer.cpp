@@ -35,16 +35,6 @@ public:
             data             // Argument(s)
         );
     }
-
-    void on_network_service_connected(NetService& srv) override
-    {
-        PYBIND11_OVERRIDE_PURE(
-            void,            // Return type
-            IPhysicalLayer,  // Parent class
-            on_network_service_connected,            // Name of function in C++ (must match Python name)
-            srv             // Argument(s)
-        );
-    }
 };
 
 void add_i_physical_layer(pybind11::module& m)
