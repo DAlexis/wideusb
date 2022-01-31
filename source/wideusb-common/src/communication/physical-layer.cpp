@@ -15,6 +15,11 @@ void PhysicalLayerBuffer::send(const PBuffer data)
     m_out_queue.push(data);
 }
 
+void PhysicalLayerBuffer::set_on_data_callback(std::function<void(void)> callback)
+{
+    m_on_data_received_callback = callback;
+}
+
 PBuffer PhysicalLayerBuffer::out_next()
 {
     if (m_out_queue.empty())
@@ -27,6 +32,8 @@ PBuffer PhysicalLayerBuffer::out_next()
 void PhysicalLayerBuffer::in_next(const void* data, size_t size)
 {
     m_ring_buffer.put(data, size);
+    if (m_on_data_received_callback)
+        m_on_data_received_callback();
 }
 
 size_t PhysicalLayerBuffer::out_queue_size()

@@ -23,13 +23,15 @@ private:
     std::unique_ptr<GPSFront> m_gps;
 
     std::vector<GPSFront::Position> m_positions;
+
+    std::shared_ptr<CallbackReceiver<GPSFront::Position>> m_on_timestamping;
 };
 
 PyGPS::PyGPS(NetService& net_service, Address local_address, Address remote_address)
 {
     Waiter<bool> waiter;
-    m_gps.reset(new GPSFront(net_service, waiter.get_waiter_callback(), local_address, remote_address));
-    bool success = waiter.wait();
+    m_gps.reset(new GPSFront(net_service, waiter.receiver(), local_address, remote_address));
+    bool success = waiter.wait(1s);
     if (!success)
         throw std::runtime_error("GPS module creation failed");
 }
@@ -38,15 +40,16 @@ std::map<std::string, std::string> PyGPS::position()
 {
     std::map<std::string, std::string> result;
     Waiter<GPSFront::Position> waiter;
-    m_gps->get_position_async(waiter.get_waiter_callback());
-    return pos_to_map(waiter.wait());
+    m_gps->get_position_async(waiter.receiver());
+    return pos_to_map(waiter.wait(100ms));
 }
 
 bool PyGPS::subscribe_to_timestamping()
 {
     Waiter<bool> waiter;
-    m_gps->subscribe_to_timestamping(waiter.get_waiter_callback(), [this](GPSFront::Position pos) { on_timestamping(pos); });
-    return waiter.wait();
+    m_on_timestamping = CallbackReceiver<GPSFront::Position>::create([this](GPSFront::Position pos) { on_timestamping(pos); });
+    m_gps->subscribe_to_timestamping(waiter.receiver(), m_on_timestamping);
+    return waiter.wait(1s);
 }
 
 std::vector<std::map<std::string, std::string>> PyGPS::timestamps()

@@ -38,6 +38,11 @@ void PhysicalLayerAsio::send(PBuffer data)
     boost::asio::post(m_write_strand, [this]() { async_send(); });
 }
 
+void PhysicalLayerAsio::set_on_data_callback(std::function<void(void)> callback)
+{
+    m_on_data_received_callback = callback;
+}
+
 void PhysicalLayerAsio::on_data_read(const boost::system::error_code& error, std::size_t bytes_transferred)
 {
     if (error == boost::asio::error::operation_aborted)
@@ -53,6 +58,8 @@ void PhysicalLayerAsio::on_data_read(const boost::system::error_code& error, std
 
         m_input_ring_buffer.put(m_input_buffer.data(), data_size);
 
+        if (m_on_data_received_callback)
+            m_on_data_received_callback();
     }
 
     async_read();

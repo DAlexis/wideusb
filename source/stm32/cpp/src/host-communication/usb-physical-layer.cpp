@@ -1,5 +1,4 @@
 #include "host-communication/usb-physical-layer.hpp"
-
 #include "usbd_cdc_if.h"
 
 static USBPhysicalLayer* usb_handler = nullptr;
@@ -14,6 +13,7 @@ USBPhysicalLayer::USBPhysicalLayer(size_t ring_buffer_size) :
     m_input_ring_buffer(ring_buffer_size)
 {
     connect_to_usb_port();
+    //m_notification_thread.run();
 }
 
 
@@ -27,17 +27,30 @@ void USBPhysicalLayer::send(PBuffer data)
     CDC_Transmit_FS(data->data(), data->size());
 }
 
-void USBPhysicalLayer::on_network_service_connected(NetService& srv)
+void USBPhysicalLayer::set_on_data_callback(std::function<void(void)> callback)
 {
-    // nothing
+    m_callback = callback;
 }
 
 void USBPhysicalLayer::receive(const uint8_t* data, size_t size)
 {
+    // Here we are in interrupt context
     m_input_ring_buffer.put(data, std::min(size, m_input_ring_buffer.free_space()));
+    //m_notification_thread.notify_give_form_ISR();
 }
 
 void USBPhysicalLayer::connect_to_usb_port()
 {
     usb_handler = this;
+}
+
+void USBPhysicalLayer::notification_thread_body()
+{
+    for (;;)
+    {
+        os::Thread::notify_take();
+        printf("notified\n");
+        if (m_callback)
+            m_callback();
+    }
 }

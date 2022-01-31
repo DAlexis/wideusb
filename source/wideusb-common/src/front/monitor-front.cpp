@@ -3,7 +3,7 @@
 
 #include <string>
 
-MonitorFront::MonitorFront(NetService& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address) :
+MonitorFront::MonitorFront(NetService& host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address, Address device_address) :
     ModuleFrontBase(
         host_connection_service, monitor::id,
         device_address,
@@ -25,13 +25,13 @@ MonitorFront::MonitorFront(NetService& host_connection_service, OnModuleCreatedC
 {
 }
 
-void MonitorFront::get_status_async(StatusReceivedCallback callback)
+void MonitorFront::get_status_async(StatusReceivedCallbackEntry receiver)
 {
-    m_on_status_updated = callback;
+    m_status_receiver = receiver;
     request_status();
 }
 
-void MonitorFront::connect_to_stdout(OnConnectedToStdout on_connected, OnStdoutDataReceived on_data_received)
+void MonitorFront::connect_to_stdout(ConnectedToStdoutCallbackEntry on_connected, OnStdoutDataReceivedCallbackEntry on_data_received)
 {
     m_on_connected_to_stdout = on_connected;
     m_on_data_received = on_data_received;
@@ -56,15 +56,14 @@ void MonitorFront::socket_listener_status()
     std::string result = "= Monitor message from device " + std::to_string(incoming.sender) + " =\n";
     result += "total heap: " + std::to_string(response.heap_total) + "; used: " + std::to_string(response.heap_used);
 
-    if (m_on_status_updated)
-        m_on_status_updated(result);
+    m_status_receiver.call(result);
 }
 
 void MonitorFront::socket_listener_stdout()
 {
     ISocketUserSide::IncomingMessage incoming = *m_stdout_socket.get_incoming();
 
-    if (!m_on_data_received)
+    if (!m_on_data_received.avaliable())
         return;
 
     std::string incoming_str;
@@ -75,7 +74,7 @@ void MonitorFront::socket_listener_stdout()
             incoming_str += char(sym);
     }
 
-    m_on_data_received(incoming_str);
+    m_on_data_received.call(incoming_str);
 }
 
 void MonitorFront::request_status()

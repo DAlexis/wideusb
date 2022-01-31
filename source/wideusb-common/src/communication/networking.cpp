@@ -49,6 +49,8 @@ NetService::~NetService()
 void NetService::add_interface(std::shared_ptr<NetworkInterface> interface)
 {
     m_interfaces.push_back(interface);
+    if (m_service_runner)
+        interface->physical->set_on_data_callback([this]() { m_service_runner->post_serve_sockets(0ms); });
 }
 
 void NetService::add_socket(ISocketSystemSide& socket)
@@ -122,18 +124,19 @@ void NetService::serve_sockets_output(std::chrono::steady_clock::time_point time
             if (!socket->has_outgoing())
                 continue; // No data
 
-            state.segment_id = m_rand_gen();
+            ISocketSystemSide::OutgoingMessage outgoing = socket->get_outgoing();
+            state.outgoing_segment_id = outgoing.id;
             m_time_planner.add(TimePlanner<SocketSendTask>::Task(
-                                   SocketSendTask(socket->get_outgoing(), socket),
-                                   state.segment_id, time_ms, options.retransmitting_options));
+                                   SocketSendTask(outgoing, socket),
+                                   state.outgoing_segment_id, time_ms, options.retransmitting_options));
 
             state.state = SocketState::OutgoingState::waiting;
             continue;
         }
 
-        if (!m_time_planner.has_task(state.segment_id))
+        if (!m_time_planner.has_task(state.outgoing_segment_id))
         {
-            socket->notify_outgoing_sending_done(state.segment_id, !socket->get_options().need_acknoledgement);
+            socket->notify_outgoing_sending_done(state.outgoing_segment_id, !socket->get_options().need_acknoledgement);
             state.clear();
         }
     }
@@ -217,10 +220,10 @@ void NetService::serve_sockets_input()
 
                             if (state.state == SocketState::OutgoingState::waiting
                                     // && receiver->get_options().need_acknoledgement
-                                    && segment.ack_for_segment_id == state.segment_id)
+                                    && segment.ack_for_segment_id == state.outgoing_segment_id)
                             {
                                 // We were waiting for this ack
-                                receiver->notify_outgoing_sending_done(state.segment_id, true);
+                                receiver->notify_outgoing_sending_done(segment.ack_for_segment_id, true);
                                 state.clear();
                             }
                         }
@@ -254,7 +257,7 @@ void NetService::serve_time_planner(std::chrono::steady_clock::time_point time_m
         m_transport->encode(
                     sb,
                     socket->get_options().port,
-                    socket->state().segment_id,
+                    socket->state().outgoing_segment_id,
                     socket->get_options().need_acknoledgement);
         package_by_addr[opts].push_back(sb);
     }
@@ -269,6 +272,11 @@ void NetService::serve_time_planner(std::chrono::steady_clock::time_point time_m
         for (auto& interface : m_interfaces)
         {
             interface->channel->encode(sb);
+            auto merged = sb.merge();
+            if (m_package_inspector)
+            {
+                m_package_inspector->inspect_package(merged, "Outgoung data");
+            }
             interface->physical->send(sb.merge());
         }
     }

@@ -23,14 +23,14 @@ public:
     };
 
 
-    using PositionReceivedCallback = std::function<void(Position)>;
-    using SubscribedCallback = std::function<void(bool)>;
-    using TimestampingCallback = std::function<void(Position)>;
+    using PositionReceivedCallbackEntryPoint = CallbackEntry<Position>;
+    using SubscribedCallbackEntryPoint = CallbackEntry<bool>;
+    using TimestampingCallbackEntryPoint = CallbackEntry<Position>;
 
-    GPSFront(NetService& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address);
+    GPSFront(NetService& host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address, Address device_address);
 
-    void get_position_async(PositionReceivedCallback callback);
-    void subscribe_to_timestamping(SubscribedCallback on_subscribe, TimestampingCallback on_timestamp);
+    void get_position_async(PositionReceivedCallbackEntryPoint callback);
+    void subscribe_to_timestamping(SubscribedCallbackEntryPoint on_subscribe, TimestampingCallbackEntryPoint on_timestamp);
 
 private:
     void request_status();
@@ -42,10 +42,10 @@ private:
     Socket m_sock_position;
     Socket m_sock_timestamping;
 
-    PositionReceivedCallback m_on_status_updated;
-    SubscribedCallback m_on_subscribed;
+    PositionReceivedCallbackEntryPoint m_on_status_updated;
+    SubscribedCallbackEntryPoint m_on_subscribed;
 
-    TimestampingCallback m_on_timestamping;
+    TimestampingCallbackEntryPoint m_on_timestamping;
 };
 
 #endif // GPSFRONT_HPP

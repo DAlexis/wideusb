@@ -20,6 +20,7 @@ public:
     ~PhysicalLayerAsio();
     SerialReadAccessor& incoming() override;
     void send(PBuffer data) override;
+    void set_on_data_callback(std::function<void(void)> callback) override;
 
 protected:
     virtual void async_read() = 0;
@@ -41,6 +42,7 @@ protected:
     std::shared_ptr<IPackageInspector> m_package_inspector;
 
     std::chrono::time_point<std::chrono::steady_clock> m_creation;
+    std::function<void(void)> m_on_data_received_callback;
 };
 
 

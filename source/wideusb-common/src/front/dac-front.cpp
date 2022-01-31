@@ -1,13 +1,10 @@
 #include "wideusb/front/dac-front.hpp"
 
 #include "wideusb/communication/modules/dac.hpp"
-//#include "wideusb.hpp"
-
-#include <iostream>
 
 #include <cmath>
 
-DACFront::DACFront(NetService& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address) :
+DACFront::DACFront(NetService& host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address, Address device_address) :
     ModuleFrontBase(
         host_connection_service, dac::id,
         device_address,
@@ -31,7 +28,7 @@ DACFront::DACFront(NetService& host_connection_service, OnModuleCreatedCallback 
 {
 }
 
-void DACFront::init_continious(uint16_t dma_chunk_size, uint32_t prescaler, uint32_t period, OnInitDoneCallback on_init_done, OnBufferIsShort on_buffer_short)
+void DACFront::init_continious(uint16_t dma_chunk_size, uint32_t prescaler, uint32_t period, OnInitDoneCallbackEntryPoint on_init_done, OnBufferIsShortEntryPoint on_buffer_short)
 {
     dac::setup::InitContinious request;
     request.timings.period = period;
@@ -44,7 +41,7 @@ void DACFront::init_continious(uint16_t dma_chunk_size, uint32_t prescaler, uint
     m_sock_setup.send(m_device_address, Buffer::serialize(request));
 }
 
-void DACFront::init_sample(uint16_t buffer_size, uint32_t prescaler, uint32_t period, bool repeat, OnInitDoneCallback on_init_done)
+void DACFront::init_sample(uint16_t buffer_size, uint32_t prescaler, uint32_t period, bool repeat, OnInitDoneCallbackEntryPoint on_init_done)
 {
     dac::setup::InitSample request;
     request.timings.period = period;
@@ -58,7 +55,7 @@ void DACFront::init_sample(uint16_t buffer_size, uint32_t prescaler, uint32_t pe
     m_sock_setup.send(m_device_address, Buffer::serialize(request));
 }
 
-void DACFront::send_data(const float* data, size_t size, OnDataSampleSet on_data_sample_set)
+void DACFront::send_data(const float* data, size_t size, OnDataSampleSetEntryPoint on_data_sample_set)
 {
     PBuffer uint16_data = Buffer::create(size*sizeof(uint16_t));
 
@@ -69,7 +66,7 @@ void DACFront::send_data(const float* data, size_t size, OnDataSampleSet on_data
 }
 
 
-void DACFront::run(OnRun on_run)
+void DACFront::run(OnRunEntryPoint on_run)
 {
     dac::setup::RunRequest request;
     request.run_stop = dac::setup::RunRequest::run;
@@ -79,7 +76,7 @@ void DACFront::run(OnRun on_run)
     m_run_segment_id = m_sock_setup.send(m_device_address, Buffer::serialize(request));
 }
 
-void DACFront::stop(OnStop on_stop)
+void DACFront::stop(OnStopEntryPoint on_stop)
 {
     dac::setup::RunRequest request;
     request.run_stop = dac::setup::RunRequest::stop;
@@ -95,13 +92,12 @@ void DACFront::sock_setup_listener()
     auto response = try_interpret_buffer_no_magic<dac::setup::InitResponse>(incoming.data);
 
     if (!response.has_value())
-        return;
-
-    if (m_on_init_done)
     {
-        m_dac_initialized = response->error_code == 0;
-        m_on_init_done(response->error_code);
+        return;
     }
+
+    m_dac_initialized = response->error_code == 0;
+    m_on_init_done(response->error_code);
 }
 
 void DACFront::sock_data_listener()
@@ -113,10 +109,7 @@ void DACFront::sock_data_listener()
         auto buffer_is_short = try_interpret_buffer_magic<dac::data::BufferIsShortNotification>(incoming.data);
         if (buffer_is_short)
         {
-            if (m_on_buffer_short)
-            {
-                m_on_buffer_short(buffer_is_short->buffer_size);
-            }
+            m_on_buffer_short(buffer_is_short->buffer_size);
         }
     }
 }
@@ -126,15 +119,13 @@ void DACFront::sock_setup_on_received(uint32_t id, bool success)
     //std::cout << "Received by device" << std::endl;
     if (id == m_run_segment_id)
     {
-        if (m_on_run)
-            m_on_run(success);
+        m_on_run(success);
         m_run_segment_id = 0;
         m_on_run = nullptr;
     }
     else if (id == m_stop_segment_id)
     {
-        if (m_on_stop)
-            m_on_stop(success);
+        m_on_stop(success);
         m_stop_segment_id = 0;
         m_on_stop = nullptr;
     }
@@ -144,8 +135,7 @@ void DACFront::sock_data_on_received(uint32_t id, bool success)
 {
     if (id == m_data_set_segment_id)
     {
-        if (m_on_data_sample_set)
-            m_on_data_sample_set(success);
+        m_on_data_sample_set(success);
     }
 }
 

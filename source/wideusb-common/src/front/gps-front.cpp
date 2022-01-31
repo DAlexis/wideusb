@@ -3,7 +3,7 @@
 #include "wideusb/communication/modules/gps.hpp"
 #include <iostream>
 
-GPSFront::GPSFront(NetService& host_connection_service, OnModuleCreatedCallback on_created, Address my_address, Address device_address) :
+GPSFront::GPSFront(NetService& host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address, Address device_address) :
     ModuleFrontBase(
         host_connection_service, gps::id,
         device_address,
@@ -25,13 +25,13 @@ GPSFront::GPSFront(NetService& host_connection_service, OnModuleCreatedCallback 
 {
 }
 
-void GPSFront::get_position_async(PositionReceivedCallback callback)
+void GPSFront::get_position_async(PositionReceivedCallbackEntryPoint callback)
 {
     m_on_status_updated = callback;
     request_status();
 }
 
-void GPSFront::subscribe_to_timestamping(SubscribedCallback on_subscribe, TimestampingCallback on_timestamp)
+void GPSFront::subscribe_to_timestamping(SubscribedCallbackEntryPoint on_subscribe, TimestampingCallbackEntryPoint on_timestamp)
 {
     m_on_subscribed = on_subscribe;
     m_on_timestamping = on_timestamp;
@@ -69,8 +69,7 @@ void GPSFront::socket_listener_positioning()
 
     position_from_postime(result, response->pos_time);
 
-    if (m_on_status_updated)
-        m_on_status_updated(result);
+    m_on_status_updated(result);
 }
 
 void GPSFront::socket_listener_timestamp()
@@ -81,8 +80,7 @@ void GPSFront::socket_listener_timestamp()
     std::optional<gps::timestamping::SubscribeResponse> resp_subscribe = try_interpret_buffer_magic<gps::timestamping::SubscribeResponse>(incoming.data);
     if (resp_subscribe)
     {
-        if (m_on_subscribed)
-            m_on_subscribed(resp_subscribe->success);
+        m_on_subscribed(resp_subscribe->success);
         return;
     }
 
@@ -90,7 +88,7 @@ void GPSFront::socket_listener_timestamp()
     std::optional<gps::timestamping::TimestampingData> timestamping = try_interpret_buffer_magic<gps::timestamping::TimestampingData>(incoming.data);
     if (timestamping)
     {
-        if (!m_on_timestamping)
+        if (!m_on_timestamping.avaliable())
             return;
 
         Position pos;

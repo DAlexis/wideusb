@@ -40,6 +40,8 @@ void delay_spinlock(std::chrono::steady_clock::duration duration);
 
 void assert_print(const char* message, const char* file, int line);
 
+bool is_inside_interrupt();
+
 class Thread
 {
 public:

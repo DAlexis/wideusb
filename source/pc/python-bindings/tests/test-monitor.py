@@ -5,7 +5,7 @@ import time
 
 runner = wu.IOServiceRunner()
 serial = wu.PhysicalLayerSerialPort(runner.io_service(), "/dev/ttyACM0", 921600)
-net_srv = wu.NetService(runner, serial)
+net_srv = wu.NetService(runner, serial, PackageInspector())
 discovery = wu.DeviceDiscovery(net_srv, 123)
 discovery.run()
 time.sleep(1)

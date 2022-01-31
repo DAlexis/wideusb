@@ -1,15 +1,27 @@
 #include "wideusb-pc/asio-utils.hpp"
 
 #include "gtest/gtest.h"
+#include <thread>
 
 using namespace std::chrono_literals;
 
 TEST(Synchronizer, WaitingForAsyncOp)
 {
-    auto service_runner = IOServiceRunner::create();
+    {
+        Waiter<int> waiter;
+        CallbackEntry<int> entry_point = waiter.receiver();
+        std::thread t([&entry_point]() mutable { std::this_thread::sleep_for(10ms); entry_point.call(32); });
 
-    Waiter<void> waiter;
-    DeferredTask::run(service_runner->io_service(), 200ms, waiter.get_waiter_callback());
-    waiter.wait();
+        ASSERT_NO_THROW(waiter.wait(1s));
+        t.join();
+    }
+    {
+        Waiter<void> waiter;
+        CallbackEntry<void> entry_point = waiter.receiver();
+        std::thread t([&entry_point]() mutable { std::this_thread::sleep_for(100ms); entry_point.call(); });
+
+        ASSERT_ANY_THROW(waiter.wait(1ms));
+        t.join();
+    }
 }
 

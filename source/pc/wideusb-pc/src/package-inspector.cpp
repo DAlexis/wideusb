@@ -21,6 +21,8 @@ PackageInspector::PackageInspector(std::shared_ptr<IChannelLayer> channel,
 
 void PackageInspector::inspect_package(const PBuffer data, const std::string& context_msg)
 {
+    if (data->size() == 0)
+        return;
     ostringstream oss;
 
     PBuffer copy = data->clone();

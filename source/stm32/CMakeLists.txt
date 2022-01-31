@@ -112,6 +112,7 @@ set(H_HEADERS
     ./cpp/include/data-saver.hpp
     ./cpp/include/macro.hpp
     ./cpp/include/wideusb-device.hpp
+    ./cpp/include/net-srv-runner.hpp
     ./cpp/include/socket-queue-rtos.hpp
     ./cpp/include/devices/nrf24l01.hpp
     ./cpp/include/devices/nrf24l01-driver-impl.hpp
@@ -183,6 +184,7 @@ set(C_SOURCES
 set(CPP_SOURCES
     ./cpp/src/host-communication/usb-physical-layer.cpp
     ./cpp/src/data-saver.cpp
+    ./cpp/src/net-srv-runner.cpp
     ./cpp/src/modules/gps/nmea-receiver.cpp
     ./cpp/src/modules/gps/precision-timer.cpp
     ./cpp/src/modules/monitor-impl.cpp

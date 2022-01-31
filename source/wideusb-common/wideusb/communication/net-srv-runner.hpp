@@ -4,8 +4,6 @@
 #include <functional>
 #include <chrono>
 
-class NetService;
-
 class INetServiceRunner
 {
 public:

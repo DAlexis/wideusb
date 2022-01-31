@@ -60,7 +60,7 @@ struct SocketState
         waiting,
     };
 
-    SegmentID segment_id = 0;
+    SegmentID outgoing_segment_id = 0;
     OutgoingState state = OutgoingState::clear;
 };
 

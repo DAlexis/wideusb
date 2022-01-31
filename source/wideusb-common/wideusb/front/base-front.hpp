@@ -1,7 +1,8 @@
 #ifndef FRONT_BASE_HPP
 #define FRONT_BASE_HPP
 
-#include <wideusb/communication/networking.hpp>
+#include "wideusb/communication/networking.hpp"
+#include "wideusb/utils/utilities.hpp"
 
 #include <memory>
 #include <functional>
@@ -9,8 +10,10 @@
 class ModuleFrontBase
 {
 public:
+    using OnModuleCreatedCallbackEntry = CallbackEntry<bool>;
+
     using OnModuleCreatedCallback = std::function<void(bool)>;
-    ModuleFrontBase(NetService& host_connection_service, uint32_t module_id, Address device_address, Address host_address, OnModuleCreatedCallback on_created);
+    ModuleFrontBase(NetService& host_connection_service, uint32_t module_id, Address device_address, Address host_address, OnModuleCreatedCallbackEntry on_created);
     ~ModuleFrontBase();
 
 protected:
@@ -21,7 +24,7 @@ protected:
     Address m_host_address;
 
     uint32_t m_module_id;
-    OnModuleCreatedCallback m_on_created;
+    OnModuleCreatedCallbackEntry m_on_created;
 
 private:
     void create_module_socket_listener();

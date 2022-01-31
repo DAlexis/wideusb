@@ -21,7 +21,7 @@ void DeviceDiscovery::run(OnDeviceDiscoveredCallback callback)
     core::discovery::Request request;
     PBuffer body = Buffer::create(sizeof(request), &request);
     m_device_discovery_socket.send(0xFFFFFFFF, body);
-    std::cout << "Sending address request..." << std::endl;
+    std::cout << "Sending discovery request..." << std::endl;
 }
 
 const std::list<Address>& DeviceDiscovery::devices() const

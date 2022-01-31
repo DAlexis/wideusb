@@ -31,13 +31,14 @@ private:
     size_t m_next_continious_index;
     std::unique_ptr<DACFront> m_dac;
     std::vector<float>* m_data;
+    CallbackReceiver<size_t>::ptr m_on_buffer_short = CallbackReceiver<size_t>::create([this](size_t data_left){ load_more_continious_data(data_left); });
 };
 
 PyDAC::PyDAC(NetService& net_service, Address local_address, Address remote_address)
 {
     Waiter<bool> waiter;
-    m_dac.reset(new DACFront(net_service, waiter.get_waiter_callback(), local_address, remote_address));
-    bool success = waiter.wait();
+    m_dac.reset(new DACFront(net_service, waiter.receiver(), local_address, remote_address));
+    bool success = waiter.wait(1s);
     if (!success)
         throw std::runtime_error("DAC module creation failed");
 }
@@ -45,8 +46,8 @@ PyDAC::PyDAC(NetService& net_service, Address local_address, Address remote_addr
 void PyDAC::play_sample(uint32_t prescaler, uint32_t period, bool repeat, const std::vector<float>& data)
 {
     Waiter<int> waiter;
-    m_dac->init_sample(data.size(), prescaler, period, repeat, waiter.get_waiter_callback());
-    int result = waiter.wait();
+    m_dac->init_sample(data.size(), prescaler, period, repeat, waiter.receiver());
+    int result = waiter.wait(1s);
     if (result != 0)
         throw std::runtime_error("DAC initialization failed with code " + std::to_string(result));
     send_data_by_chunks(data.data(), data.size(), true);
@@ -56,8 +57,8 @@ void PyDAC::play_sample(uint32_t prescaler, uint32_t period, bool repeat, const 
 void PyDAC::play_continious(uint16_t dma_chunk_size, uint32_t prescaler, uint32_t period, const std::vector<float>& data)
 {
     Waiter<int> waiter;
-    m_dac->init_continious(dma_chunk_size, prescaler, period, waiter.get_waiter_callback(), [this](size_t data_left){ load_more_continious_data(data_left); });
-    int result = waiter.wait();
+    m_dac->init_continious(dma_chunk_size, prescaler, period, waiter.receiver(), m_on_buffer_short);
+    int result = waiter.wait(5s);
     if (result != 0)
         throw std::runtime_error("DAC initialization failed with code " + std::to_string(result));
     m_continious_data = data;
@@ -69,8 +70,8 @@ void PyDAC::play_continious(uint16_t dma_chunk_size, uint32_t prescaler, uint32_
 void PyDAC::stop()
 {
     Waiter<bool> waiter;
-    m_dac->stop(waiter.get_waiter_callback());
-    if (!waiter.wait())
+    m_dac->stop(waiter.receiver());
+    if (!waiter.wait(1s))
     {
         throw std::runtime_error("DAC stop caused an error");
     }
@@ -85,8 +86,8 @@ void PyDAC::send_data_by_chunks(const float* data, size_t size, bool sync)
         if (sync)
         {
             Waiter<bool> waiter;
-            m_dac->send_data(&data[begin], block_size, waiter.get_waiter_callback());
-            waiter.wait();
+            m_dac->send_data(&data[begin], block_size, waiter.receiver());
+            waiter.wait(1s);
         } else {
             m_dac->send_data(&data[begin], block_size, nullptr);
         }
@@ -99,8 +100,8 @@ void PyDAC::run()
 {
     std::cout << "Calling DAC run..." << std::endl;
     Waiter<bool> waiter;
-    m_dac->run(waiter.get_waiter_callback());
-    if (!waiter.wait())
+    m_dac->run(waiter.receiver());
+    if (!waiter.wait(1s))
         throw std::runtime_error("DAC failed to run");
     std::cout << "DAC run complete" << std::endl;
 }

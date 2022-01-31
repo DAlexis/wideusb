@@ -34,6 +34,11 @@ void assert_print(const char* message, const char* file, int line)
     printf("Assertion %s at %s:%d\r\n", message, file, line);
 }
 
+bool is_inside_interrupt()
+{
+    return pdTRUE == xPortIsInsideInterrupt();
+}
+
 void delay(std::chrono::steady_clock::duration duration)
 {
     osDelay( std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() );

@@ -13,6 +13,9 @@
 
 #include "os/cpp-freertos.hpp"
 
+#include "net-srv-runner.hpp"
+#include "socket-queue-rtos.hpp"
+
 #include "stm32f4xx_hal.h"
 
 #include "devices/nrf24l01-driver-impl.hpp"
@@ -27,6 +30,9 @@ char buffer[512];
 WideusbDevice::WideusbDevice() :
     m_device_address(HAL_GetUIDw0() + HAL_GetUIDw1() + HAL_GetUIDw2()),
     m_net_srv(
+        //NetSrvRunner::create(),
+        nullptr,
+        std::make_shared<QueueFactory>(),
         std::make_shared<NetworkLayerBinary>(),
         std::make_shared<TransportLayerBinary>()
     ),
@@ -50,7 +56,7 @@ void WideusbDevice::run()
     printf("Status should be above\n");
     nrf.set_data_received_callback([](uint8_t ch, uint8_t* data){ printf("NRF data on channel %d: %s\n", ch, data); });
 */
-
+/*
     SX1278_hw_t sx1278_config;
     sx1278_config.spi = &hspi2;
     sx1278_config.dio0.port = LORA_INT_GPIO_Port;
@@ -73,7 +79,7 @@ void WideusbDevice::run()
         int ret = SX1278_LoRaEntryTx(&SX1278, 16, 2000);
     } else {
         int ret = SX1278_LoRaEntryRx(&SX1278, 16, 2000);
-    }
+    }*/
 
     auto last_time_interrogate = std::chrono::steady_clock::now();
     auto last_time_send = std::chrono::steady_clock::now();
@@ -97,8 +103,8 @@ void WideusbDevice::run()
         }*/
 
 
-
-        if (time - last_time_send > 100ms)
+/*
+        if (time - last_time_send > 2000ms)
         {
             last_time_send = time;
 
@@ -129,14 +135,12 @@ void WideusbDevice::run()
                 }
                 printf("Package received ...\r\n");
 
-    /*            nrf.send(32, (uint8_t*)"test\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0");
+                //nrf.send(32, (uint8_t*)"test\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0");
+                //nrf.print_status();
 
-                nrf.print_status();
-                */
-                //sx1278->transmit((uint8_t*) "LoRa test\0", 10);
-                //printf("Sending\n");
+
             }
-        }
+        }*/
     }
 }
 

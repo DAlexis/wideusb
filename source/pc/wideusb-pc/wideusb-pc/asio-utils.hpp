@@ -1,102 +1,64 @@
 #ifndef ASIO_TASK_HPP
 #define ASIO_TASK_HPP
 
+#include "wideusb/utils/utilities.hpp"
 #include <boost/asio.hpp>
 #include <chrono>
 #include <memory>
-
-class DeferredTask
-{
-public:
-    using DeferredTaskCallback = std::function<void(void)>;
-    static void run(boost::asio::io_service& io_service, std::chrono::milliseconds ms, DeferredTaskCallback callabck);
-
-private:
-    DeferredTask(boost::asio::io_service& io_service, size_t milliseconds, DeferredTaskCallback callabck);
-    void on_timer_done();
-    void set_self_shared_ptr(std::shared_ptr<DeferredTask> this_object);
-
-    DeferredTaskCallback m_callback;
-    std::shared_ptr<DeferredTask> m_this_object;
-    boost::posix_time::milliseconds m_interval;
-    boost::asio::deadline_timer m_timer;
-};
-
-class WaiterBase
-{
-protected:
-    void wait_for_notification()
-    {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        if (!m_task_done)
-        {
-            if (m_cv.wait_for(lock, std::chrono::seconds(1)) == std::cv_status::timeout)
-            {
-                throw std::runtime_error("Operation timeouted");
-            }
-        }
-    }
-
-    void notify()
-    {
-        m_task_done = true;
-        m_cv.notify_all();
-    }
-
-    bool m_task_done = false;
-    std::mutex m_mutex;
-    std::condition_variable m_cv;
-};
+#include <type_traits>
 
 template<typename CallbackArgType>
-class Waiter : public WaiterBase
+class Waiter
 {
 public:
-    std::function<void(CallbackArgType)> get_waiter_callback()
+    using ArgStorageType = typename std::decay<CallbackArgType>::type;
+
+    Waiter()
     {
-        return [this](CallbackArgType arg){ m_callback_arg = arg; notify(); };
+        m_callback_receiver = CallbackReceiver<CallbackArgType>::create([this](CallbackArgType arg) { m_promise.set_value(arg); });
     }
 
-    CallbackArgType wait()
+    std::shared_ptr<CallbackReceiver<CallbackArgType>> receiver() { return m_callback_receiver; }
+
+    ArgStorageType wait(std::chrono::milliseconds timeout)
     {
-        wait_for_notification();
-        return m_callback_arg;
+        if (m_future.wait_for(timeout) != std::future_status::ready)
+            throw std::runtime_error("Operation timeouted");
+
+        return m_future.get();
     }
+
 
 private:
-
-    CallbackArgType m_callback_arg;
+    std::shared_ptr<CallbackReceiver<CallbackArgType>> m_callback_receiver;
+    std::promise<ArgStorageType> m_promise;
+    std::future<ArgStorageType> m_future{m_promise.get_future()};
 };
 
 template<>
-class Waiter<void> : public WaiterBase
+class Waiter<void>
 {
 public:
-    std::function<void(void)> get_waiter_callback()
+    Waiter()
     {
-        return [this](){ notify(); };
+        m_callback_receiver = CallbackReceiver<void>::create([this]() { m_promise.set_value(); });
     }
 
-    void wait()
+    std::shared_ptr<CallbackReceiver<void>> receiver() { return m_callback_receiver; }
+
+    void wait(std::chrono::milliseconds timeout)
     {
-        wait_for_notification();
+        if (m_future.wait_for(timeout) != std::future_status::ready)
+            throw std::runtime_error("Operation timeouted");
     }
-};
 
-class AsioServiceRunner
-{
-public:
-    AsioServiceRunner(boost::asio::io_service& io_service);
-    ~AsioServiceRunner();
-
-    void run_thread();
-    void stop_thread();
 
 private:
-    void thread_body();
-    boost::asio::io_service& m_io_service;
-    std::unique_ptr<std::thread> m_thread;
+    std::shared_ptr<CallbackReceiver<void>> m_callback_receiver;
+    std::promise<void> m_promise;
+    std::future<void> m_future{m_promise.get_future()};
 };
+
 
 class IOServiceRunner
 {

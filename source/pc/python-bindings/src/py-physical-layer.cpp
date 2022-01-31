@@ -35,6 +35,16 @@ public:
             data             // Argument(s)
         );
     }
+
+    void set_on_data_callback(std::function<void(void)> callback) override
+    {
+        PYBIND11_OVERRIDE_PURE(
+            void,            // Return type
+            IPhysicalLayer,  // Parent class
+            set_on_data_callback,            // Name of function in C++ (must match Python name)
+            callback             // Argument(s)
+        );
+    }
 };
 
 void add_i_physical_layer(pybind11::module& m)

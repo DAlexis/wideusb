@@ -4,6 +4,7 @@ set(EXE_SOURCES
     test-base64.cpp
     test-nmea.cpp
     test-caching-set.cpp
+    test-utilities.cpp
 )
 
 add_executable(${PROJECT_NAME} ${EXE_SOURCES})

@@ -5,6 +5,7 @@
 #include "pybind11/pybind11.h"
 #include "pybind11/stl.h"
 #include <stdexcept>
+#include <string>
 
 namespace py = pybind11;
 
@@ -22,6 +23,8 @@ public:
 private:
 
     std::unique_ptr<MonitorFront> m_monitor;
+    std::shared_ptr<CallbackReceiver<const std::string&>> m_stdout_callback_receiver =
+            CallbackReceiver<const std::string&>::create( [](const std::string& text) { std::cout << text; } );
 };
 
 
@@ -30,28 +33,28 @@ PyMonitor::PyMonitor(NetService& net_service, Address local_address, Address rem
     Waiter<bool> waiter;
     m_monitor.reset(
                 new MonitorFront(
-                    net_service, waiter.get_waiter_callback(),
+                    net_service, waiter.receiver(),
                     local_address,
                     remote_address
                     )
                 );
-    bool success = waiter.wait();
+    bool success = waiter.wait(1s);
     if (!success)
         throw std::runtime_error("Monitor module creation failed");
 }
 
 std::string PyMonitor::status()
 {
-    Waiter<std::string> waiter;
-    m_monitor->get_status_async(waiter.get_waiter_callback());
-    std::string result = waiter.wait();
+    Waiter<const std::string&> waiter;
+    m_monitor->get_status_async(waiter.receiver());
+    std::string result = waiter.wait(5s);
     return result;
 }
 
 void PyMonitor::enable_stdout_print()
 {
 //    Waiter<bool> waiter;
-    m_monitor->connect_to_stdout(nullptr, [](const std::string& text) { std::cout << text; });
+    m_monitor->connect_to_stdout(nullptr, m_stdout_callback_receiver);
 //    bool success = waiter.wait();
 //    if (!success)
 //        throw std::runtime_error("Monitor module creation failed");
