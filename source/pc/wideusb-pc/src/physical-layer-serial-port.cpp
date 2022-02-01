@@ -3,11 +3,11 @@
 #include <iostream>
 
 PhysicalLayerSerialPort::PhysicalLayerSerialPort(
-        boost::asio::io_service& io_service,
+        std::shared_ptr<IOServiceRunner> io_service_runner,
         const std::string& port,
         int baudrate) :
-    PhysicalLayerAsio(io_service),
-    m_serial_port(io_service)
+    PhysicalLayerAsio(io_service_runner),
+    m_serial_port(io_service_runner->io_service())
 {
     m_serial_port.open(port);
     m_serial_port.set_option(boost::asio::serial_port_base::baud_rate(baudrate));

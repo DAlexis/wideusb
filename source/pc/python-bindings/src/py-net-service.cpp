@@ -58,7 +58,7 @@ void add_net_service(pybind11::module& m)
                   if (!phys_layer_asio)
                       throw std::invalid_argument("NetService from python accept only ASIO-based physical layer");
 
-                  auto net_srv = std::make_shared<NetService>(
+                  auto net_srv = NetService::create(
                       std::move(NetServiceRunnerAsio::create(io_service_runner)),
                       std::make_shared<MutexQueueFactory>(),
                       std::make_shared<NetworkLayerBinary>(),
@@ -76,7 +76,7 @@ void add_net_service(pybind11::module& m)
 void add_device_discovery(pybind11::module& m)
 {
     py::class_<DeviceDiscovery>(m, "DeviceDiscovery")
-         .def(py::init<NetService&, Address>(), py::arg("net_srv"), py::arg("local_address"))
+         .def(py::init<NetService::ptr, Address>(), py::arg("net_srv"), py::arg("local_address"))
          .def("run", [](DeviceDiscovery& discovery) { discovery.run(); })
          .def("devices", &DeviceDiscovery::devices)
     ;

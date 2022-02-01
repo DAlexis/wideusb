@@ -4,7 +4,7 @@
 
 #include <cmath>
 
-DACFront::DACFront(NetService& host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address, Address device_address) :
+DACFront::DACFront(NetService::ptr host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address, Address device_address) :
     ModuleFrontBase(
         host_connection_service, dac::id,
         device_address,

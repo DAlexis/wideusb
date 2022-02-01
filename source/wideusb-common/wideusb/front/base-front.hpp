@@ -13,13 +13,13 @@ public:
     using OnModuleCreatedCallbackEntry = CallbackEntry<bool>;
 
     using OnModuleCreatedCallback = std::function<void(bool)>;
-    ModuleFrontBase(NetService& host_connection_service, uint32_t module_id, Address device_address, Address host_address, OnModuleCreatedCallbackEntry on_created);
+    ModuleFrontBase(NetService::ptr host_connection_service, uint32_t module_id, Address device_address, Address host_address, OnModuleCreatedCallbackEntry on_created);
     ~ModuleFrontBase();
 
 protected:
     void create_module();
 
-    NetService& m_host_connection_service;
+    NetService::ptr m_host_connection_service;
     Address m_device_address;
     Address m_host_address;
 

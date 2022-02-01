@@ -3,13 +3,13 @@
 
 #include <iostream>
 
-PhysicalLayerAsio::PhysicalLayerAsio(boost::asio::io_service& io_service,
+PhysicalLayerAsio::PhysicalLayerAsio(std::shared_ptr<IOServiceRunner> io_service_runner,
                                      std::shared_ptr<IPackageInspector> package_inspector,
                                      size_t input_buffer_size,
                                      size_t input_ring_buffer_size,
                                      size_t output_ring_buffer_size) :
-    m_io_service(io_service),
-    m_write_strand(io_service),
+    m_io_service_runner(io_service_runner),
+    m_write_strand(io_service_runner->io_service()),
     m_input_buffer(input_buffer_size),
     m_input_ring_buffer(input_ring_buffer_size),
     m_output_ring_buffer(output_ring_buffer_size),

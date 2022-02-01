@@ -134,7 +134,7 @@ public:
 class Socket : public ISocketUserSide, public ISocketSystemSide
 {
 public:
-    Socket(NetService& net_service,
+    Socket(std::shared_ptr<NetService> net_service,
            Address my_address,
            Port port,
            OnIncomingDataCallback incoming_cb = nullptr,
@@ -152,7 +152,7 @@ public:
     void drop_currently_sending() override;
 
 protected:
-    NetService& m_net_service;
+    std::shared_ptr<NetService> m_net_service;
     SocketOptions m_options;
     Port m_port;
     AddressFilter m_filter;

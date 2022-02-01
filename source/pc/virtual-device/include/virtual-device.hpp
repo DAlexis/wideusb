@@ -19,7 +19,7 @@ private:
 
     std::shared_ptr<PhysicalLayerAsio> m_physical;
     std::shared_ptr<NetworkInterface> m_interface;
-    NetService m_net_srv;
+    NetService::ptr m_net_srv;
     DeviceCore m_core;
 //    Task m_module_tick_task;
 };

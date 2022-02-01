@@ -3,11 +3,11 @@
 
 using boost::asio::ip::tcp;
 
-PhysicalLayerTcpClient::PhysicalLayerTcpClient(boost::asio::io_service& io_service, const std::string& addr, short port) :
-    PhysicalLayerAsio(io_service),
-    m_socket(io_service)
+PhysicalLayerTcpClient::PhysicalLayerTcpClient(std::shared_ptr<IOServiceRunner> io_service_runner, const std::string& addr, short port) :
+    PhysicalLayerAsio(io_service_runner),
+    m_socket(m_io_service_runner->io_service())
 {
-    tcp::resolver resolver(io_service);
+    tcp::resolver resolver(m_io_service_runner->io_service());
     boost::asio::connect(m_socket, resolver.resolve(tcp::endpoint(tcp::v4(), port)));
     async_read();
 }

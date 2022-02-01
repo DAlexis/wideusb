@@ -14,7 +14,7 @@ class DeviceCore
 public:
     using ModuleFactory = std::function<std::shared_ptr<IModule>()>;
 
-    DeviceCore(NetService& net_service, Address device_address);
+    DeviceCore(NetService::ptr net_service, Address device_address);
     void tick();
     void add_module_factory(ModuleID id, ModuleFactory factory);
     Address address();
@@ -26,7 +26,7 @@ private:
     bool create_module(ModuleID id);
 
     Address m_device_address;
-    NetService& m_net_srv;
+    NetService::ptr m_net_srv;
 
     std::shared_ptr<Socket> m_core_socket;
     std::map<ModuleID, std::shared_ptr<IModule>> m_modules;

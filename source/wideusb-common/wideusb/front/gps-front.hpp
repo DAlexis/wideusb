@@ -27,7 +27,7 @@ public:
     using SubscribedCallbackEntryPoint = CallbackEntry<bool>;
     using TimestampingCallbackEntryPoint = CallbackEntry<Position>;
 
-    GPSFront(NetService& host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address, Address device_address);
+    GPSFront(NetService::ptr host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address, Address device_address);
 
     void get_position_async(PositionReceivedCallbackEntryPoint callback);
     void subscribe_to_timestamping(SubscribedCallbackEntryPoint on_subscribe, TimestampingCallbackEntryPoint on_timestamp);

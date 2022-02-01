@@ -19,7 +19,7 @@ public:
     using OnStopEntryPoint = CallbackEntry<bool>;
     using OnBufferIsShortEntryPoint = CallbackEntry<size_t>;
 
-    DACFront(NetService& host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address = 0, Address device_address = 0);
+    DACFront(NetService::ptr host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address = 0, Address device_address = 0);
 
     void init_continious(uint16_t dma_chunk_size, uint32_t prescaler, uint32_t period, OnInitDoneCallbackEntryPoint on_init_done, OnBufferIsShortEntryPoint on_buffer_short);
     void init_sample(uint16_t buffer_size, uint32_t prescaler, uint32_t period, bool repeat, OnInitDoneCallbackEntryPoint on_init_done);

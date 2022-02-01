@@ -9,7 +9,7 @@
 class MonitorBack : public IModule
 {
 public:
-    MonitorBack(NetService& net_service, Address module_address);
+    MonitorBack(NetService::ptr net_service, Address module_address);
 
 protected:
     Socket m_status_socket;

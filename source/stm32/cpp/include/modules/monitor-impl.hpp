@@ -7,7 +7,7 @@
 class MonitorImpl : public MonitorBack
 {
 public:
-    MonitorImpl(NetService& net_service, Address monitor_address);
+    MonitorImpl(NetService::ptr net_service, Address monitor_address);
 
     void tick() override;
 

@@ -9,7 +9,7 @@ class PhysicalLayerSerialPort : public PhysicalLayerAsio
 {
 public:
     PhysicalLayerSerialPort(
-            boost::asio::io_service& io_service,
+            std::shared_ptr<IOServiceRunner> io_service_runner,
             const std::string& port,
             int baudrate = 921600);
 

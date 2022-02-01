@@ -17,7 +17,7 @@ private:
 
     Address m_device_address;
 
-    NetService m_net_srv;
+    NetService::ptr m_net_srv;
     DeviceCore m_core;
 
 };

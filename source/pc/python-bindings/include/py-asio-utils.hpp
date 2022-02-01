@@ -3,7 +3,6 @@
 
 #include "pybind11/pybind11.h"
 
-void add_io_service(pybind11::module& m);
 void add_io_service_runner(pybind11::module& m);
 
 

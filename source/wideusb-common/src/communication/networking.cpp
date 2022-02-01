@@ -21,6 +21,15 @@ bool AddressFilter::is_acceptable(const Address& addr) const
     return false;
 }
 
+NetService::ptr NetService::create(std::unique_ptr<INetServiceRunner> service_runner,
+                      IQueueFactory::Ptr queue_factory,
+                      std::shared_ptr<INetworkLayer> network,
+                      std::shared_ptr<ITransportLayer> transport,
+                      std::shared_ptr<IPackageInspector> package_inspector,
+                      NetService::RandomGenerator rand_gen)
+{
+    return ptr(new NetService(std::move(service_runner), queue_factory, network, transport, package_inspector, rand_gen));
+}
 
 NetService::NetService(
         std::unique_ptr<INetServiceRunner> service_runner,

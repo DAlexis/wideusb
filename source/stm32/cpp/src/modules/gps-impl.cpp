@@ -6,7 +6,7 @@
 
 #include "usart.h"
 
-GPSImpl::GPSImpl(NetService& net_service, Address module_address) :
+GPSImpl::GPSImpl(NetService::ptr net_service, Address module_address) :
     GPSModuleBack(net_service, module_address)
 {
     enable();

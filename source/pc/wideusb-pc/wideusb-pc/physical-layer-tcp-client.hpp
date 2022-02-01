@@ -7,7 +7,7 @@
 class PhysicalLayerTcpClient : public PhysicalLayerAsio
 {
 public:
-    PhysicalLayerTcpClient(boost::asio::io_service& io_service, const std::string& addr, short port);
+    PhysicalLayerTcpClient(std::shared_ptr<IOServiceRunner> io_service_runner, const std::string& addr, short port);
 
 private:
     void async_read() override;

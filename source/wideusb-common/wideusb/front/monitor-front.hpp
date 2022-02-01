@@ -12,7 +12,7 @@ public:
     using ConnectedToStdoutCallbackEntry = CallbackEntry<bool>;
     using OnStdoutDataReceivedCallbackEntry = CallbackEntry<const std::string&>;
 
-    MonitorFront(NetService& host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address, Address device_address);
+    MonitorFront(NetService::ptr host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address, Address device_address);
     void get_status_async(StatusReceivedCallbackEntry receiver);
     void connect_to_stdout(ConnectedToStdoutCallbackEntry on_connected, OnStdoutDataReceivedCallbackEntry on_data_received);
 

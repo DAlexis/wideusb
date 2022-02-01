@@ -20,7 +20,6 @@ PYBIND11_MODULE(pywideusb, m) {
 
     m.doc() = "Python bindings for wideusb device";
 
-    add_io_service(m);
     add_io_service_runner(m);
 
     add_i_physical_layer(m);

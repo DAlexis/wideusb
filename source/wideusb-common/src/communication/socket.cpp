@@ -1,7 +1,7 @@
 #include "wideusb/communication/socket.hpp"
 #include "wideusb/communication/networking.hpp"
 
-Socket::Socket(NetService& net_service,
+Socket::Socket(std::shared_ptr<NetService> net_service,
            Address my_address,
            Port port,
            OnIncomingDataCallback incoming_cb,
@@ -11,17 +11,17 @@ Socket::Socket(NetService& net_service,
     m_incoming_cb(incoming_cb),
     m_received_cb(received_cb)
 {
-    m_incoming_queue = m_net_service.get_queue_factory()->produce_incomming_queue(m_options.input_queue_limit);
-    m_outgoing_queue = m_net_service.get_queue_factory()->produce_outgoing_queue(m_options.output_queue_limit);
+    m_incoming_queue = m_net_service->get_queue_factory()->produce_incomming_queue(m_options.input_queue_limit);
+    m_outgoing_queue = m_net_service->get_queue_factory()->produce_outgoing_queue(m_options.output_queue_limit);
 
     m_options.port = port;
-    m_net_service.add_socket(*this);
+    m_net_service->add_socket(*this);
     m_filter.listen_address(m_options.address, 0xFFFFFFFF);
 }
 
 Socket::~Socket()
 {
-    m_net_service.remove_socket(*this);
+    m_net_service->remove_socket(*this);
 }
 
 SocketOptions& Socket::options()
@@ -55,7 +55,7 @@ SegmentID Socket::send(Address destination, PBuffer data)
     OutgoingMessage item;
     item.data = data->clone();
     item.receiver = destination;
-    item.id = m_net_service.generate_segment_id();
+    item.id = m_net_service->generate_segment_id();
     size_t out_size = m_outgoing_queue->size();
     if (
             m_options.output_queue_limit != 0
@@ -64,7 +64,7 @@ SegmentID Socket::send(Address destination, PBuffer data)
         m_outgoing_queue->pop();
     }
     m_outgoing_queue->push(item);
-    m_net_service.on_socket_send();
+    m_net_service->on_socket_send();
     return item.id;
 }
 

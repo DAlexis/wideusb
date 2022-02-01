@@ -3,7 +3,7 @@
 #include "wideusb/communication/modules/core.hpp"
 #include "wideusb/communication/modules/ids.hpp"
 
-DeviceCore::DeviceCore(NetService& net_service, Address device_address) :
+DeviceCore::DeviceCore(NetService::ptr net_service, Address device_address) :
     m_device_address(device_address),
     m_net_srv(net_service),
     m_device_discovery_sock(m_net_srv, m_device_address, ports::core::address_discovery, [this](ISocketUserSide&) { sock_device_discovery_listener(); }),

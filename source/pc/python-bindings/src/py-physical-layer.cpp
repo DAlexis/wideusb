@@ -56,18 +56,18 @@ void add_i_physical_layer(pybind11::module& m)
 void add_usb_physical_layer(pybind11::module& m)
 {
     py::class_<PhysicalLayerSerialPort, std::shared_ptr<PhysicalLayerSerialPort>, IPhysicalLayer>(m, "PhysicalLayerSerialPort")
-        .def(py::init([](boost::asio::io_service& io_service, const std::string& port, int baudrate)
+        .def(py::init([](std::shared_ptr<IOServiceRunner> io_service_runner, const std::string& port, int baudrate)
              {
-                 return std::make_shared<PhysicalLayerSerialPort>(io_service, port, baudrate);
-             }), py::arg("io_service"), py::arg("port"), py::arg("baudrate"));
+                 return std::make_shared<PhysicalLayerSerialPort>(io_service_runner, port, baudrate);
+             }), py::arg("io_service_runner"), py::arg("port"), py::arg("baudrate"));
 }
 
 void add_tcp_physical_layer(pybind11::module& m)
 {
     py::class_<PhysicalLayerTcpClient, std::shared_ptr<PhysicalLayerTcpClient>, IPhysicalLayer>(m, "PhysicalLayerTcpClient")
-        .def(py::init([](boost::asio::io_service& io_service, const std::string& addr, int port)
+        .def(py::init([](std::shared_ptr<IOServiceRunner> io_service_runner, const std::string& addr, int port)
              {
                  /// @todo Assert port for number
-                 return std::make_shared<PhysicalLayerTcpClient>(io_service, addr, port);
-             }), py::arg("io_service"), py::arg("addr"), py::arg("port"));
+                 return std::make_shared<PhysicalLayerTcpClient>(io_service_runner, addr, port);
+             }), py::arg("io_service_runner"), py::arg("addr"), py::arg("port"));
 }

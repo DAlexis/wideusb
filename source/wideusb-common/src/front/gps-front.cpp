@@ -3,7 +3,7 @@
 #include "wideusb/communication/modules/gps.hpp"
 #include <iostream>
 
-GPSFront::GPSFront(NetService& host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address, Address device_address) :
+GPSFront::GPSFront(NetService::ptr host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address, Address device_address) :
     ModuleFrontBase(
         host_connection_service, gps::id,
         device_address,

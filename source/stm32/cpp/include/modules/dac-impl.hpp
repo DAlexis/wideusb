@@ -9,7 +9,7 @@ public:
     constexpr static uint16_t max_buffer_size = 1000;
     constexpr static uint16_t max_dma_chunk_size = 1000;
 
-    DACImpl(NetService& net_service, Address module_address);
+    DACImpl(NetService::ptr net_service, Address module_address);
     ~DACImpl();
 
     void tick() override;

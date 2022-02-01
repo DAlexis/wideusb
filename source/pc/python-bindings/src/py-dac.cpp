@@ -11,7 +11,7 @@ namespace py = pybind11;
 class PyDAC
 {
 public:
-    PyDAC(NetService& net_service, Address local_address, Address remote_address);
+    PyDAC(NetService::ptr net_service, Address local_address, Address remote_address);
 
 
     size_t max_buffer_size();
@@ -34,7 +34,7 @@ private:
     CallbackReceiver<size_t>::ptr m_on_buffer_short = CallbackReceiver<size_t>::create([this](size_t data_left){ load_more_continious_data(data_left); });
 };
 
-PyDAC::PyDAC(NetService& net_service, Address local_address, Address remote_address)
+PyDAC::PyDAC(NetService::ptr net_service, Address local_address, Address remote_address)
 {
     Waiter<bool> waiter;
     m_dac.reset(new DACFront(net_service, waiter.receiver(), local_address, remote_address));
@@ -130,7 +130,7 @@ size_t PyDAC::load_more_continious_data(size_t samples_needed)
 void add_dac(pybind11::module& m)
 {
     py::class_<PyDAC>(m, "DAC")
-        .def(py::init<NetService&, Address, Address>(),
+        .def(py::init<NetService::ptr, Address, Address>(),
              py::arg("device"),
              py::arg("local_address"),
              py::arg("remote_address"))

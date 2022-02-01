@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-DeviceDiscovery::DeviceDiscovery(NetService& net_srv, Address local) :
+DeviceDiscovery::DeviceDiscovery(NetService::ptr net_srv, Address local) :
     m_device_discovery_socket(
                 net_srv, local, ports::core::address_discovery,
                 [this](ISocketUserSide&){ discovery_socket_listener(); }

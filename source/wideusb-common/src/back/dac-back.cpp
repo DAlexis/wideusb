@@ -1,7 +1,7 @@
 #include "wideusb/back/dac-back.hpp"
 #include "wideusb/communication/modules/dac.hpp"
 
-DACModuleBackend::DACModuleBackend(NetService& net_service, Address module_address) :
+DACModuleBackend::DACModuleBackend(NetService::ptr net_service, Address module_address) :
     m_sock_setup(net_service, module_address, dac::setup::port, [this](ISocketUserSide&) { sock_setup_listener(); }),
     m_sock_data(net_service, module_address, dac::data::port, [this](ISocketUserSide&) { sock_data_listener(); })
 {

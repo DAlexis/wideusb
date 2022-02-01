@@ -13,10 +13,10 @@ protected:
         physical = std::make_shared<PhysicalLayerBuffer>(500);
         interface = std::make_shared<NetworkInterface>(physical, std::make_shared<ChannelLayerBinary>(), true);
 
-        service = std::make_shared<NetService>(nullptr,
-                                               std::make_shared<MutexQueueFactory>(),
-                                               std::make_shared<NetworkLayerBinary>(),
-                                               std::make_shared<TransportLayerBinary>());
+        service = NetService::create(nullptr,
+                                     std::make_shared<MutexQueueFactory>(),
+                                     std::make_shared<NetworkLayerBinary>(),
+                                     std::make_shared<TransportLayerBinary>());
         service->add_interface(interface);
 
     }
@@ -31,7 +31,7 @@ protected:
 TEST_F(NetworkingTest, HeaderSize)
 {
     auto tp = std::chrono::steady_clock::now();
-    Socket sock1(*service, 0x12345678, 10);
+    Socket sock1(service, 0x12345678, 10);
     sock1.send(0x87654321, Buffer::create(1, "X"));
     service->serve_sockets(tp);
     PBuffer data = physical->out_next();
@@ -55,11 +55,11 @@ TEST_F(NetworkingTest, BasicOperatingWithAck)
 
     bool data_delivered = false;
 
-    Socket sock1(*service, 0x12345678, 10, nullptr, [&data_delivered](uint32_t, bool success) { data_delivered = success; });
-    Socket sock2(*service, 0x87654321, 10);
+    Socket sock1(service, 0x12345678, 10, nullptr, [&data_delivered](uint32_t, bool success) { data_delivered = success; });
+    Socket sock2(service, 0x87654321, 10);
 
-    Socket sock3(*service, 0x87654321, 11);
-    Socket sock4(*service, 0x87654320, 10);
+    Socket sock3(service, 0x87654321, 11);
+    Socket sock4(service, 0x87654320, 10);
 
     sock1.send(0x87654321, Buffer::create(sizeof(test_data), test_data));
 
@@ -99,8 +99,8 @@ TEST_F(NetworkingTest, BasicOperatingNoAck)
     auto tp = std::chrono::steady_clock::now();
     bool data_delivered = false;
 
-    Socket sock1(*service, 0x12345678, 10, nullptr, [&data_delivered](uint32_t, bool success) { data_delivered = success; });
-    Socket sock2(*service, 0x87654321, 10);
+    Socket sock1(service, 0x12345678, 10, nullptr, [&data_delivered](uint32_t, bool success) { data_delivered = success; });
+    Socket sock2(service, 0x87654321, 10);
 
     sock1.options().need_acknoledgement = false;
     sock1.options().retransmitting_options.cycles_count = 1;
@@ -145,8 +145,8 @@ TEST_F(NetworkingTest, DataCorruption)
 
     TimePlanningOptions timings(1000ms, 100ms, 10);
 
-    Socket sock1(*service, 0x12345678, 10, nullptr, [&data_delivered_1_to_2](uint32_t, bool success) { data_delivered_1_to_2 = success; });
-    Socket sock2(*service, 0x87654321, 10, nullptr, [&data_delivered_2_to_1](uint32_t, bool success) { data_delivered_2_to_1 = success; });
+    Socket sock1(service, 0x12345678, 10, nullptr, [&data_delivered_1_to_2](uint32_t, bool success) { data_delivered_1_to_2 = success; });
+    Socket sock2(service, 0x87654321, 10, nullptr, [&data_delivered_2_to_1](uint32_t, bool success) { data_delivered_2_to_1 = success; });
 
     sock1.options().retransmitting_options = timings;
     sock2.options().retransmitting_options = timings;

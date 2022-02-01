@@ -17,7 +17,7 @@ namespace gps { struct PosTime; }
 class GPSImpl : public GPSModuleBack
 {
 public:
-    GPSImpl(NetService& net_service, Address module_address);
+    GPSImpl(NetService::ptr net_service, Address module_address);
     ~GPSImpl();
 
     void enable();

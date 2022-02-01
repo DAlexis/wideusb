@@ -7,7 +7,7 @@
 class DACModuleBackend : public IModule
 {
 public:
-    DACModuleBackend(NetService& net_service, Address module_address);
+    DACModuleBackend(NetService::ptr net_service, Address module_address);
 
 private:
     void sock_setup_listener();

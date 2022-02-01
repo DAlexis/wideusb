@@ -8,7 +8,7 @@ namespace py = pybind11;
 class PyGPS
 {
 public:
-    PyGPS(NetService& net_service, Address local_address, Address remote_address);
+    PyGPS(NetService::ptr net_service, Address local_address, Address remote_address);
 
     std::map<std::string, std::string> position();
     bool subscribe_to_timestamping();
@@ -27,7 +27,7 @@ private:
     std::shared_ptr<CallbackReceiver<GPSFront::Position>> m_on_timestamping;
 };
 
-PyGPS::PyGPS(NetService& net_service, Address local_address, Address remote_address)
+PyGPS::PyGPS(NetService::ptr net_service, Address local_address, Address remote_address)
 {
     Waiter<bool> waiter;
     m_gps.reset(new GPSFront(net_service, waiter.receiver(), local_address, remote_address));
@@ -81,7 +81,7 @@ std::map<std::string, std::string> PyGPS::pos_to_map(const GPSFront::Position& p
 void add_gps(pybind11::module& m)
 {
     py::class_<PyGPS>(m, "GPS")
-        .def(py::init<NetService&, Address, Address>(),
+        .def(py::init<NetService::ptr, Address, Address>(),
              py::arg("device"),
              py::arg("local_address"),
              py::arg("remote_address"))

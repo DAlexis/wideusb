@@ -11,7 +11,7 @@ public:
     /// @todo move this file to better location (communication/utils?)
     using OnDeviceDiscoveredCallback = std::function<void(Address)>;
 
-    DeviceDiscovery(NetService& net_srv, Address local);
+    DeviceDiscovery(NetService::ptr net_srv, Address local);
 
     void run(OnDeviceDiscoveredCallback callback = nullptr);
     const std::list<Address>& devices() const;

@@ -11,7 +11,7 @@ namespace gps { struct PosTime; }
 class GPSModuleBack : public IModule
 {
 public:
-    GPSModuleBack(NetService& net_service, Address module_address);
+    GPSModuleBack(NetService::ptr net_service, Address module_address);
 
     virtual Point point() = 0;
 

@@ -3,7 +3,7 @@
 
 #include <string>
 
-MonitorFront::MonitorFront(NetService& host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address, Address device_address) :
+MonitorFront::MonitorFront(NetService::ptr host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address, Address device_address) :
     ModuleFrontBase(
         host_connection_service, monitor::id,
         device_address,

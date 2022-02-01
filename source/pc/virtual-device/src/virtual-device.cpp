@@ -11,18 +11,18 @@
 
 VirtualDevice::VirtualDevice(IOServiceRunner& io_service_runner, Address device_address) :
     m_io_service_runner(IOServiceRunner::create()),
-    m_physical(std::make_shared<PhysicalLayerTcpClient>(m_io_service_runner->io_service(), "127.0.0.1", 4321)),
+    m_physical(std::make_shared<PhysicalLayerTcpClient>(m_io_service_runner, "127.0.0.1", 4321)),
     m_interface(std::make_shared<NetworkInterface>(m_physical,
                 std::make_shared<ChannelLayerBinary>(),
                 true)),
-    m_net_srv(std::move(NetServiceRunnerAsio::create(m_io_service_runner)),
+    m_net_srv(NetService::create(std::move(NetServiceRunnerAsio::create(m_io_service_runner)),
               std::make_shared<MutexQueueFactory>(),
               std::make_shared<NetworkLayerBinary>(),
-              std::make_shared<TransportLayerBinary>()),
+              std::make_shared<TransportLayerBinary>())),
     m_core(m_net_srv, device_address)
     //m_module_tick_task(m_io_service_runner.io_service(), 1, [this](){ m_core.tick(); return false; })
 {
-    m_net_srv.add_interface(m_interface);
+    m_net_srv->add_interface(m_interface);
     m_core.add_module_factory(ids::monitor, [this](){ return create_monitor(); } );
 }
 

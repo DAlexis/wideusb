@@ -5,7 +5,7 @@ import numpy as np
 import time
 
 runner = wu.IOServiceRunner()
-serial = wu.PhysicalLayerSerialPort(runner.io_service(), "/dev/ttyACM0", 921600)
+serial = wu.PhysicalLayerSerialPort(runner, "/dev/ttyACM0", 921600)
 
 net_srv = wu.NetService(runner, serial)
 discovery = wu.DeviceDiscovery(net_srv, 123)

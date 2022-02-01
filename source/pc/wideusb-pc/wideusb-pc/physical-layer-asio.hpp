@@ -10,7 +10,7 @@
 class PhysicalLayerAsio : public IPhysicalLayer
 {
 public:
-    PhysicalLayerAsio(boost::asio::io_service& io_service,
+    PhysicalLayerAsio(std::shared_ptr<IOServiceRunner> io_service_runner,
                       std::shared_ptr<IPackageInspector> package_inspector = nullptr,
                       size_t input_buffer_size = 10,
                       size_t input_ring_buffer_size = 10000,
@@ -33,7 +33,7 @@ protected:
 
     NetService* m_net_service = nullptr;
 
-    boost::asio::io_service& m_io_service;
+    std::shared_ptr<IOServiceRunner> m_io_service_runner;
     boost::asio::io_context::strand m_write_strand;
     std::vector<uint8_t> m_input_buffer;
     RingBuffer m_input_ring_buffer;

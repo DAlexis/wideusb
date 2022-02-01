@@ -10,7 +10,7 @@
 
 RingBuffer MonitorImpl::stdout_buffer{1000};
 
-MonitorImpl::MonitorImpl(NetService& net_service, Address monitor_address) :
+MonitorImpl::MonitorImpl(NetService::ptr net_service, Address monitor_address) :
     MonitorBack(net_service, monitor_address)
 {
 

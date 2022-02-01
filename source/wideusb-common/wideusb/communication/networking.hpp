@@ -24,15 +24,17 @@
 class NetService
 {
 public:
+    using ptr = std::shared_ptr<NetService>;
     using RandomGenerator = std::function<uint32_t(void)>;
 
-    NetService(
-            std::unique_ptr<INetServiceRunner> service_runner,
-            IQueueFactory::Ptr queue_factory,
-            std::shared_ptr<INetworkLayer> network,
-            std::shared_ptr<ITransportLayer> transport,
-            std::shared_ptr<IPackageInspector> package_inspector = nullptr,
-            RandomGenerator rand_gen = nullptr);
+    static ptr create(std::unique_ptr<INetServiceRunner> service_runner,
+                      IQueueFactory::Ptr queue_factory,
+                      std::shared_ptr<INetworkLayer> network,
+                      std::shared_ptr<ITransportLayer> transport,
+                      std::shared_ptr<IPackageInspector> package_inspector = nullptr,
+                      RandomGenerator rand_gen = nullptr);
+
+
     ~NetService();
 
     void add_interface(std::shared_ptr<NetworkInterface> interface);
@@ -50,6 +52,13 @@ public:
     IQueueFactory::Ptr get_queue_factory();
 
 private:
+    NetService(
+            std::unique_ptr<INetServiceRunner> service_runner,
+            IQueueFactory::Ptr queue_factory,
+            std::shared_ptr<INetworkLayer> network,
+            std::shared_ptr<ITransportLayer> transport,
+            std::shared_ptr<IPackageInspector> package_inspector = nullptr,
+            RandomGenerator rand_gen = nullptr);
 
     void serve_sockets_output(std::chrono::steady_clock::time_point time_ms);
     void serve_sockets_input();

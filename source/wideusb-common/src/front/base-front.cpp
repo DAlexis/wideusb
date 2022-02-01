@@ -1,7 +1,7 @@
 #include "wideusb/front/base-front.hpp"
 #include "wideusb/communication/modules/core.hpp"
 
-ModuleFrontBase::ModuleFrontBase(NetService& host_connection_service, uint32_t module_id, Address device_address, Address host_address, OnModuleCreatedCallbackEntry on_created) :
+ModuleFrontBase::ModuleFrontBase(NetService::ptr host_connection_service, uint32_t module_id, Address device_address, Address host_address, OnModuleCreatedCallbackEntry on_created) :
     m_host_connection_service(host_connection_service),
     m_device_address(device_address), m_host_address(host_address),
     m_module_id(module_id), m_on_created(on_created)

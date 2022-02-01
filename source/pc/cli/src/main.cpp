@@ -26,16 +26,16 @@ int main()
     srand(time(NULL));
 
     auto runner = IOServiceRunner::create();
-    auto sp = std::make_shared<PhysicalLayerSerialPort>(runner->io_service(), "/dev/ttyACM0");
+    auto sp = std::make_shared<PhysicalLayerSerialPort>(runner, "/dev/ttyACM0");
     auto interface = std::make_shared<NetworkInterface>(sp, std::make_shared<ChannelLayerBinary>(), true);
 
 
-    NetService net_srv(std::move(NetServiceRunnerAsio::create(runner)),
+    auto net_srv = NetService::create(std::move(NetServiceRunnerAsio::create(runner)),
                        std::make_shared<MutexQueueFactory>(),
                        std::make_shared<NetworkLayerBinary>(),
                        std::make_shared<TransportLayerBinary>());
 
-    net_srv.add_interface(interface);
+    net_srv->add_interface(interface);
 
     DeviceDiscovery discovery(net_srv, 123);
     discovery.run();

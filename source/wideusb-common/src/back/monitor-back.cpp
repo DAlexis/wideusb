@@ -1,7 +1,7 @@
 #include "wideusb/back/monitor-back.hpp"
 #include "wideusb/communication/modules/monitor.hpp"
 
-MonitorBack::MonitorBack(NetService& net_service, Address module_address) :
+MonitorBack::MonitorBack(NetService::ptr net_service, Address module_address) :
     m_status_socket(net_service, module_address, ports::monitor::status_update, [this](ISocketUserSide&) { socket_listener_status(); }),
     m_stdout_socket(net_service, module_address, ports::monitor::stdout_data, [this](ISocketUserSide&) { socket_listener_stdout(); })
 {
