@@ -4,12 +4,7 @@ void MonitorBackImpl::tick()
 {
 }
 
-uint32_t MonitorBackImpl::get_heap_used()
+MonitorStats MonitorBackImpl::get_stats()
 {
-    return 5;
-}
-
-uint32_t MonitorBackImpl::get_heap_total()
-{
-    return 10;
+    return MonitorStats();
 }

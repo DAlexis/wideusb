@@ -2,6 +2,7 @@
 #include "wideusb/communication/modules/monitor.hpp"
 
 #include <string>
+#include <sstream>
 
 MonitorFront::MonitorFront(NetService::ptr host_connection_service, OnModuleCreatedCallbackEntry on_created, Address my_address, Address device_address) :
     ModuleFrontBase(
@@ -53,10 +54,18 @@ void MonitorFront::socket_listener_status()
 
     BufferAccessor(incoming.data) >> response;
 
-    std::string result = "= Monitor message from device " + std::to_string(incoming.sender) + " =\n";
-    result += "total heap: " + std::to_string(response.heap_total) + "; used: " + std::to_string(response.heap_used);
+    std::ostringstream oss;
+    oss << "Status for device " << incoming.sender << ":" << std::endl;
+    oss << "heap_total = " << response.heap_total << std::endl;
+    oss << "heap_used = " << response.heap_used << std::endl;
+    oss << "allocated = " << response.allocated << std::endl;
+    oss << "malloc_times = " << response.malloc_times << std::endl;
+    oss << "malloc_isr_times = " << response.malloc_isr_times << std::endl;
+    oss << "free_times = " << response.free_times << std::endl;
+    oss << "active_blocks = " << response.malloc_times - response.free_times << std::endl;
+    oss << "free_isr_times = " << response.free_isr_times << std::endl;
 
-    m_status_receiver.call(result);
+    m_status_receiver.call(oss.str());
 }
 
 void MonitorFront::socket_listener_stdout()

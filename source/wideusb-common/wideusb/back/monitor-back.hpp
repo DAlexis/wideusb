@@ -3,6 +3,7 @@
 
 #include "wideusb/communication/networking.hpp"
 #include "wideusb/back/base-back.hpp"
+#include "wideusb/modules/monitor-types.hpp"
 
 #include <list>
 
@@ -15,8 +16,7 @@ protected:
     Socket m_status_socket;
     Socket m_stdout_socket;
 
-    virtual uint32_t get_heap_used() = 0;
-    virtual uint32_t get_heap_total() = 0;
+    virtual MonitorStats get_stats() = 0;
 
     void send_stdout(PBuffer buf);
     bool has_stdout_subscriber();

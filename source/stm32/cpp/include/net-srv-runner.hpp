@@ -3,6 +3,7 @@
 
 #include "wideusb/communication/net-srv-runner.hpp"
 #include "os/cpp-freertos.hpp"
+#include "os/async-worker.hpp"
 
 class NetSrvRunner : public INetServiceRunner
 {

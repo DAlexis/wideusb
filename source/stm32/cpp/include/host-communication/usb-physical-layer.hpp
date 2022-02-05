@@ -3,11 +3,12 @@
 
 #include "wideusb/communication/i-physical-layer.hpp"
 #include "os/cpp-freertos.hpp"
+#include "os/async-worker.hpp"
 
 class USBPhysicalLayer : public IPhysicalLayer
 {
 public:
-    USBPhysicalLayer(size_t ring_buffer_size = 1000);
+    USBPhysicalLayer(AsyncWorker& async_worker, size_t ring_buffer_size = 1000);
     SerialReadAccessor& incoming() override;
     void send(PBuffer data) override;
     void set_on_data_callback(std::function<void(void)> callback) override;
@@ -21,7 +22,7 @@ private:
 
     RingBuffer m_input_ring_buffer;
     std::function<void(void)> m_callback;
-    os::Thread m_notification_thread{[this](){ notification_thread_body(); }, "usb-notify", 128};
+    AsyncWorker& m_async_worker;
 };
 
 #endif // USBPHYSICALLAYER_HPP

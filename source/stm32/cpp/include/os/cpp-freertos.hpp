@@ -148,6 +148,49 @@ private:
     static void run_task_in_cycle(void const* pTask);
 };
 
+class Mutex
+{
+public:
+    Mutex();
+    ~Mutex();
+
+    bool lock(Ticks timeout);
+    void lock();
+    void unlock();
+    bool is_locked();
+private:
+
+    Handle m_handle;
+};
+
+class CriticalSection
+{
+public:
+    CriticalSection();
+    ~CriticalSection();
+
+    void unlock();
+    bool is_locked();
+
+private:
+    bool m_locked = true;
+};
+
+class CriticalSectionISR
+{
+public:
+    CriticalSectionISR();
+    ~CriticalSectionISR();
+
+    void unlock();
+    bool is_locked();
+
+private:
+    bool m_locked = true;
+    unsigned long m_uxSavedInterruptStatus = 0;
+};
+
+
 class QueueBase
 {
 public:
@@ -167,11 +210,13 @@ public:
     bool empty();
     bool empty_from_ISR();
     size_t capacity();
+    size_t space();
 
+protected:
+    size_t m_capacity;
 
 private:
     Handle m_handle;
-    size_t m_capacity;
 };
 
 
@@ -239,72 +284,54 @@ public:
         QueueBase(size, sizeof(T*))
     { }
 
-    bool push_back(const T& obj, Ticks time_to_wait = max_delay)
+    bool push_back(const T& obj)
     {
         T* p_copy = new T{obj};
-        return QueueBase::push_back(&p_copy, time_to_wait);
+        if (is_inside_interrupt())
+            return QueueBase::push_back_from_ISR(&p_copy);
+        else
+            return QueueBase::push_back(&p_copy, 0);
     }
 
     bool push_front(const T& obj, Ticks time_to_wait = max_delay)
     {
         T* p_copy = new T{obj};
-        return QueueBase::push_front(&obj, time_to_wait);
+        if (is_inside_interrupt())
+            return QueueBase::push_front_from_ISR(&p_copy);
+        else
+            return QueueBase::push_front(&p_copy, time_to_wait);
     }
 
     std::optional<T> pop_front(Ticks time_to_wait = max_delay)
     {
         T* p_data;
-        if (QueueBase::pop_front(&p_data, time_to_wait))
+        if (is_inside_interrupt())
         {
-            T result(*p_data);
-            delete p_data;
-            return result;
+            if (!QueueBase::pop_front_from_ISR(&p_data))
+                return std::nullopt;
         } else {
-            return std::nullopt;
+            if (!QueueBase::pop_front(&p_data, time_to_wait))
+                return std::nullopt;
         }
+        T result(*p_data);
+
+        delete p_data;
+        return result;
     }
 
     std::optional<T> front(Ticks time_to_wait = max_delay)
     {
         T* p_data;
-        if (QueueBase::front(&p_data, time_to_wait))
+        if (!QueueBase::front(&p_data, time_to_wait))
         {
-            return *p_data;
-        } else {
             return std::nullopt;
         }
+        return *p_data;
     }
 
     using QueueBase::capacity;
     using QueueBase::size;
-};
-
-class Mutex
-{
-public:
-    Mutex();
-    ~Mutex();
-
-    bool lock(Ticks timeout);
-    void lock();
-    void unlock();
-    bool is_locked();
-private:
-
-    Handle m_handle;
-};
-
-class CriticalSection
-{
-public:
-    CriticalSection();
-    ~CriticalSection();
-
-    void unlock();
-    bool is_locked();
-
-private:
-    bool m_locked = true;
+    using QueueBase::space;
 };
 
 }

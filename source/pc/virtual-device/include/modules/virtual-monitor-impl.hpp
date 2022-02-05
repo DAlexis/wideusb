@@ -11,8 +11,7 @@ public:
 
     void tick() override;
 
-    uint32_t get_heap_used() override;
-    uint32_t get_heap_total() override;
+    MonitorStats get_stats() override;
 };
 
 

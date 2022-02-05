@@ -30,8 +30,7 @@ char buffer[512];
 WideusbDevice::WideusbDevice() :
     m_device_address(HAL_GetUIDw0() + HAL_GetUIDw1() + HAL_GetUIDw2()),
     m_net_srv(NetService::create(
-        //NetSrvRunner::create(),
-        nullptr,
+        NetSrvRunner::create(), //nullptr,
         std::make_shared<QueueFactory>(),
         std::make_shared<NetworkLayerBinary>(),
         std::make_shared<TransportLayerBinary>())
@@ -39,7 +38,7 @@ WideusbDevice::WideusbDevice() :
     m_core(m_net_srv, m_device_address)
 {
     m_net_srv->add_interface(
-                std::make_shared<NetworkInterface>(std::make_shared<USBPhysicalLayer>(), std::make_shared<ChannelLayerBinary>(), false));
+                std::make_shared<NetworkInterface>(std::make_shared<USBPhysicalLayer>(m_common_async_worker), std::make_shared<ChannelLayerBinary>(), false));
     m_core.add_module_factory(ids::monitor, [this](){ return create_monitor(); });
     m_core.add_module_factory(ids::gps, [this](){ return create_gps(); });
     m_core.add_module_factory(ids::dac, [this](){ return create_dac(); });
@@ -86,7 +85,7 @@ void WideusbDevice::run()
     int message = 0;
     for (;;)
     {
-        m_net_srv->serve_sockets(std::chrono::steady_clock::now());
+        //m_net_srv->serve_sockets(std::chrono::steady_clock::now());
         m_core.tick();
 
   /*      if (nrf.is_carrier_detected())

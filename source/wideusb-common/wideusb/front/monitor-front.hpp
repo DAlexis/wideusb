@@ -4,6 +4,7 @@
 #include "wideusb/front/base-front.hpp"
 #include "wideusb/communication/networking.hpp"
 #include "wideusb/utils/utilities.hpp"
+#include "wideusb/modules/monitor-types.hpp"
 
 class MonitorFront : public ModuleFrontBase
 {

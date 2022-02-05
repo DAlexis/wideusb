@@ -34,13 +34,12 @@ void NetSrvRunner::thread_body()
 {
     for (;;)
     {
-        /*
-        os::Thread::notify_take(true, 10);
+        os::Thread::notify_take(true, 1000);
+
         while (std::chrono::steady_clock::now() < m_time_point_to_run)
-            os::delay(1ms);*/
+            os::delay(1ms);
 
         if (m_serve_sockets_callback)
             m_serve_sockets_callback();
-        os::delay(1ms);
     }
 }

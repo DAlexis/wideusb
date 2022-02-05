@@ -309,7 +309,7 @@ bool TaskCycled::run(Time_ms period, Time_ms firstRunDelay, uint32_t cyclesCount
 }
 
 QueueBase::QueueBase(unsigned int queue_size, size_t object_size) :
-    m_handle((Handle) xQueueCreate(queue_size, object_size)), m_capacity(queue_size)
+    m_capacity(queue_size), m_handle((Handle) xQueueCreate(queue_size, object_size))
 {
 }
 
@@ -387,6 +387,11 @@ size_t QueueBase::capacity()
     return m_capacity;
 }
 
+size_t QueueBase::space()
+{
+    return uxQueueSpacesAvailable((xQueueHandle) m_handle);
+}
+
 Mutex::Mutex() :
     m_handle(xSemaphoreCreateMutex())
 {
@@ -446,11 +451,35 @@ bool CriticalSection::is_locked()
     return m_locked;
 }
 
+CriticalSectionISR::CriticalSectionISR()
+{
+    m_uxSavedInterruptStatus = taskENTER_CRITICAL_FROM_ISR();
+}
+
+CriticalSectionISR::~CriticalSectionISR()
+{
+    unlock();
+}
+
+void CriticalSectionISR::unlock()
+{
+    if (m_locked)
+    {
+        taskEXIT_CRITICAL_FROM_ISR(m_uxSavedInterruptStatus);
+        m_locked = false;
+    }
+}
+
+bool CriticalSectionISR::is_locked()
+{
+    return m_locked;
+}
+
 }
 
 ///////////////////////////////////////
 /// Global new/delete redefinition
-
+/*
 void * operator new(std::size_t n)
 {
     return pvPortMalloc(n);
@@ -480,3 +509,4 @@ void operator delete[](void *p, size_t) throw()
 {
     vPortFree(p);
 }
+*/

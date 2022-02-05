@@ -109,6 +109,7 @@ set(H_HEADERS
     ./cpp/include/modules/monitor-impl.hpp
     ./cpp/include/os/cpp-freertos.hpp
     ./cpp/include/os/os-types.hpp
+    ./cpp/include/os/async-worker.hpp
     ./cpp/include/data-saver.hpp
     ./cpp/include/macro.hpp
     ./cpp/include/wideusb-device.hpp
@@ -191,6 +192,8 @@ set(CPP_SOURCES
     ./cpp/src/modules/dac-impl.cpp
     ./cpp/src/modules/gps-impl.cpp
     ./cpp/src/os/cpp-freertos-impl.cpp
+    ./cpp/src/os/safe-malloc-free.cpp
+    ./cpp/src/os/async-worker.cpp
     ./cpp/src/cpp-bootstrap.cpp
     ./cpp/src/wideusb-device.cpp
     ./cpp/src/socket-queue-rtos.cpp
@@ -229,7 +232,10 @@ set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --specs=nano.specs -Xlinke
 
 add_executable(${ELF_NAME} ${EXE_SOURCES})
 
-target_link_libraries(${ELF_NAME} wideusb-common)
+target_link_libraries(${ELF_NAME}
+    wideusb-common
+    -Wl,--wrap=malloc
+    -Wl,--wrap=free)
 
 target_include_directories(${ELF_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/newlib

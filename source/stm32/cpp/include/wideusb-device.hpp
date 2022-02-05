@@ -2,6 +2,7 @@
 #define WIDEUSBDEVICE_HPP
 
 #include "wideusb/device-core.hpp"
+#include "os/async-worker.hpp"
 
 class WideusbDevice
 {
@@ -17,6 +18,7 @@ private:
 
     Address m_device_address;
 
+    AsyncWorker m_common_async_worker{2048, 10, "com_async"};
     NetService::ptr m_net_srv;
     DeviceCore m_core;
 

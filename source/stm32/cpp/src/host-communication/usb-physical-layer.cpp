@@ -1,6 +1,8 @@
 #include "host-communication/usb-physical-layer.hpp"
 #include "usbd_cdc_if.h"
 
+#include <string>
+
 static USBPhysicalLayer* usb_handler = nullptr;
 
 void usbd_rx_handler(const uint8_t* buffer, uint32_t size)
@@ -9,11 +11,10 @@ void usbd_rx_handler(const uint8_t* buffer, uint32_t size)
         usb_handler->receive(buffer, size);
 }
 
-USBPhysicalLayer::USBPhysicalLayer(size_t ring_buffer_size) :
-    m_input_ring_buffer(ring_buffer_size)
+USBPhysicalLayer::USBPhysicalLayer(AsyncWorker& async_worker, size_t ring_buffer_size) :
+    m_input_ring_buffer(ring_buffer_size), m_async_worker(async_worker)
 {
     connect_to_usb_port();
-    //m_notification_thread.run();
 }
 
 
@@ -36,7 +37,7 @@ void USBPhysicalLayer::receive(const uint8_t* data, size_t size)
 {
     // Here we are in interrupt context
     m_input_ring_buffer.put(data, std::min(size, m_input_ring_buffer.free_space()));
-    //m_notification_thread.notify_give_form_ISR();
+    m_async_worker.post(m_callback);
 }
 
 void USBPhysicalLayer::connect_to_usb_port()
@@ -44,13 +45,3 @@ void USBPhysicalLayer::connect_to_usb_port()
     usb_handler = this;
 }
 
-void USBPhysicalLayer::notification_thread_body()
-{
-    for (;;)
-    {
-        os::Thread::notify_take();
-        printf("notified\n");
-        if (m_callback)
-            m_callback();
-    }
-}

@@ -31,8 +31,15 @@ bool MonitorBack::has_stdout_subscriber()
 void MonitorBack::socket_listener_status()
 {
     monitor::status::Response response;
-    response.heap_total = get_heap_total();
-    response.heap_used = get_heap_used();
+    MonitorStats ms = get_stats();
+    response.heap_total = ms.heap_total;
+    response.heap_used = ms.heap_used;
+    response.allocated = ms.allocated;
+    response.malloc_times = ms.malloc_times;
+    response.malloc_isr_times = ms.malloc_isr_times;
+    response.free_times = ms.free_times;
+    response.free_isr_times = ms.free_isr_times;
+
     PBuffer resp_buffer = Buffer::create(sizeof(response), &response);
 
     while (m_status_socket.has_incoming())

@@ -22,8 +22,13 @@ namespace monitor {
         #pragma pack(push, 1)
         struct Response
         {
-            uint32_t heap_used = 0;
             uint32_t heap_total = 0;
+            uint32_t heap_used = 0;
+            uint32_t allocated = 0;
+            uint32_t malloc_times = 0;
+            uint32_t malloc_isr_times = 0;
+            uint32_t free_times = 0;
+            uint32_t free_isr_times = 0;
         };
         #pragma pack(pop)
     }

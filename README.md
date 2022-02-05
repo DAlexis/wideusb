@@ -6,6 +6,7 @@ Nearest roadmap and tasks
 =====
 - Networking
     - [?] Retransmitting to another network devices
+    - [ ] TimePlanner should return time of next activity
     - [ ] Internal transmission without network
     - [ ] Struct-based layers parameters
     - [ ] Send ack second time if already sended ?
@@ -21,8 +22,13 @@ Nearest roadmap and tasks
     - [x] Add callbacks when package received
     - [x] Add package inspection functions
 
+- STM32 Hardware abstraction
+    - [ ] Devices driver structure: Driver <- Hal driver <- instance with concrete handlers configured by Cube
+	- [ ] Some kind of RTOS-based light asio analog
+	
 - Device core
 	- [ ] All time-related -> std::chrono
+	- [ ] Change debug printf to something without malloc https://stackoverflow.com/questions/262439/create-a-wrapper-function-for-malloc-and-free-in-c
     
 - Modules interface
     - [x] For each module make 'module back' and 'module front'. Front should be avaliable from MCU too.

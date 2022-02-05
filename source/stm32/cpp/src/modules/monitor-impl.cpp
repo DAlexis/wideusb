@@ -1,7 +1,7 @@
 #include "modules/monitor-impl.hpp"
 #include "wideusb/communication/modules/monitor.hpp"
 #include "wideusb/communication/modules/ports.hpp"
-
+#include "os/safe-malloc-free.hpp"
 #include "gpio.h"
 
 #include "newlib-monitor.h"
@@ -29,16 +29,19 @@ void MonitorImpl::tick()
     }
 }
 
-uint32_t MonitorImpl::get_heap_used()
+MonitorStats MonitorImpl::get_stats()
 {
-    return heap_used;
+    HeapStats heap_stats = get_heap_stats();
+    MonitorStats result;
+    result.heap_total = heap_total;
+    result.heap_used = heap_used;
+    result.allocated = heap_stats.allocated;
+    result.malloc_times = heap_stats.malloc_times;
+    result.malloc_isr_times = heap_stats.malloc_isr_times;
+    result.free_times = heap_stats.free_times;
+    result.free_isr_times = heap_stats.free_isr_times;
+    return result;
 }
-
-uint32_t MonitorImpl::get_heap_total()
-{
-    return heap_total;
-}
-
 
 extern "C" void write_impl(char *ptr, int len)
 {

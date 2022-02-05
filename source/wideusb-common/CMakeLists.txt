@@ -48,6 +48,8 @@ set(SOURCES
     wideusb/communication/modules/ports.hpp
     wideusb/communication/modules/ids.hpp
 
+    wideusb/modules/monitor-types.hpp
+
 
     src/front/base-front.cpp
     src/front/dac-front.cpp
