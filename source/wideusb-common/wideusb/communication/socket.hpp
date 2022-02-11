@@ -4,12 +4,15 @@
 #include "wideusb/communication/socket-queue.hpp"
 #include "wideusb/communication/network-types.hpp"
 #include "wideusb/communication/i-network-layer.hpp"
-#include "wideusb/communication/utils/time-group-maker.hpp"
 #include <functional>
 #include <queue>
 #include <memory>
+#include <chrono>
+
+using namespace std::literals::chrono_literals;
 
 class NetService;
+class DecodedSegment;
 
 class AddressFilter
 {
@@ -31,6 +34,24 @@ private:
     std::vector<Target> m_targets;
 };
 
+struct TimePlanningOptions
+{
+
+    TimePlanningOptions(std::chrono::milliseconds interval = 1000ms,
+                        std::chrono::milliseconds duration = 100ms,
+                        uint32_t cycles_count = 0,
+                        std::chrono::milliseconds timeout = 0ms) :
+        duration(duration), interval(interval), cycles_count(cycles_count), timeout(timeout)
+    { }
+
+    TimePlanningOptions& operator=(const TimePlanningOptions&) = default;
+
+    std::chrono::milliseconds duration; ///< Task may be peeked during duration
+    std::chrono::milliseconds interval;
+    uint32_t cycles_count;
+    std::chrono::milliseconds timeout;
+};
+
 struct SocketOptions
 {
     SocketOptions(Address address) :
@@ -49,21 +70,6 @@ struct SocketOptions
 
 class ISocketSystemSide;
 
-struct SocketState
-{
-    SocketState();
-    void clear();
-
-    enum class OutgoingState
-    {
-        clear = 0,
-        waiting,
-    };
-
-    SegmentID outgoing_segment_id = 0;
-    OutgoingState state = OutgoingState::clear;
-};
-
 class ISocketUserSide
 {
 public:
@@ -77,7 +83,7 @@ public:
     using OnDataReceivedCallback = std::function<void(uint32_t id, bool success)>;
 
     virtual ~ISocketUserSide() = default;
-    virtual SegmentID send(Address destination, PBuffer data) = 0;
+    virtual SegmentID send(Address destination, PBuffer data, std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now()) = 0;
     virtual std::optional<IncomingMessage> get_incoming() = 0;
     virtual SocketOptions& options() = 0;
     virtual AddressFilter& address_filter() = 0;
@@ -91,18 +97,22 @@ public:
     struct OutgoingMessage
     {
         Address receiver;
-        PBuffer data;
         uint32_t id = 0;
+        bool is_only_ack = false;
+        uint16_t sended_times = 0;
+        uint16_t cycles_count = 0;
+        std::chrono::steady_clock::time_point next_send;
+        SegmentBuffer packet;
     };
 
     virtual ~ISocketSystemSide() = default;
-    virtual OutgoingMessage get_outgoing() = 0;
-    virtual bool has_outgoing() = 0;
-    virtual void notify_outgoing_sending_done(SegmentID id, bool success) = 0;
-    virtual void push_incoming(Address sender, PBuffer data) = 0;
+
+    virtual std::optional<std::chrono::steady_clock::time_point> next_send_time() = 0;
+    virtual std::optional<SegmentBuffer> pick_outgoing_packet(std::chrono::steady_clock::time_point now) = 0;
+    virtual void receive_segment(std::chrono::steady_clock::time_point now, Address sender, const DecodedSegment& segment, bool duplicate) = 0;
+
     virtual const SocketOptions& get_options() = 0;
     virtual const AddressFilter& get_address_filter() = 0;
-    virtual SocketState& state() = 0;
 };
 
 
@@ -115,7 +125,8 @@ public:
     virtual ~IQueue() = default;
 
     virtual void push(const T& data) = 0;
-    virtual T front() = 0;
+    virtual void push_front(const T& data) = 0;
+    virtual T& front() = 0;
     virtual void pop() = 0;
     virtual size_t size() = 0;
     virtual size_t capacity() = 0;
@@ -146,7 +157,7 @@ public:
     SocketOptions& options() override;
 
     // ISocketUserSide
-    SegmentID send(Address destination, PBuffer data) override;
+    SegmentID send(Address destination, PBuffer data, std::chrono::steady_clock::time_point now = std::chrono::steady_clock::now()) override;
     std::optional<IncomingMessage> get_incoming() override;
     bool has_incoming() override;
     void drop_currently_sending() override;
@@ -157,22 +168,18 @@ protected:
     Port m_port;
     AddressFilter m_filter;
 
-    SocketState m_state;
-
     uint32_t m_id_counter = 0;
     OnIncomingDataCallback m_incoming_cb;
     OnDataReceivedCallback m_received_cb;
 
 private:
     // ISocketSystemSide
-    OutgoingMessage get_outgoing() override;
-    bool has_outgoing() override;
-    void notify_outgoing_sending_done(SegmentID id, bool success) override;
-    void push_incoming(Address sender, PBuffer data) override;
+    std::optional<std::chrono::steady_clock::time_point> next_send_time() override;
+    std::optional<SegmentBuffer> pick_outgoing_packet(std::chrono::steady_clock::time_point now) override;
+    void receive_segment(std::chrono::steady_clock::time_point now, Address sender, const DecodedSegment& segment, bool duplicate) override;
 
     const SocketOptions& get_options() override;
     const AddressFilter& get_address_filter() override;
-    SocketState& state() override;
 
     IQueue<IncomingMessage>::Ptr m_incoming_queue;
     IQueue<OutgoingMessage>::Ptr m_outgoing_queue;

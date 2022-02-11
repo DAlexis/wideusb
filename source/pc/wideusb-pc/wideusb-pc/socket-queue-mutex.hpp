@@ -2,7 +2,7 @@
 #define SOCKETQUEUEMUTEX_HPP
 
 #include "wideusb/communication/socket.hpp"
-#include <queue>
+#include <list>
 #include <mutex>
 
 template <typename T>
@@ -16,10 +16,16 @@ public:
     void push(const T& data) override
     {
         std::unique_lock<std::mutex> lock(m_mutex);
-        m_queue.push(data);
+        m_queue.push_back(data);
     }
 
-    T front() override
+    void push_front(const T& data) override
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        m_queue.push_front(data);
+    }
+
+    T& front() override
     {
         std::unique_lock<std::mutex> lock(m_mutex);
         return m_queue.front();
@@ -28,7 +34,8 @@ public:
     void pop() override
     {
         std::unique_lock<std::mutex> lock(m_mutex);
-        m_queue.pop();
+        if (!m_queue.empty())
+            m_queue.pop_front();
     }
 
     size_t size() override
@@ -42,7 +49,7 @@ public:
 private:
     size_t m_size;
     std::mutex m_mutex;
-    std::queue<T> m_queue;
+    std::list<T> m_queue;
 };
 
 

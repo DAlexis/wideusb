@@ -30,6 +30,8 @@ boost::asio::io_service& IOServiceRunner::io_service()
 
 void IOServiceRunner::stop()
 {
+    if (!m_work)
+        return;
     m_work.reset();
     m_io_service.stop();
     m_service_thread.join();

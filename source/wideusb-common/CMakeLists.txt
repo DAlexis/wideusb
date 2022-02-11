@@ -76,7 +76,6 @@ set(SOURCES
     src/communication/binary/channel.cpp
     src/communication/binary/network.cpp
     src/communication/binary/transport.cpp
-    src/communication/utils/time-group-maker.cpp
 
     src/buffer.cpp
 )

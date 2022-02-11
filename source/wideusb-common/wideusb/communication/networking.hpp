@@ -10,7 +10,6 @@
 #include "wideusb/communication/i-network-layer.hpp"
 #include "wideusb/communication/i-transport-layer.hpp"
 #include "wideusb/communication/i-package-inspector.hpp"
-#include "wideusb/communication/utils/time-group-maker.hpp"
 #include "wideusb/utils/caching-set.hpp"
 #include "wideusb/buffer.hpp"
 
@@ -51,6 +50,9 @@ public:
 
     IQueueFactory::Ptr get_queue_factory();
 
+    std::shared_ptr<INetworkLayer> get_network_layer();
+    std::shared_ptr<ITransportLayer> get_transport_layer();
+
 private:
     NetService(
             std::unique_ptr<INetServiceRunner> service_runner,
@@ -61,8 +63,7 @@ private:
             RandomGenerator rand_gen = nullptr);
 
     void serve_sockets_output(std::chrono::steady_clock::time_point time_ms);
-    void serve_sockets_input();
-    void serve_time_planner(std::chrono::steady_clock::time_point time_ms);
+    void serve_sockets_input(std::chrono::steady_clock::time_point now);
 
     void send_ack(std::shared_ptr<NetworkInterface> interface, Address src, Address dst, Port port, uint32_t ttl, uint32_t ack_id, SegmentID seg_id);
 
@@ -80,18 +81,6 @@ private:
 
     CachingSet<SegmentID> m_already_received_segments{100};
     CachingSet<PacketID> m_already_received_packets{100};
-
-    struct SocketSendTask
-    {
-        SocketSendTask(const ISocketSystemSide::OutgoingMessage& message, ISocketSystemSide* socket) :
-            message(message), socket(socket)
-        { }
-
-        ISocketSystemSide::OutgoingMessage message;
-        ISocketSystemSide* socket;
-    };
-
-    TimePlanner<SocketSendTask> m_time_planner; // TODO
 
     std::vector<std::shared_ptr<NetworkInterface>> m_interfaces;
 };

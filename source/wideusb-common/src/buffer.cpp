@@ -72,7 +72,6 @@ PBuffer Buffer::create(SerialReadAccessor& data)
     return create(data, data.size());
 }
 
-
 Buffer::Buffer(size_t size, const void* init_data) :
     m_contents(size)
 {

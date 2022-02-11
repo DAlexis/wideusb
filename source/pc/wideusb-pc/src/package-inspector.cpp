@@ -14,7 +14,8 @@ PackageInspector::PackageInspector(std::shared_ptr<IChannelLayer> channel,
                  std::shared_ptr<ITransportLayer> transport) :
     m_channel(channel ? channel : std::make_shared<ChannelLayerBinary>()),
     m_network(network ? network : std::make_shared<NetworkLayerBinary>()),
-    m_transport(transport ? transport : std::make_shared<TransportLayerBinary>())
+    m_transport(transport ? transport : std::make_shared<TransportLayerBinary>()),
+    m_created(std::chrono::steady_clock::now())
 {
 
 }
@@ -70,7 +71,8 @@ void PackageInspector::inspect_package(const PBuffer data, const std::string& co
             oss << "│  ╚═════════════════" << packets[i].options.ttl << endl;
         }
     }
-    std::cout << context_msg << ", len = " << data->size() << std::endl;
+    std::cout << "[" << std::chrono::duration_cast<std::chrono::milliseconds> (std::chrono::steady_clock::now() - m_created).count() << "ms] "
+              <<  context_msg << ", len = " << data->size() << std::endl;
     std::cout << oss.str() << std::endl;
 
 }

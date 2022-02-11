@@ -96,6 +96,16 @@ IQueueFactory::Ptr NetService::get_queue_factory()
     return m_queue_factory;
 }
 
+std::shared_ptr<INetworkLayer> NetService::get_network_layer()
+{
+    return m_network;
+}
+
+std::shared_ptr<ITransportLayer> NetService::get_transport_layer()
+{
+    return m_transport;
+}
+
 void NetService::serve_sockets()
 {
     serve_sockets(std::chrono::steady_clock::now());
@@ -105,9 +115,8 @@ void NetService::serve_sockets()
 
 void NetService::serve_sockets(std::chrono::steady_clock::time_point time_ms)
 {
-    serve_sockets_input();
+    serve_sockets_input(time_ms);
     serve_sockets_output(time_ms);
-    serve_time_planner(time_ms);
 }
 
 void NetService::send_ack(std::shared_ptr<NetworkInterface> interface, Address src, Address dst, Port port, uint32_t ttl, uint32_t ack_id, SegmentID seg_id)
@@ -119,39 +128,44 @@ void NetService::send_ack(std::shared_ptr<NetworkInterface> interface, Address s
     interface->physical->send(sb.merge());
 }
 
-void NetService::serve_sockets_output(std::chrono::steady_clock::time_point time_ms)
+void NetService::serve_sockets_output(std::chrono::steady_clock::time_point now)
 {
-    // Sending cycle
+    std::chrono::steady_clock::time_point next_output_serve = now + 10s;
     for (auto& socket : m_sockets)
     {
-        SocketState& state = socket->state();
-        const SocketOptions& options = socket->get_options();
-
-        if (state.state == SocketState::OutgoingState::clear)
-        {
-            // Socket is ready to transmit data
-            if (!socket->has_outgoing())
-                continue; // No data
-
-            ISocketSystemSide::OutgoingMessage outgoing = socket->get_outgoing();
-            state.outgoing_segment_id = outgoing.id;
-            m_time_planner.add(TimePlanner<SocketSendTask>::Task(
-                                   SocketSendTask(outgoing, socket),
-                                   state.outgoing_segment_id, time_ms, options.retransmitting_options));
-
-            state.state = SocketState::OutgoingState::waiting;
+        auto next_time = socket->next_send_time();
+        if (!next_time.has_value())
             continue;
+
+        if (*next_time <= now)
+        {
+            auto seg_buf = socket->pick_outgoing_packet(now);
+            if (!seg_buf.has_value())
+                continue;
+
+            for (auto& interface : m_interfaces)
+            {
+                SegmentBuffer copy_for_interface = *seg_buf;
+                interface->channel->encode(copy_for_interface);
+                auto merged = copy_for_interface.merge();
+                if (m_package_inspector)
+                {
+                    m_package_inspector->inspect_package(merged, "Outgoung data");
+                }
+
+                interface->physical->send(merged);
+            }
         }
 
-        if (!m_time_planner.has_task(state.outgoing_segment_id))
-        {
-            socket->notify_outgoing_sending_done(state.outgoing_segment_id, !socket->get_options().need_acknoledgement);
-            state.clear();
-        }
+        next_time = socket->next_send_time();
+        if (next_time.has_value() && *next_time < next_output_serve)
+            next_output_serve = *next_time;
     }
+    if (m_service_runner)
+        m_service_runner->post_serve_sockets(std::chrono::duration_cast<std::chrono::milliseconds>(next_output_serve - now));
 }
 
-void NetService::serve_sockets_input()
+void NetService::serve_sockets_input(std::chrono::steady_clock::time_point now)
 {
     for (auto& interface : m_interfaces)
     {
@@ -164,12 +178,9 @@ void NetService::serve_sockets_input()
 
         std::vector<DecodedFrame> frames = interface->channel->decode(interface->physical->incoming());
 
-
         for (const auto& frame : frames)
         {
             std::vector<DecodedPacket> packets = m_network->decode(frame.frame);
-
-            std::vector<DecodedPacket> transit_packets;
 
             for (const auto& packet : packets)
             {
@@ -178,9 +189,6 @@ void NetService::serve_sockets_input()
 
                 std::vector<ISocketSystemSide*> receivers = receivers_of_addr(packet.options.receiver);
 
-                if (receivers.empty())
-                    continue;
-
                 if (receivers.empty() || packet.options.retranslate_if_received)
                 {
                     for (auto& retransmit_interface : m_interfaces)
@@ -188,7 +196,6 @@ void NetService::serve_sockets_input()
                         if (!retransmit_interface->retransmission_to_interface)
                             continue;
 
-                        // Packet is transit
                         if (packet.options.ttl == 1)
                             continue;
 
@@ -202,91 +209,25 @@ void NetService::serve_sockets_input()
                     continue;
                 }
 
+                if (receivers.empty())
+                    continue;
+
                 std::vector<DecodedSegment> segments = m_transport->decode(packet.packet);
                 for (const auto& segment : segments)
                 {
-                    if (m_already_received_segments.check_update(segment.segment_id))
-                        continue;
+                    bool duplicate = m_already_received_segments.check_update(segment.segment_id);
 
                     for (auto receiver : receivers)
                     {
-                        SocketState& state = receiver->state();
                         const SocketOptions& options = receiver->get_options();
 
                         if (options.port != segment.port)
                             continue;
 
-                        // TODO change this code to send ack many times
-                        if (segment.flags & DecodedSegment::Flags::need_ack)
-                        {
-                            send_ack(interface, options.address, packet.options.sender, options.port, options.ttl, segment.segment_id, segment.segment_id + 1);
-                        }
-
-                        // If we got package with acknoledgement and we are waiting for it
-                        if (segment.flags & DecodedSegment::Flags::is_ack)
-                        {
-                            m_time_planner.remove(segment.ack_for_segment_id);
-
-                            if (state.state == SocketState::OutgoingState::waiting
-                                    // && receiver->get_options().need_acknoledgement
-                                    && segment.ack_for_segment_id == state.outgoing_segment_id)
-                            {
-                                // We were waiting for this ack
-                                receiver->notify_outgoing_sending_done(segment.ack_for_segment_id, true);
-                                state.clear();
-                            }
-                        }
-
-                        if (!segment.segment.empty())
-                        {
-                            BufferAccessor accessor(segment.segment);
-                            receiver->push_incoming(packet.options.sender, Buffer::create(accessor));
-                        }
+                        receiver->receive_segment(now, packet.options.sender, segment, duplicate);
                     }
                 }
             }
-        }
-    }
-}
-
-void NetService::serve_time_planner(std::chrono::steady_clock::time_point time_ms)
-{
-    auto batch = m_time_planner.get_batch(time_ms);
-    if (batch.tasks.empty())
-        return;
-
-    // Classifying packages by its network options
-    std::map <NetworkOptions, SegmentBuffer> package_by_addr;
-    for (auto send_task : batch.tasks)
-    {
-        SegmentBuffer sb(send_task.message.data);
-        auto socket = send_task.socket;
-
-        const NetworkOptions opts(socket->get_options().address, send_task.message.receiver, 0, socket->get_options().ttl);
-        m_transport->encode(
-                    sb,
-                    socket->get_options().port,
-                    socket->state().outgoing_segment_id,
-                    socket->get_options().need_acknoledgement);
-        package_by_addr[opts].push_back(sb);
-    }
-
-    // Encoding grouped packages
-    for (auto& it: package_by_addr)
-    {
-        SegmentBuffer& sb = it.second;
-        NetworkOptions opts = it.first;
-        opts.id = m_rand_gen(); // Changing id to random
-        m_network->encode(sb, opts);
-        for (auto& interface : m_interfaces)
-        {
-            interface->channel->encode(sb);
-            auto merged = sb.merge();
-            if (m_package_inspector)
-            {
-                m_package_inspector->inspect_package(merged, "Outgoung data");
-            }
-            interface->physical->send(sb.merge());
         }
     }
 }

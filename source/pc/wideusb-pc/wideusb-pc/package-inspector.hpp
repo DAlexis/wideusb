@@ -8,6 +8,8 @@
 #include "wideusb/communication/i-transport-layer.hpp"
 #include "wideusb/communication/i-package-inspector.hpp"
 
+#include <chrono>
+
 class PackageInspector : public IPackageInspector
 {
 public:
@@ -22,6 +24,7 @@ private:
     std::shared_ptr<INetworkLayer> m_network;
     std::shared_ptr<ITransportLayer> m_transport;
     size_t m_max_buffer_len_to_print = 20;
+    std::chrono::steady_clock::time_point m_created;
 };
 
 #endif // PACKAGEINSPECTOR_HPP

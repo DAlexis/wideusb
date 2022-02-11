@@ -329,6 +329,13 @@ public:
         return *p_data;
     }
 
+    T& front_ref(Ticks time_to_wait = max_delay)
+    {
+        T* p_data;
+        QueueBase::front(&p_data, time_to_wait);
+        return *p_data;
+    }
+
     using QueueBase::capacity;
     using QueueBase::size;
     using QueueBase::space;

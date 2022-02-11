@@ -32,7 +32,7 @@ TEST_F(NetworkingTest, HeaderSize)
 {
     auto tp = std::chrono::steady_clock::now();
     Socket sock1(service, 0x12345678, 10);
-    sock1.send(0x87654321, Buffer::create(1, "X"));
+    sock1.send(0x87654321, Buffer::create(1, "X"), tp);
     service->serve_sockets(tp);
     PBuffer data = physical->out_next();
     ASSERT_NE(nullptr, data);
@@ -42,7 +42,7 @@ TEST_F(NetworkingTest, HeaderSize)
 
     sock1.options().need_acknoledgement = false;
     sock1.drop_currently_sending();
-    sock1.send(0x87654321, Buffer::create(1, "X"));
+    sock1.send(0x87654321, Buffer::create(1, "X"), tp);
     service->serve_sockets(tp + 60001ms);
     data = physical->out_next();
     ASSERT_NE(nullptr, data);
@@ -61,7 +61,7 @@ TEST_F(NetworkingTest, BasicOperatingWithAck)
     Socket sock3(service, 0x87654321, 11);
     Socket sock4(service, 0x87654320, 10);
 
-    sock1.send(0x87654321, Buffer::create(sizeof(test_data), test_data));
+    sock1.send(0x87654321, Buffer::create(sizeof(test_data), test_data), tp);
 
     // Send data to physical device
     service->serve_sockets(tp);
@@ -106,7 +106,7 @@ TEST_F(NetworkingTest, BasicOperatingNoAck)
     sock1.options().retransmitting_options.cycles_count = 1;
     sock1.options().retransmitting_options.timeout = 0ms;
 
-    sock1.send(0x87654321, Buffer::create(sizeof(test_data), test_data));
+    sock1.send(0x87654321, Buffer::create(sizeof(test_data), test_data), tp);
 
     // Send data to physical device
     service->serve_sockets(tp);
@@ -136,6 +136,23 @@ TEST_F(NetworkingTest, BasicOperatingNoAck)
     PBuffer data = sock_incoming->data;
     ASSERT_EQ(0, memcmp(data->data(), test_data, sizeof(test_data)));
 }
+/*
+TEST_F(NetworkingTest, BasicOperatingDifferentAckSockets)
+{
+    auto tp = std::chrono::steady_clock::now();
+    bool data_delivered = false;
+
+    Socket sock1(service, 0x12345678, 10, nullptr, [&data_delivered](uint32_t, bool success) { data_delivered = success; });
+    Socket sock2(service, 0x87654321, 10, [&sock2](ISocketUserSide& socket){  });
+
+    // Sock1 is this
+    sock1.options().need_acknoledgement = true;
+    sock1.options().retransmitting_options.cycles_count = 1;
+    sock1.options().retransmitting_options.timeout = 0ms;
+    sock1.options().ttl = 1; // Do not retransmit over network
+    // Sock2 is default
+
+}*/
 
 TEST_F(NetworkingTest, DataCorruption)
 {
@@ -151,7 +168,7 @@ TEST_F(NetworkingTest, DataCorruption)
     sock1.options().retransmitting_options = timings;
     sock2.options().retransmitting_options = timings;
 
-    sock1.send(0x87654321, Buffer::create(sizeof(test_data), test_data));
+    sock1.send(0x87654321, Buffer::create(sizeof(test_data), test_data), tp);
     service->serve_sockets(tp);
 
     ASSERT_EQ(1, physical->out_queue_size());
@@ -169,7 +186,7 @@ TEST_F(NetworkingTest, DataCorruption)
     ASSERT_FALSE(data_delivered_2_to_1);
     ASSERT_EQ(0, physical->out_queue_size());
 
-    service->serve_sockets(tp + 1001ms); // Data should be sent again
+    service->serve_sockets(tp + 1101ms); // Data should be sent again
     ASSERT_EQ(1, physical->out_queue_size());
 
     // Corrupting
@@ -178,16 +195,16 @@ TEST_F(NetworkingTest, DataCorruption)
 
     physical->in_next(data->data(), data->size());
     // Getting corrupted data
-    service->serve_sockets(tp + 1001ms);
+    service->serve_sockets(tp + 1101ms);
     ASSERT_FALSE(data_delivered_1_to_2);
     ASSERT_FALSE(data_delivered_2_to_1);
 
     //loop_back(*physical);
-    service->serve_sockets(tp + 2101ms); // Data should be sent again
+    service->serve_sockets(tp + 2201ms); // Data should be sent again
     ASSERT_EQ(1, physical->out_queue_size());
     loop_back(*physical); // Now sending correct data on physical
 
-    service->serve_sockets(tp + 2101ms); // Data received, sending ack
+    service->serve_sockets(tp + 2201ms); // Data received, sending ack
 
     ASSERT_TRUE(sock2.has_incoming());
 
@@ -202,7 +219,7 @@ TEST_F(NetworkingTest, DataCorruption)
 
     loop_back(*physical); // Now ack over physical layer
 
-    service->serve_sockets(tp + 2101ms); // Now ack should be received
+    service->serve_sockets(tp + 2201ms); // Now ack should be received
 
     ASSERT_TRUE(data_delivered_1_to_2);
 }

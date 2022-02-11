@@ -36,7 +36,8 @@ void ModuleFrontBase::create_module_socket_listener()
 
     bool success = false;
 
-    m_create_module_socket.reset();
+    //m_create_module_socket.reset();
+    //подумать тут
 
     core::create_module::Response response;
     if (incoming.data->size() == sizeof(response))

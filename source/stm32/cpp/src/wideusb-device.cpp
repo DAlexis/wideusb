@@ -27,10 +27,16 @@
 
 char buffer[512];
 
+void blink()
+{
+    HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
+}
+
 WideusbDevice::WideusbDevice() :
     m_device_address(HAL_GetUIDw0() + HAL_GetUIDw1() + HAL_GetUIDw2()),
     m_net_srv(NetService::create(
-        NetSrvRunner::create(), //nullptr,
+        NetSrvRunner::create(),
+//        nullptr,
         std::make_shared<QueueFactory>(),
         std::make_shared<NetworkLayerBinary>(),
         std::make_shared<TransportLayerBinary>())
