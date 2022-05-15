@@ -1,0 +1,3 @@
+#!/bin/bash
+
+st-flash write ${BIN_NAME} 0x8000000

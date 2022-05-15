@@ -220,7 +220,7 @@ set(EXE_SOURCES
 )
 
 set(ELF_NAME ${PROJECT_NAME}.elf)
-set(BIN_NAME ${PROJECT_NAME}.bin)
+set(BIN_NAME ${ELF_NAME}.bin)
 set(MAP_NAME ${PROJECT_NAME}.map)
 
 set(LDSCRIPTS "-T STM32F407VGTx_FLASH.ld")
@@ -255,6 +255,8 @@ target_include_directories(${ELF_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/USB_DEVICE/Target
     ${PROJECT_SOURCE_DIR}/../../communication/include
 )
+
+configure_file(flash.sh.in flash.sh)
 
 STM32_ADD_HEX_BIN_TARGETS(${ELF_NAME})
 #STM32_ADD_DUMP_TARGET(${ELF_NAME})
