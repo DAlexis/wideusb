@@ -2,7 +2,7 @@
 #define NRF24L01_HPP
 
 #include "os/os-types.hpp"
-#include "devices/nrf24l01-driver-base.hpp"
+#include "devices/nrf24l01/nrf24l01-driver-base.hpp"
 
 #include <functional>
 #include <cstdint>

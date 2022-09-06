@@ -115,12 +115,16 @@ set(H_HEADERS
     ./cpp/include/wideusb-device.hpp
     ./cpp/include/net-srv-runner.hpp
     ./cpp/include/socket-queue-rtos.hpp
-    ./cpp/include/devices/nrf24l01.hpp
-    ./cpp/include/devices/nrf24l01-driver-impl.hpp
-    ./cpp/include/devices/nrf24l01-driver-base.hpp
+    ./cpp/include/devices/nrf24l01/nrf24l01.hpp
+    ./cpp/include/devices/nrf24l01/nrf24l01-driver-base.hpp
+    ./cpp/include/devices/nrf24l01/nrf24l01-driver-hal.hpp
 
+    ./cpp/include/devices/hal.hpp
+    ./cpp/include/devices/sx1278/sx1278.hpp
     ./cpp/include/devices/sx1278/SX1278.h
     ./cpp/include/devices/sx1278/SX1278_hw.h
+    ./cpp/include/devices/sx1278/sx1278-driver-base.hpp
+    ./cpp/include/devices/sx1278/sx1278-driver-hal.hpp
 
     ./cpp/include/connectivity/spi-interrupt-callbacks.hpp
 )
@@ -197,12 +201,15 @@ set(CPP_SOURCES
     ./cpp/src/cpp-bootstrap.cpp
     ./cpp/src/wideusb-device.cpp
     ./cpp/src/socket-queue-rtos.cpp
-    ./cpp/src/devices/nrf24l01.cpp
-    ./cpp/src/devices/nrf24l01-driver-impl.cpp
-    ./cpp/src/devices/nrf24l01-driver-base.cpp
+    ./cpp/src/devices/nrf24l01/nrf24l01.cpp
+    ./cpp/src/devices/nrf24l01/nrf24l01-driver-base.cpp
+    ./cpp/src/devices/nrf24l01/nrf24l01-driver-hal.cpp
 
+    ./cpp/src/devices/sx1278/sx1278.cpp
     ./cpp/src/devices/sx1278/SX1278.c
     ./cpp/src/devices/sx1278/SX1278_hw.c
+    ./cpp/src/devices/sx1278/sx1278-driver-hal.cpp
+    ./cpp/src/devices/sx1278/sx1278-driver-base.cpp
 
     ./cpp/src/connectivity/spi-interrupt-callbacks.cpp
 )

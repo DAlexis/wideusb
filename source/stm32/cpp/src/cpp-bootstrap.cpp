@@ -2,13 +2,8 @@
 #include "os/cpp-freertos.hpp"
 #include "wideusb-device.hpp"
 
-#include "usart.h"
 #include <usbd_cdc_if.h>
 #include <stdio.h>
-
-#include "dac.h"
-#include "dma.h"
-#include "tim.h"
 
 void cpp_bootstrap()
 {

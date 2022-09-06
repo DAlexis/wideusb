@@ -23,7 +23,7 @@
 
 
 
-#include "devices/nrf24l01.hpp"
+#include "devices/nrf24l01/nrf24l01.hpp"
 #include "os/cpp-freertos.hpp"
 
 #include <stdio.h>
