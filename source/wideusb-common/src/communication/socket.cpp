@@ -74,7 +74,7 @@ SegmentID Socket::send(Address destination, PBuffer data, std::chrono::steady_cl
     );
 
     m_net_service->get_network_layer()->encode(item.packet,
-                                               NetworkOptions(m_options.address, destination, m_net_service->generate_segment_id(), m_options.ttl));
+                                               NetworkOptions(m_options.address, destination, m_net_service->generate_segment_id(), m_options.ttl, m_options.is_broadcast));
 
     m_outgoing_queue->push(item);
     m_net_service->on_socket_send();
@@ -194,7 +194,7 @@ void Socket::receive_segment(std::chrono::steady_clock::time_point now, Address 
 
         // SegmentBuffer& segment, uint32_t port, uint32_t segment_id, bool need_ack = false, bool make_ack = false, uint32_t ack_id = 0
         m_net_service->get_transport_layer()->encode(sb, m_options.port, outgoing.id, false, true, segment.segment_id);
-        m_net_service->get_network_layer()->encode(sb, NetworkOptions(m_options.address, sender, m_net_service->generate_segment_id(), m_options.ttl));
+        m_net_service->get_network_layer()->encode(sb, NetworkOptions(m_options.address, sender, m_net_service->generate_segment_id(), m_options.ttl, false));
 
         outgoing.packet = sb;
         m_outgoing_queue->push_front(outgoing);

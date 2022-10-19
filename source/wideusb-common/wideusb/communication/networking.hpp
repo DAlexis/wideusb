@@ -65,8 +65,6 @@ private:
     void serve_sockets_output(std::chrono::steady_clock::time_point time_ms);
     void serve_sockets_input(std::chrono::steady_clock::time_point now);
 
-    void send_ack(std::shared_ptr<NetworkInterface> interface, Address src, Address dst, Port port, uint32_t ttl, uint32_t ack_id, SegmentID seg_id);
-
     std::vector<ISocketSystemSide*> receivers_of_addr(Address addr);
 
     std::unique_ptr<INetServiceRunner> m_service_runner;

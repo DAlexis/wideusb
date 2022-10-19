@@ -119,15 +119,6 @@ void NetService::serve_sockets(std::chrono::steady_clock::time_point time_ms)
     serve_sockets_output(time_ms);
 }
 
-void NetService::send_ack(std::shared_ptr<NetworkInterface> interface, Address src, Address dst, Port port, uint32_t ttl, uint32_t ack_id, SegmentID seg_id)
-{
-    SegmentBuffer sb;
-    m_transport->encode(sb, port, seg_id, false, true, ack_id);
-    m_network->encode(sb, NetworkOptions(src, dst, m_rand_gen(), ttl));
-    interface->channel->encode(sb);
-    interface->physical->send(sb.merge());
-}
-
 void NetService::serve_sockets_output(std::chrono::steady_clock::time_point now)
 {
     std::chrono::steady_clock::time_point next_output_serve = now + 10s;
@@ -189,14 +180,14 @@ void NetService::serve_sockets_input(std::chrono::steady_clock::time_point now)
 
                 std::vector<ISocketSystemSide*> receivers = receivers_of_addr(packet.options.receiver);
 
-                if (receivers.empty() || packet.options.retranslate_if_received)
+                if (packet.options.ttl > 1 && (receivers.empty() || packet.options.is_broadcast))
                 {
                     for (auto& retransmit_interface : m_interfaces)
                     {
-                        if (!retransmit_interface->retransmission_to_interface)
+                        if (!retransmit_interface->enable_retransmission_here)
                             continue;
 
-                        if (packet.options.ttl == 1)
+                        if (retransmit_interface == interface && !retransmit_interface->enable_retransmission_back)
                             continue;
 
                         SegmentBuffer retransmitted_data(Buffer::create(packet.packet.size(), packet.packet.data()));
@@ -206,7 +197,6 @@ void NetService::serve_sockets_input(std::chrono::steady_clock::time_point now)
                         retransmit_interface->channel->encode(retransmitted_data);
                         retransmit_interface->physical->send(retransmitted_data.merge());
                     }
-                    continue;
                 }
 
                 if (receivers.empty())

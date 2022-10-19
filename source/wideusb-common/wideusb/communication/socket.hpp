@@ -66,6 +66,7 @@ struct SocketOptions
     uint32_t output_queue_limit = 20;
 
     bool need_acknoledgement = true;
+    bool is_broadcast = false;
 };
 
 class ISocketSystemSide;

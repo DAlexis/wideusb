@@ -11,7 +11,7 @@ class NetworkingTest : public ::testing::Test
 protected:
     void SetUp() override {
         physical = std::make_shared<PhysicalLayerBuffer>(500);
-        interface = std::make_shared<NetworkInterface>(physical, std::make_shared<ChannelLayerBinary>(), true);
+        interface = std::make_shared<NetworkInterface>(physical, std::make_shared<ChannelLayerBinary>(), false);
 
         service = NetService::create(nullptr,
                                      std::make_shared<MutexQueueFactory>(),

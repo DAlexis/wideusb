@@ -8,15 +8,15 @@
 
 struct NetworkOptions
 {
-    NetworkOptions(Address sender, Address receiver, uint32_t id, uint8_t ttl) :
-        sender(sender), receiver(receiver), id(id), ttl(ttl)
+    NetworkOptions(Address sender, Address receiver, uint32_t id, uint8_t ttl, bool is_broadcast) :
+        sender(sender), receiver(receiver), id(id), ttl(ttl), is_broadcast(is_broadcast)
     { }
 
     Address sender;
     Address receiver;
     uint32_t id;
     uint8_t ttl;
-    bool retranslate_if_received = false;
+    bool is_broadcast; ///< Retransmit package even if it was received
 
     bool operator<(const NetworkOptions& right) const
     {
@@ -28,8 +28,8 @@ struct NetworkOptions
             return ttl < right.ttl;
         if (id != right.id)
             return id < right.id;
-        if (retranslate_if_received != right.retranslate_if_received)
-            return retranslate_if_received < right.retranslate_if_received;
+        if (is_broadcast != right.is_broadcast)
+            return is_broadcast < right.is_broadcast;
 
         return false;
     }

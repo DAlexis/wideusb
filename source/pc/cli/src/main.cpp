@@ -28,7 +28,7 @@ int main()
 
     auto runner = IOServiceRunner::create();
     auto sp = std::make_shared<PhysicalLayerSerialPort>(runner, "/dev/ttyACM0");
-    auto interface = std::make_shared<NetworkInterface>(sp, std::make_shared<ChannelLayerBinary>(), true);
+    auto interface = std::make_shared<NetworkInterface>(sp, std::make_shared<ChannelLayerBinary>(), false);
 
 
     auto net_srv = NetService::create(std::move(NetServiceRunnerAsio::create(runner)),

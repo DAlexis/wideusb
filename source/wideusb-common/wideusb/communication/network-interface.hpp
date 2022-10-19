@@ -9,12 +9,13 @@
 struct NetworkInterface
 {
     NetworkInterface(std::shared_ptr<IPhysicalLayer> physical, std::shared_ptr<IChannelLayer> channel, bool retransmission_to_interface) :
-        physical(physical), channel(channel), retransmission_to_interface(retransmission_to_interface)
+        physical(physical), channel(channel), enable_retransmission_here(retransmission_to_interface)
     {}
 
     std::shared_ptr<IPhysicalLayer> physical;
     std::shared_ptr<IChannelLayer> channel;
-    bool retransmission_to_interface = true;
+    bool enable_retransmission_here = true;
+    bool enable_retransmission_back = false;
 };
 
 

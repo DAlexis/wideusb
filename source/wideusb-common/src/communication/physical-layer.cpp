@@ -56,8 +56,12 @@ void exchange_data(std::vector<PhysicalLayerBuffer*> phys_layers)
     for (auto source : phys_layers)
     {
         PBuffer data = source->out_next();
+        if (!data)
+            continue;
         for (auto dest : phys_layers)
         {
+            if (dest == source)
+                continue;
             dest->in_next(data->data(), data->size());
         }
     }

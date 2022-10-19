@@ -1,12 +1,13 @@
 project("wideusb-communication-unit-tests")
 
 set(EXE_SOURCES
-    ${PROJECT_SOURCE_DIR}/test-ring-buffer.cpp
-    ${PROJECT_SOURCE_DIR}/test-buffer.cpp
-    ${PROJECT_SOURCE_DIR}/test-channel-layer-binary.cpp
-    ${PROJECT_SOURCE_DIR}/test-network-layer-binary.cpp
-    ${PROJECT_SOURCE_DIR}/test-transport-layer-binary.cpp
-    ${PROJECT_SOURCE_DIR}/test-networking.cpp
+    test-ring-buffer.cpp
+    test-buffer.cpp
+    test-channel-layer-binary.cpp
+    test-network-layer-binary.cpp
+    test-transport-layer-binary.cpp
+    test-networking.cpp
+    test-networking-chain.cpp
 )
 
 add_executable(${PROJECT_NAME} ${EXE_SOURCES} ${EXE_HPP})
