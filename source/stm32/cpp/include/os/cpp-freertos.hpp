@@ -37,6 +37,8 @@ extern const Ticks max_delay;
 void delay(std::chrono::steady_clock::duration duration);
 void delay_iter_us(uint32_t count);
 void delay_spinlock(std::chrono::steady_clock::duration duration);
+Ticks get_ticks_count();
+
 
 void assert_print(const char* message, const char* file, int line);
 

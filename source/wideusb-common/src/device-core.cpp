@@ -14,8 +14,7 @@ DeviceCore::DeviceCore(NetService::ptr net_service, Address device_address) :
     m_device_discovery_sock.options().need_acknoledgement = false;
     m_device_discovery_sock.options().retransmitting_options.cycles_count = 1;
     m_device_discovery_sock.options().retransmitting_options.timeout = 0ms;
-    m_device_discovery_sock.address_filter().listen_address(0x00000000, 0x00000000); // Any
-
+    m_device_discovery_sock.address_filter().listen_address(0xFFFFFFFF, 0xFFFFFFFF); // Only 0xFFFFFFFF for device discovery
 }
 
 bool DeviceCore::create_module(ModuleID id)
@@ -57,7 +56,7 @@ void DeviceCore::sock_device_discovery_listener()
     while (m_device_discovery_sock.has_incoming())
     {
         const Socket::IncomingMessage inc = *m_device_discovery_sock.get_incoming();
-
+        printf("[DeviceCore] Device discovery request received\r\n");
         core::discovery::Response response;
         PBuffer body = Buffer::create(sizeof(response), &response);
         m_device_discovery_sock.send(inc.sender, body);

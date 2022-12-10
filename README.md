@@ -4,23 +4,17 @@ Board based on STM32F4 to connect various perepherial over USB. May be useful wi
 
 Nearest roadmap and tasks
 =====
+- Base
+    - [ ] Check that RingBuffer is thread-safe
+    - [ ] Something for errors reporting
+
 - Networking
-    - [?] Retransmitting to another network devices
+    - [x] Retransmitting to another network devices (works on PC simulation)
     - [ ] TimePlanner should return time of next activity
     - [ ] Internal transmission without network
     - [ ] Struct-based layers parameters
     - [ ] Send ack second time if already sended ?
     - [ ] Move base64 to communication
-    - [x] Implement FragmentBuffer
-    - [x] Implement sub-BufferAccessor 
-    - [x] Channel binary layer
-    - [x] Network binary layer
-    - [x] Transport binary layer
-    - [x] Socket state knowledge
-    - [x] Socket queue limiting
-    - [x] Forward sender address to client side
-    - [x] Add callbacks when package received
-    - [x] Add package inspection functions
 
 - STM32 Hardware abstraction
     - [ ] Devices driver structure: Driver <- Hal driver <- instance with concrete handlers configured by Cube
@@ -64,8 +58,10 @@ Nearest roadmap and tasks
 		- [ ] SPI without IRQ
 
 - [ ] LoRa module
-	- [ ] Double device test
-	- [ ] Code refactoring and adaptation
+	- [x] Double device test
+	- [x] Code refactoring and adaptation
+        - [x] Adapt as a class
+        - [ ] Make physical layer
 
 - [ ] State saving in EEPROM
 

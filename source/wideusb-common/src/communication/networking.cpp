@@ -180,6 +180,14 @@ void NetService::serve_sockets_input(std::chrono::steady_clock::time_point now)
 
                 std::vector<ISocketSystemSide*> receivers = receivers_of_addr(packet.options.receiver);
 
+//                printf("interface %s: received package\r\n", interface->name);
+//                printf("    from %d\r\n", int(packet.options.sender));
+//                printf("    to %d\r\n", int(packet.options.receiver));
+//                printf("    broadcast %d\r\n", int(packet.options.is_broadcast));
+//                printf("    ttl %d\r\n", int(packet.options.ttl));
+//                printf("    sockets that receive %d\r\n", int(receivers.size()));
+
+
                 if (packet.options.ttl > 1 && (receivers.empty() || packet.options.is_broadcast))
                 {
                     for (auto& retransmit_interface : m_interfaces)
@@ -196,7 +204,10 @@ void NetService::serve_sockets_input(std::chrono::steady_clock::time_point now)
                         m_network->encode(retransmitted_data, opts);
                         retransmit_interface->channel->encode(retransmitted_data);
                         retransmit_interface->physical->send(retransmitted_data.merge());
+//                        printf("  retransmitted to %s\r\n", retransmit_interface->name);
                     }
+                } else {
+//                    printf("  no retransmission\r\n");
                 }
 
                 if (receivers.empty())

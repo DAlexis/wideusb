@@ -137,7 +137,7 @@
 #define SX1278_LORA_SF_12		6
 
 SX1278Device::SX1278Device(std::shared_ptr<SX1278DriverBase> driver) :
-    driver(driver)
+    driver(driver), m_rx_buffer(MAX_PACKET)
 {
 }
 
@@ -295,7 +295,7 @@ uint8_t SX1278Device::LoRaRxPacket()
     unsigned char packet_size;
 
     if (driver->get_DIO0()) {
-        memset(rxBuffer, 0x00, MAX_PACKET);
+        memset(m_rx_buffer.data(), 0x00, m_rx_buffer.size());
 
         addr = SPIRead(LR_RegFifoRxCurrentaddr); //last packet addr
         SPIWrite(LR_RegFifoAddrPtr, addr); //RxBaseAddr -> FiFoAddrPtr
@@ -306,11 +306,11 @@ uint8_t SX1278Device::LoRaRxPacket()
             packet_size = SPIRead(LR_RegRxNbBytes); //Number for received bytes
         }
 
-        SPIBurstRead(0x00, rxBuffer, packet_size);
-        readBytes = packet_size;
+        SPIBurstRead(0x00, m_rx_buffer.data(), packet_size);
         clearLoRaIrq();
+        return packet_size;
     }
-    return readBytes;
+    return 0;
 }
 
 int SX1278Device::LoRaEntryTx(uint8_t length, uint32_t timeout)
@@ -400,14 +400,9 @@ uint8_t SX1278Device::available()
     return LoRaRxPacket();
 }
 
-uint8_t SX1278Device::read(uint8_t *rxBuf, uint8_t length)
+const std::vector<uint8_t>& SX1278Device::get_rx_buffer() const
 {
-    if (length != readBytes)
-        length = readBytes;
-    memcpy(rxBuf, rxBuffer, length);
-    rxBuf[length] = '\0';
-    readBytes = 0;
-    return length;
+    return m_rx_buffer;
 }
 
 uint8_t SX1278Device::RSSI_LoRa()

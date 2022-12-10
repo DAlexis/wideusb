@@ -86,5 +86,8 @@ TEST(NetworkingChain, TransmitOverChain)
     auto sock2_incoming = sock2.get_incoming();
 
     ASSERT_TRUE(sock1_incoming.has_value());
+    ASSERT_EQ(sock1_incoming->sender, 0x321);
+
     ASSERT_TRUE(sock2_incoming.has_value());
+    ASSERT_EQ(sock2_incoming->sender, 0x123);
 }

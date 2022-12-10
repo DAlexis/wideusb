@@ -3,6 +3,7 @@
 
 #include "devices/sx1278/sx1278-driver-base.hpp"
 
+#include <vector>
 #include <memory>
 
 class SX1278Device
@@ -270,7 +271,7 @@ public:
      *
      * \return     returns number of read bytes
      */
-    uint8_t read(uint8_t *rxBuf, uint8_t length);
+    const std::vector<uint8_t>& get_rx_buffer() const;
 
     /**
      * \brief Returns RSSI (LoRa)
@@ -353,7 +354,7 @@ private:
 
     SX1278_STATUS status;
 
-    uint8_t rxBuffer[MAX_PACKET];
+    std::vector<uint8_t> m_rx_buffer;
     uint8_t readBytes;
 };
 

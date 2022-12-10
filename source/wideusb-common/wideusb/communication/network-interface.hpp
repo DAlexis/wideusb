@@ -16,6 +16,8 @@ struct NetworkInterface
     std::shared_ptr<IChannelLayer> channel;
     bool enable_retransmission_here = true;
     bool enable_retransmission_back = false;
+
+    const char* name = "default";
 };
 
 

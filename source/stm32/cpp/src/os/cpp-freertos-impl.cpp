@@ -53,6 +53,11 @@ void delay_spinlock(std::chrono::steady_clock::duration duration)
     }
 }
 
+Ticks get_ticks_count()
+{
+    return xTaskGetTickCount();
+}
+
 Thread::Thread(TaskFunction function, const char* name, uint32_t stack_size, Priority priority) :
     m_name(name), m_stack_size(stack_size), m_priority(priority), m_task_function(function)
 {

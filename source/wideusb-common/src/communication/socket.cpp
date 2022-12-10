@@ -49,7 +49,6 @@ const AddressFilter& Socket::get_address_filter()
 // ISocketUserSide
 SegmentID Socket::send(Address destination, PBuffer data, std::chrono::steady_clock::time_point now)
 {
-
     size_t out_size = m_outgoing_queue->size();
     if (
             m_options.output_queue_limit != 0

@@ -12,6 +12,9 @@ public:
     void run();
 
 private:
+    static uint32_t get_unique_hw_id();
+    static uint32_t rand_modified();
+
     std::shared_ptr<IModule> create_monitor();
     std::shared_ptr<IModule> create_gps();
     std::shared_ptr<IModule> create_dac();

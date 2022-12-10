@@ -2,11 +2,14 @@
 #include "wideusb/communication/modules/monitor.hpp"
 #include "wideusb/communication/modules/ports.hpp"
 #include "os/safe-malloc-free.hpp"
+#include "os/cpp-freertos.hpp"
 #include "gpio.h"
+#include "usart.h"
 
 #include "newlib-monitor.h"
 
 #include <string>
+#include <mutex>
 
 RingBuffer MonitorImpl::stdout_buffer{1000};
 
@@ -43,8 +46,15 @@ MonitorStats MonitorImpl::get_stats()
     return result;
 }
 
+extern std::shared_ptr<os::Mutex> printf_mutex;
+
 extern "C" void write_impl(char *ptr, int len)
 {
-    MonitorImpl::stdout_buffer.put(ptr, len);
-
+    if (printf_mutex)
+        printf_mutex->lock();
+//    MonitorImpl::stdout_buffer.put(ptr, len);
+//    while (HAL_UART_GetState(&huart1) != HAL_UART_STATE_READY);
+    HAL_UART_Transmit(&huart2, (uint8_t*) ptr, len, HAL_MAX_DELAY);
+    if (printf_mutex)
+        printf_mutex->unlock();
 }

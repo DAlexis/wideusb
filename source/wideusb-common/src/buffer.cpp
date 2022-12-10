@@ -142,7 +142,12 @@ bool Buffer::put(const void* data, size_t size)
     size_t old_size = m_contents.size();
     extend(size);
 
-    memcpy(m_contents.data() + old_size, data, size);
+    if (data != nullptr)
+    {
+        memcpy(m_contents.data() + old_size, data, size);
+    } else {
+        memset(m_contents.data() + old_size, 0x00, size);
+    }
     return true;
 }
 
@@ -252,6 +257,11 @@ bool RingBuffer::put(const void* src, size_t size)
         m_p_write = second_part_size;
     }
     return true;
+}
+
+bool RingBuffer::put(PBuffer buf)
+{
+    return put(buf->data(), buf->size());
 }
 
 bool RingBuffer::put(SerialReadAccessor& accessor, size_t size)

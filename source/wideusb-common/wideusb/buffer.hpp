@@ -178,6 +178,7 @@ public:
 
     bool put(const void* src, size_t size) override;
     bool put(SerialReadAccessor& accessor, size_t size) override;
+    bool put(PBuffer buf);
     bool will_fit(size_t size) override;
 
     void get(uint8_t* buf, size_t size) const override;

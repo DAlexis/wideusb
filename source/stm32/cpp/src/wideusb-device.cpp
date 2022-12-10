@@ -26,6 +26,7 @@
 
 #include "devices/sx1278/sx1278.hpp"
 #include "devices/sx1278/sx1278-driver-hal.hpp"
+#include "devices/sx1278/sx1278-physical-layer.hpp"
 #include "spi.h"
 
 char buffer[512];
@@ -35,30 +36,61 @@ void blink()
     HAL_GPIO_TogglePin(GPIOD, GPIO_PIN_13);
 }
 
+std::shared_ptr<SX1278PhysicalLayer> sx1278_phys_layer;
+
+std::shared_ptr<os::Mutex> printf_mutex;
+
 WideusbDevice::WideusbDevice() :
-    m_device_address(HAL_GetUIDw0() + HAL_GetUIDw1() + HAL_GetUIDw2()),
+    m_device_address(get_unique_hw_id()),
     m_net_srv(NetService::create(
         NetSrvRunner::create(),
-//        nullptr,
         std::make_shared<QueueFactory>(),
         std::make_shared<NetworkLayerBinary>(),
-        std::make_shared<TransportLayerBinary>())
+        std::make_shared<TransportLayerBinary>(),
+        nullptr,
+        rand_modified)
     ),
     m_core(m_net_srv, m_device_address)
 {
-    m_net_srv->add_interface(
-                std::make_shared<NetworkInterface>(std::make_shared<USBPhysicalLayer>(m_common_async_worker), std::make_shared<ChannelLayerBinary>(), false));
+    srand(get_unique_hw_id());
+    printf_mutex = std::make_shared<os::Mutex>();
+
+    auto usb_interface = std::make_shared<NetworkInterface>(
+                std::make_shared<USBPhysicalLayer>(m_common_async_worker),
+                std::make_shared<ChannelLayerBinary>(),
+                true);
+    usb_interface->name = "usb";
+    m_net_srv->add_interface(usb_interface);
+
+    auto sx1278driver = std::make_shared<SX1278DriverHAL>(
+                GPIOPin(LORA_RESET_GPIO_Port, LORA_RESET_Pin),
+                GPIOPin(LORA_INT_GPIO_Port, LORA_INT_Pin),
+                GPIOPin(LORA_NSS_GPIO_Port, LORA_NSS_Pin),
+                &hspi2);
+
+    sx1278_phys_layer = std::make_shared<SX1278PhysicalLayer>(sx1278driver);
+    sx1278_phys_layer->run();
+
+    auto sx1278_interface = std::make_shared<NetworkInterface>(
+                sx1278_phys_layer,
+                std::make_shared<ChannelLayerBinary>(),
+                true);
+
+    sx1278_interface->name = "sx1278";
+    m_net_srv->add_interface(sx1278_interface);
+
     m_core.add_module_factory(ids::monitor, [this](){ return create_monitor(); });
     m_core.add_module_factory(ids::gps, [this](){ return create_gps(); });
     m_core.add_module_factory(ids::dac, [this](){ return create_dac(); });
 }
 
 //#define TEST_NRF
-#define TEST_LORA
+//#define TEST_LORA
 
 void WideusbDevice::run()
 {
-    os::delay(std::chrono::milliseconds((HAL_GetUIDw0() + HAL_GetUIDw1() + HAL_GetUIDw2()) % 1000));
+    os::delay(std::chrono::milliseconds(get_unique_hw_id() % 1000));
+
 
 #ifdef TEST_NRF
     std::shared_ptr<NRF24L01IODriverBase> nrf_driver = std::make_shared<NRF24L01IODriverHal>(
@@ -133,6 +165,7 @@ void WideusbDevice::run()
     auto last_time_interrogate = std::chrono::steady_clock::now();
     auto last_time_send = std::chrono::steady_clock::now();
     int message = 0;
+    PBuffer buf = Buffer::create(16);
     for (;;)
     {
         //m_net_srv->serve_sockets(std::chrono::steady_clock::now());
@@ -157,7 +190,9 @@ void WideusbDevice::run()
         if (time - last_time_send > 2000ms)
         {
             last_time_send = time;
-            printf("hi\n");
+            printf("hi, im alive (test send)\r\n");
+
+//            sx1278_phys_layer->send(buf);
 #ifdef TEST_NRF
             nrf.send(32, (uint8_t*)"test\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0");
             nrf.print_status();
@@ -212,4 +247,14 @@ std::shared_ptr<IModule> WideusbDevice::create_gps()
 std::shared_ptr<IModule> WideusbDevice::create_dac()
 {
     return std::make_shared<DACImpl>(m_net_srv, m_device_address);
+}
+
+uint32_t WideusbDevice::get_unique_hw_id()
+{
+    return HAL_GetUIDw0() + HAL_GetUIDw1() + HAL_GetUIDw2();
+}
+
+uint32_t WideusbDevice::rand_modified()
+{
+    return (uint32_t(rand()) + os::get_ticks_count()) % RAND_MAX;
 }

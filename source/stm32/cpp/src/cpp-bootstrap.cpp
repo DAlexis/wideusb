@@ -8,11 +8,10 @@
 void cpp_bootstrap()
 {
     // here is an entry point for C++ code
+    printf("Waiting 2s...\r\n");
     os::delay(2000ms);
 
-    printf("Starting\n");
-
-    printf("Driver created\n");
+    printf("Starting\r\n");
 
     WideusbDevice dev;
     dev.run();

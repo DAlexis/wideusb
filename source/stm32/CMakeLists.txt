@@ -125,8 +125,7 @@ set(H_HEADERS
     ./cpp/include/devices/sx1278/SX1278_hw.h
     ./cpp/include/devices/sx1278/sx1278-driver-base.hpp
     ./cpp/include/devices/sx1278/sx1278-driver-hal.hpp
-
-    ./cpp/include/connectivity/spi-interrupt-callbacks.hpp
+    ./cpp/include/devices/sx1278/sx1278-physical-layer.hpp
 )
 
 
@@ -210,8 +209,7 @@ set(CPP_SOURCES
     ./cpp/src/devices/sx1278/SX1278_hw.c
     ./cpp/src/devices/sx1278/sx1278-driver-hal.cpp
     ./cpp/src/devices/sx1278/sx1278-driver-base.cpp
-
-    ./cpp/src/connectivity/spi-interrupt-callbacks.cpp
+    ./cpp/src/devices/sx1278/sx1278-physical-layer.cpp
 )
 
 set(ASM_SOURCES

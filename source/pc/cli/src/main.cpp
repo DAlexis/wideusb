@@ -42,14 +42,14 @@ int main()
 
     DeviceDiscovery discovery(net_srv, 123);
     discovery.run();
-    std::this_thread::sleep_for(1s);
+    std::this_thread::sleep_for(5s);
 
     if (discovery.devices().empty())
     {
         std::cout << "Cannot discovery any device, exiting" << std::endl;
         runner->stop();
         return 0;
-    }
+    }/*
     Address target_addr = discovery.devices().front();
 
     std::cout << "Creating monitor" << std::endl;
@@ -61,6 +61,6 @@ int main()
 
     Waiter<const std::string&> waiter_status;
     mon->get_status_async(waiter_status.receiver());
-    std::cout << waiter_status.wait(5s) << std::endl;
+    std::cout << waiter_status.wait(5s) << std::endl;*/
     runner->stop();
 }
