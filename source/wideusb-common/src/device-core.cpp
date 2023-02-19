@@ -19,6 +19,7 @@ DeviceCore::DeviceCore(NetService::ptr net_service, Address device_address) :
 
 bool DeviceCore::create_module(ModuleID id)
 {
+    printf("[core] Create module request\r\n");
     if (m_modules.find(id) != m_modules.end())
         return true;
 

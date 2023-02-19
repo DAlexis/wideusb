@@ -99,6 +99,7 @@ set(H_HEADERS
     ./Core/Inc/usart.h
     ./Core/Inc/dma.h
     ./Core/Inc/spi.h
+#    stm32_lock.h
 
     ./cpp/include/host-communication/usb-physical-layer.hpp
     ./cpp/include/host-communication/usbd-input-handle.h
@@ -183,6 +184,7 @@ set(C_SOURCES
     ./Core/Src/usart.c
     ./Core/Src/freertos.c
     ./Core/Src/spi.c
+#    newlib_lock_glue.c
 )
 
 set(CPP_SOURCES
@@ -228,19 +230,19 @@ set(ELF_NAME ${PROJECT_NAME}.elf)
 set(BIN_NAME ${ELF_NAME}.bin)
 set(MAP_NAME ${PROJECT_NAME}.map)
 
-set(LDSCRIPTS "-T STM32F407VGTx_FLASH.ld")
-set(LDSCRIPTS_DIR "${PROJECT_SOURCE_DIR}")
-
 set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Werror=incompatible-pointer-types")
-
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --specs=nano.specs -Xlinker --gc-sections -L${LDSCRIPTS_DIR} -Wl,-Map,\"${MAP_NAME}\" ${LDSCRIPTS} ")
 
 add_executable(${ELF_NAME} ${EXE_SOURCES})
 
+target_compile_definitions(${ELF_NAME} PUBLIC STM32_THREAD_SAFE_STRATEGY=4)
+
 target_link_libraries(${ELF_NAME}
     wideusb-common
+    -Wl,-Map,\"${MAP_NAME}\"
     -Wl,--wrap=malloc
-    -Wl,--wrap=free)
+    -Wl,--wrap=free
+    -L${PROJECT_SOURCE_DIR}
+    "-T STM32F407VGTx_FLASH.ld")
 
 target_include_directories(${ELF_NAME} PRIVATE
     ${PROJECT_SOURCE_DIR}/newlib

@@ -19,8 +19,10 @@ public:
     void send(PBuffer data) override;
     void set_on_data_callback(std::function<void(void)> callback) override;
 
+    void tick();
+
 private:
-    constexpr static int message_len = 16;
+    constexpr static int message_len = 30;
     void service_loop();
     void switch_to_rx();
     void switch_to_tx();
@@ -31,6 +33,7 @@ private:
     std::function<void(void)> m_callback;
     std::vector<uint8_t> m_tx_buffer;
     os::Thread m_service_thread{[this](){ service_loop(); }, "sx1278", 512};
+    std::chrono::steady_clock::time_point m_last_send{std::chrono::steady_clock::now()};
 };
 
 

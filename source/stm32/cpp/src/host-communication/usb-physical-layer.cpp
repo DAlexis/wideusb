@@ -25,6 +25,7 @@ SerialReadAccessor& USBPhysicalLayer::incoming()
 
 void USBPhysicalLayer::send(PBuffer data)
 {
+    printf("USB=> data of size %d\r\n", int(data->size()));
     CDC_Transmit_FS(data->data(), data->size());
 }
 

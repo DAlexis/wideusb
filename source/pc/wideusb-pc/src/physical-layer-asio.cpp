@@ -53,7 +53,7 @@ void PhysicalLayerAsio::on_data_read(const boost::system::error_code& error, std
     if (bytes_transferred != 0)
     {
         size_t data_size = std::min(m_input_ring_buffer.free_space(), bytes_transferred);
-        m_input_buffer[bytes_transferred] = '\0';
+//        m_input_buffer[bytes_transferred] = '\0';
 
 
         m_input_ring_buffer.put(m_input_buffer.data(), data_size);

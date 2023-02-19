@@ -141,7 +141,7 @@ void NetService::serve_sockets_output(std::chrono::steady_clock::time_point now)
                 auto merged = copy_for_interface.merge();
                 if (m_package_inspector)
                 {
-                    m_package_inspector->inspect_package(merged, "Outgoung data");
+                    m_package_inspector->inspect_package(merged, "OUT>>>");
                 }
 
                 interface->physical->send(merged);
@@ -164,7 +164,7 @@ void NetService::serve_sockets_input(std::chrono::steady_clock::time_point now)
         {
             PBuffer incoming = Buffer::create(interface->physical->incoming().size());
             interface->physical->incoming().get(incoming->data(), incoming->size());
-            m_package_inspector->inspect_package(incoming, "Incoming data");
+            m_package_inspector->inspect_package(incoming, "IN<<<");
         }
 
         std::vector<DecodedFrame> frames = interface->channel->decode(interface->physical->incoming());

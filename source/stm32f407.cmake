@@ -2,6 +2,9 @@
 
 set(TOOLCHAIN_PREFIX "arm-none-eabi")
 
+set(MCU_FAMILY_DEFINITION "STM32F407xx" CACHE STRING "Define that reflects MCU family for STM32 system library")
+set(MCU_HSE_VALUE "8000000" CACHE STRING "External quartz resonator frequency")
+
 set(CMAKE_C_COMPILER "${TOOLCHAIN_PREFIX}-gcc" CACHE INTERNAL "ARM none-eabi C compiler")
 set(CMAKE_CXX_COMPILER "${TOOLCHAIN_PREFIX}-g++" CACHE INTERNAL "ARM none-eabi C++ compiler")
 set(CMAKE_ASM_COMPILER "${TOOLCHAIN_PREFIX}-gcc" CACHE INTERNAL "ARM none-eabi ASM compiler")
@@ -12,23 +15,14 @@ SET(CMAKE_SIZE "${TOOLCHAIN_PREFIX}-size" CACHE INTERNAL "ARM none-eabi size too
 SET(CMAKE_DEBUGER "${TOOLCHAIN_PREFIX}-gdb" CACHE INTERNAL "ARM none-eabi debuger")
 SET(CMAKE_CPPFILT "${TOOLCHAIN_PREFIX}-c++filt" CACHE INTERNAL "ARM none-eabi c++filt")
 
-# This two lines to avoid error 
-# arm-none-eabi-g++: error: unrecognized command line option '-rdynamic'
-# during compiler check. For some reasons test use '-rdynamic' by default, but arm-none-eabi-g* compilers does not support it
-#set(CMAKE_C_COMPILER_WORKS 1)
-#set(CMAKE_CXX_COMPILER_WORKS 1)
-
-# To remove -rdynamic
-#SET(CMAKE_SHARED_LIBRARY_LINK_C_FLAGS)
-#SET(CMAKE_SHARED_LIBRARY_LINK_CXX_FLAGS)
-
 SET(CMAKE_TRY_COMPILE_TARGET_TYPE STATIC_LIBRARY)
 
-set(CMAKE_C_CXX_FLAGS "-mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffunction-sections -fdata-sections -ffreestanding -fno-move-loop-invariants -Wall -DHSE_VALUE=8000000")
+set(CMAKE_C_CXX_FLAGS "-mcpu=cortex-m4 -mthumb -mfloat-abi=hard -mfpu=fpv4-sp-d16 -ffunction-sections -fdata-sections -ffreestanding -fno-move-loop-invariants -Werror=return-type -Wall -DHSE_VALUE=${MCU_HSE_VALUE}")
 set(CMAKE_C_CXX_FLAGS_DEBUG   "-g -gdwarf-2 -DDEBUG -O0")
 set(CMAKE_C_CXX_FLAGS_RELEASE "-Os")
+set(CMAKE_EXE_LINKER_FLAGS "-Wl,--gc-sections -specs=nano.specs -lc -lm -lnosys" CACHE INTERNAL "Linker flags to build .elf for target MCU")
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_CXX_FLAGS} -std=c17 -Wno-psabi")
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${CMAKE_C_CXX_FLAGS} -std=c17 -Wno-psabi -Werror=incompatible-pointer-types ")
 set(CMAKE_C_FLAGS_DEBUG   "${CMAKE_C_FLAGS_DEBUG} ${CMAKE_C_CXX_FLAGS_DEBUG}" )
 set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} ${CMAKE_C_CXX_FLAGS_RELEASE}" )
 
@@ -42,8 +36,8 @@ set(CMAKE_ASM_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE}" )
 
 set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS}")
 
-add_definitions(-DSTM32F407xx)
-add_definitions(-DUSE_HAL_DRIVER)
+add_definitions("-D${MCU_FAMILY_DEFINITION}")
+add_definitions("-DUSE_HAL_DRIVER")
 
 SET(ARM_NONE_EABI_GCC_TOOLCHAIN YES)
 

@@ -16,7 +16,7 @@ RingBuffer MonitorImpl::stdout_buffer{1000};
 MonitorImpl::MonitorImpl(NetService::ptr net_service, Address monitor_address) :
     MonitorBack(net_service, monitor_address)
 {
-
+    printf("[monitor] module created\r\n");
 }
 
 void MonitorImpl::tick()
@@ -34,6 +34,7 @@ void MonitorImpl::tick()
 
 MonitorStats MonitorImpl::get_stats()
 {
+    printf("get_stats()\r\n");
     HeapStats heap_stats = get_heap_stats();
     MonitorStats result;
     result.heap_total = heap_total;

@@ -13,9 +13,15 @@
 class PackageInspector : public IPackageInspector
 {
 public:
-    PackageInspector(std::shared_ptr<IChannelLayer> channel = nullptr,
-                     std::shared_ptr<INetworkLayer> network = nullptr,
-                     std::shared_ptr<ITransportLayer> transport = nullptr);
+    enum class Verbosity
+    {
+        laconic = 0,
+        full
+    };
+    PackageInspector(Verbosity verbosity = Verbosity::full,
+                    std::shared_ptr<IChannelLayer> channel = nullptr,
+                    std::shared_ptr<INetworkLayer> network = nullptr,
+                    std::shared_ptr<ITransportLayer> transport = nullptr);
 
     void inspect_package(const PBuffer data, const std::string& context_msg) override;
 
@@ -25,6 +31,7 @@ private:
     std::shared_ptr<ITransportLayer> m_transport;
     size_t m_max_buffer_len_to_print = 20;
     std::chrono::steady_clock::time_point m_created;
+    Verbosity m_verbosity;
 };
 
 #endif // PACKAGEINSPECTOR_HPP
